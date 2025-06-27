@@ -494,9 +494,15 @@ export const classSection = [
 ];
 export const language = [
   { value: "Select", label: "Select" },
-  { value: "English", label: "English" },
+  { value: "ggf", label: "jggjg" },
   { value: "Maths", label: "Maths" },
   { value: "Physics", label: "Physics" },
+];
+export const paymentMethods =[
+  { value: "Select", label: "Select" },
+  { value: "Online", label: "Online" },
+  { value: "CASH", label: "CASH" },
+  { value: "Check", label: "Check" },
 ];
 export const count = [
   { value: "Select", label: "Select" },
