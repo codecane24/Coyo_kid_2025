@@ -335,7 +335,7 @@ export const SidebarData = [
           },
           // { label: "Other Charges", link: routes.feesMaster },
           { label: "Fees Assign", link: routes.feesAssign },
-          { label: "Fees Collection Report", link: routes.feesCollectionReport },
+          // { label: "Fees Collection Report", link: routes.feesCollectionReport },
         ],
       },
       {
