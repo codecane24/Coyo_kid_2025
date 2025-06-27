@@ -2,7 +2,90 @@ import { all_routes } from "../../../feature-module/router/all_routes";
 const routes = all_routes;
 
 export const SidebarData = [
+  {
+    label: "USER MANAGMENT",
+    submenuOpen: true,
+    showSubRoute: false,
+    submenuHdr: "Main",
+    submenuItems: [
 
+    // Dashboard  
+      {
+        label: "Manage Users",
+        icon: "ti ti-layout-dashboard",
+        submenu: true,
+        showSubRoute: false,
+
+        submenuItems: [
+          { label: "Users", link: routes.adminDashboard },
+          { label: "Roles", link: routes.teacherDashboard },
+          { label: "Permissions", link: routes.studentDashboard },
+          { label: "", link: routes.parentDashboard },
+        ],
+      },
+
+      // Application
+      {
+        label: "Application",
+     icon: "ti ti-apps",
+
+        submenu: true,
+        showSubRoute: false,
+        submenuItems: [
+          {
+            label: "Chat",
+            link: routes.chat,
+            showSubRoute: false,
+          },
+          {
+            label: "Call",
+            link: routes.audioCall,
+            showSubRoute: false,
+          },
+          {
+            label: "Calendar",
+            link: routes.calendar,
+            showSubRoute: false,
+          },
+          {
+            label: "Email",
+            link: routes.email,
+            showSubRoute: false,
+          },
+          {
+            label: "To Do",
+            link: routes.todo,
+            showSubRoute: false,
+          },
+          {
+            label: "Notes",
+            link: routes.notes,
+            showSubRoute: false,
+          },
+          {
+            label: "File Manager",
+            link: routes.fileManager,
+            showSubRoute: false,
+          },
+        ],
+      },
+      // Other
+          {
+        label: "Other",
+        icon: "ti ti-layout-list",
+        submenu: true,
+        showSubRoute: false,
+        submenuItems: [
+          {
+            label: "Inquiry",
+            link: routes.inquiry,
+            showSubRoute: false,
+          },
+  
+        ],
+      },
+    ],
+  },
   {
     label: "MAIN",
     submenuOpen: true,
