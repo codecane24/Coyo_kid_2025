@@ -28,6 +28,16 @@ import TooltipOption from "../../../core/common/tooltipOption";
 import PredefinedDateRanges from "../../../core/common/datePicker";
 import { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
+
+type PDC = {
+  bank: string;
+  checkNo: string;
+  date: string;
+  amount: string;
+};
+
+type SelectedPDC = PDC & { index: number };
+
 const CollectFees = () => {
   const routes = all_routes;
   const data = collectFessData;
@@ -37,6 +47,55 @@ const CollectFees = () => {
       dropdownMenuRef.current.classList.remove("show");
     }
   };
+
+// PDC Logic
+ const [pdcList, setPdcList] = useState<PDC[]>([
+    { bank: 'HDFC Bank', checkNo: '123456', date: '2025-07-01', amount: '10000' },
+    { bank: 'ICICI Bank', checkNo: '223456', date: '2025-07-02', amount: '15000' },
+    { bank: 'SBI Bank', checkNo: '323456', date: '2025-07-03', amount: '12000' }
+  ]);
+const amountOptions = [
+  { label: '10,000', value: '10000' },
+  { label: '15,000', value: '15000' },
+  { label: '20,000', value: '20000' },
+];
+
+
+  const [selectedPdc, setSelectedPdc] = useState<SelectedPDC | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string>('Check');
+
+  // extra form fields for Online/Cash
+  const [receiptNo, setReceiptNo] = useState('');
+  const [receiverBank, setReceiverBank] = useState('');
+const [amount, setAmount] = useState('');
+
+  const [remark, setRemark] = useState('');
+
+  const handleRowClick = (index: number) => {
+    setSelectedPdc({ ...pdcList[index], index });
+    setPaymentMethod('Check');
+    setReceiptNo('');
+    setReceiverBank('');
+    setAmount('');
+    setRemark('');
+  };
+
+  const handlePaymentMethodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newMethod = e.target.value;
+
+    if (newMethod !== 'Check' && selectedPdc) {
+      if (window.confirm(`Are you sure you want to change payment method to ${newMethod}? This will remove the PDC entry.`)) {
+        const updatedList = [...pdcList];
+        updatedList.splice(selectedPdc.index, 1);
+        setPdcList(updatedList);
+        // PDC removed but form still shows below
+      }
+    }
+
+    setPaymentMethod(newMethod);
+  };
+
+
   const [newContents, setNewContents] = useState<number[]>([0]);
   const [tuesdayContents, settuesdayContents] = useState<number[]>([0]);
   const [wednessdayContents, setwednessdayContents] = useState<number[]>([0]);
@@ -298,11 +357,12 @@ Collect Fees
                           <div className="col-md-6">
                             <div className="mb-0">
                               <label className="form-label">Amount</label>
-                              <CommonSelect
-                                className="select"
-                                options={amount}
-                                defaultValue={amount[0]}
-                              />
+                       <CommonSelect
+  className="select"
+  options={amountOptions}
+  defaultValue={amountOptions[0]}
+/>
+
                             </div>
                           </div>
                           <div className="col-md-6">
@@ -430,401 +490,168 @@ Collect Fees
                         />
                       </div>
                     </div>
+
+                    
+                    {/* Student Details */}
                     <div className="container px-2"> {/* Wrap for spacing and centering */}
   <div className="row bg-light rounded py-2 px-3 my-3 mx-auto" style={{ maxWidth: '95%' }}>
     {/* Student ID */}
     <div className="col-md-2 mb-2">
-      <label className="form-label fw-semibold mb-0">Student ID</label>
+      <label className="form-label  mb-0">Student ID</label>
       <div className="">STU202501</div>
     </div>
 
     {/* Full Name */}
     <div className="col-md-3 mb-2">
-      <label className="form-label fw-semibold mb-0">Student Name</label>
+      <label className="form-label  mb-0">Student Name</label>
       <div className="">Priyansh Desai</div>
     </div>
 
     {/* Paid Fees */}
     <div className="col-md-2 mb-2">
-      <label className="form-label fw-semibold mb-0">Paid Fees</label>
+      <label className="form-label  mb-0">Paid Fees</label>
       <div className="text-success ">₹30,000</div>
     </div>
 
     {/* Unpaid Fees */}
     <div className="col-md-2 mb-2">
-      <label className="form-label fw-semibold mb-0">Unpaid Fees</label>
+      <label className="form-label  mb-0">Unpaid Fees</label>
       <div className="text-danger">₹5,000</div>
     </div>
 
     {/* Total Amount */}
     <div className="col-md-3 mb-2">
-      <label className="form-label fw-semibold mb-0">Total Amount</label>
+      <label className="form-label  mb-0">Total Amount</label>
       <div className="text-primary ">₹35,000</div>
     </div>
   </div>
 </div>
 <br></br>
-                    {/* <div className="col-lg-4">
-                      <div className="mb-3">
-                        <label className="form-label">Period Start Time</label>
-                        <CommonSelect className="select" options={period} />
-                      </div>
-                    </div>
-                    <div className="col-lg-4">
-                      <div className="mb-3">
-                        <label className="form-label">Duration(min)</label>
 
-                        <CommonSelect
-                          className="select"
-                          options={classduration}
-                        />
-                      </div>
-                    </div> */}
-                  </div>
-                  <div className="add-more-timetable">
-                    
-                    <div className="tab-content pt-0 dashboard-tab">
-                      <div
-                        className="tab-pane fade show active"
-                        id="pills-monday"
-                        role="tabpanel"
-                        aria-labelledby="pills-monday-tab"
-                      >
-                        {newContents.map((_, index) => (
-                        <div className="add-timetable-row">
-                          <div className="row timetable-count">
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Payment Method</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={paymentMethods}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Teacher</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={language}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Time From</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={Time}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="d-flex align-items-end">
-                                <div className="mb-3 flex-fill">
-                                  <label className="form-label">Time To</label>
-                                  <CommonSelect
-                                    className="select"
-                                    options={Timeto}
-                                  />
-                                </div>
-                                {newContents.length > 1 && (
-                                <div className="mb-3 ms-2">
-                                  <Link to="#" className="delete-time-table"  onClick={() => removeContent(index)}>
-                                    <i className="ti ti-trash" />
-                                  </Link>
-                                </div>
-                                 )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                          ))}
-                        <div>
-                          <Link
-                            to="#"
-                            className="btn btn-primary add-new-timetable"
-                            onClick={addNewContent}
-                          >
-                            <i className="ti ti-square-rounded-plus-filled me-2" />
-                            Add New
-                          </Link>
-                        </div>
-                      </div>
-                      <div
-                        className="tab-pane fade"
-                        id="pills-tuesday"
-                        role="tabpanel"
-                        aria-labelledby="pills-tuesday-tab"
-                      >
-                         {tuesdayContents.map((_, index) => (
-                        <div className="add-timetable-row">
-                          <div className="row timetable-count">
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Payment Method</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={paymentMethods}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Teacher</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={teacher}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Time From</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={Time}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="d-flex align-items-end">
-                                <div className="mb-3 flex-fill">
-                                  <label className="form-label">Time To</label>
-                                  <CommonSelect
-                                    className="select"
-                                    options={Timeto}
-                                  />
-                                </div>
-                                {tuesdayContents.length > 1 && (
-                                <div className="mb-3 ms-2">
-                                  <Link to="#" className="delete-time-table" onClick={() => removetuesdayContent(index)}>
-                                    <i className="ti ti-trash" />
-                                  </Link>
-                                </div>
-                                  )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                          ))}
-                        <div>
-                          <Link
-                            to="#"   onClick={addTuesdayContent}
-                            className="btn btn-primary add-new-timetable"
-                          >
-                            <i className="ti ti-square-rounded-plus-filled me-2" />
-                            Add New
-                          </Link>
-                        </div>
-                      </div>
-                      <div
-                        className="tab-pane fade"
-                        id="pills-wednesday"
-                        role="tabpanel"
-                        aria-labelledby="pills-wednesday-tab"
-                      >
-                        {wednessdayContents.map((_, index) => (
-                        <div className="add-timetable-row">
-                          <div className="row timetable-count">
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Payment Method</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={paymentMethods}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Teacher</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={teacher}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Time From</label>
 
-                                <CommonSelect
-                                  className="select"
-                                  options={Time}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="d-flex align-items-end">
-                                <div className="mb-3 flex-fill">
-                                  <label className="form-label">Time To</label>
-                                  <CommonSelect
-                                    className="select"
-                                    options={Time}
-                                  />
-                                </div>
-                                {wednessdayContents.length > 1 && (
-                                <div className="mb-3 ms-2">
-                                  <Link to="#" className="delete-time-table" onClick={() => removewednessdayContent(index)}>
-                                    <i className="ti ti-trash" />
-                                  </Link>
-                                </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                         ))}
-                        <div>
-                          
-                          <Link
-                            to="#"
-                            className="btn btn-primary add-new-timetable"  onClick={addwednessdayContent}
-                          >
-                            <i className="ti ti-square-rounded-plus-filled me-2" />
-                            Add New
-                          </Link>
-                        </div>
-                      </div>
-                      <div
-                        className="tab-pane fade"
-                        id="pills-thursday"
-                        role="tabpanel"
-                        aria-labelledby="pills-thursday-tab"
-                      >
-                         {thursdayContents.map((_, index) => (
-                        <div className="add-timetable-row">
-                          <div className="row timetable-count">
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Payment Method</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={paymentMethods}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Teacher</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={routinename}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Time From</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={Time}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="d-flex align-items-end">
-                                <div className="mb-3 flex-fill">
-                                  <label className="form-label">Time To</label>
-                                  <CommonSelect
-                                    className="select"
-                                    options={Time}
-                                  />
-                                </div>
-                                {thursdayContents.length > 1 && (
-                                <div className="mb-3 ms-2">
-                                  <Link to="#" className="delete-time-table" onClick={() => removethursdayContents(index)}>
-                                    <i className="ti ti-trash" />
-                                  </Link>
-                                </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                         ))}
-                        <div>
-                          <Link
-                            to="#"
-                            className="btn btn-primary add-new-timetable" onClick={addthursdayContents}
-                          >
-                            <i className="ti ti-square-rounded-plus-filled me-2" />
-                            Add New
-                          </Link>
-                        </div>
-                      </div>
-                      <div
-                        className="tab-pane fade"
-                        id="pills-friday"
-                        role="tabpanel"
-                        aria-labelledby="pills-friday-tab"
-                      >
-                        {fridayContents.map((_, index) => (
-                        <div className="add-timetable-row">
-                          <div className="row timetable-count">
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Subject</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={language}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Teacher</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={teacher}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="mb-3">
-                                <label className="form-label">Time From</label>
-                                <CommonSelect
-                                  className="select"
-                                  options={Time}
-                                />
-                              </div>
-                            </div>
-                            <div className="col-lg-3">
-                              <div className="d-flex align-items-end">
-                                <div className="mb-3 flex-fill">
-                                  <label className="form-label">Time To</label>
-                                  <CommonSelect
-                                    className="select"
-                                    options={Timeto}
-                                  />
-                                </div>
-                                {fridayContents.length > 1 && (
-                                <div className="mb-3 ms-2">
-                                  <Link to="#" className="delete-time-table" onClick={() => removefridayContents(index)}>
-                                    <i className="ti ti-trash" />
-                                  </Link>
-                                </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                         ))}
-                        <div>
-                          <Link
-                            to="#"
-                            className="btn btn-primary add-new-timetable"  onClick={addfridayContents}
-                          >
-                            <i className="ti ti-square-rounded-plus-filled me-2" />
-                            Add New
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
+
                   </div>
+ <div className="container mt-4">
+      <h5>PDC Table</h5>
+      <div className="table-responsive">
+        <table className="table table-bordered">
+          <thead className="table-light">
+            <tr>
+              <th>Bank Name</th>
+              <th>Check No.</th>
+              <th>Date</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pdcList.map((item, idx) => (
+              <tr key={idx} onClick={() => handleRowClick(idx)} style={{ cursor: 'pointer' }}>
+                <td>{item.bank}</td>
+                <td>{item.checkNo}</td>
+                <td>{item.date}</td>
+                <td>₹{item.amount}</td>
+              </tr>
+            ))}
+            {pdcList.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center text-muted">
+                  No PDC entries.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <hr />
+
+      {selectedPdc && (
+        <div className="bg-light p-4 rounded">
+          <h5>Fill Payment Details</h5>
+          <div className="row">
+            {/* Bank Name, Check No, Date, Amount - always show */}
+            <div className="col-md-3 mb-3">
+              <label className="form-label">Bank Name</label>
+              <input className="form-control" value={selectedPdc.bank} readOnly />
+            </div>
+            <div className="col-md-3 mb-3">
+              <label className="form-label">Check No.</label>
+              <input className="form-control" value={selectedPdc.checkNo} readOnly />
+            </div>
+            <div className="col-md-3 mb-3">
+              <label className="form-label">Date</label>
+              <input className="form-control" value={selectedPdc.date} readOnly />
+            </div>
+            <div className="col-md-3 mb-3">
+              <label className="form-label">Amount</label>
+              <input className="form-control" value={selectedPdc.amount} readOnly />
+            </div>
+
+            {/* Payment Method */}
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Payment Method</label>
+              <select
+                className="form-select"
+                value={paymentMethod}
+                onChange={handlePaymentMethodChange}
+              >
+                <option value="Check">Check</option>
+                <option value="Online">Online</option>
+                <option value="Cash">Cash</option>
+              </select>
+            </div>
+
+            {/* Show additional fields for Online */}
+            {paymentMethod === 'Online' && (
+              <>
+                <div className="col-md-3 mb-3">
+                  <label className="form-label">Receipt No.</label>
+                  <input className="form-control" value={receiptNo} onChange={(e) => setReceiptNo(e.target.value)} />
                 </div>
+                <div className="col-md-3 mb-3">
+                  <label className="form-label">Amount</label>
+                  <input className="form-control" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                </div>
+                <div className="col-md-3 mb-3">
+                  <label className="form-label">Receiver Bank</label>
+                  <input className="form-control" value={receiverBank} onChange={(e) => setReceiverBank(e.target.value)} />
+                </div>
+                <div className="col-md-3 mb-3">
+                  <label className="form-label">Remark</label>
+                  <input className="form-control" value={remark} onChange={(e) => setRemark(e.target.value)} />
+                </div>
+              </>
+            )}
+
+            {/* Show additional fields for Cash */}
+            {paymentMethod === 'Cash' && (
+              <>
+                <div className="col-md-3 mb-3">
+                  <label className="form-label">Receipt No.</label>
+                  <input className="form-control" value={receiptNo} onChange={(e) => setReceiptNo(e.target.value)} />
+                </div>
+                <div className="col-md-3 mb-3">
+                  <label className="form-label">Receiver Bank</label>
+                  <input className="form-control" value={receiverBank} onChange={(e) => setReceiverBank(e.target.value)} />
+                </div>
+                <div className="col-md-3 mb-3">
+                  <label className="form-label">Amount</label>
+<input className="form-control" value={amount} onChange={(e) => setAmount(e.target.value)} />
+
+
+
+
+                </div>
+                <div className="col-md-3 mb-3">
+                  <label className="form-label">Remark</label>
+                  <input className="form-control" value={remark} onChange={(e) => setRemark(e.target.value)} />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>    </div>
                 <div className="modal-footer">
                   <Link
                     to="#"
