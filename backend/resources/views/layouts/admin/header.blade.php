@@ -5,7 +5,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <base href="{{route('front.dashboard')}}">
+    <base href="{{'/'}}">
     <title>{{isset($title)?print_title($title).' | ':''}}{{ print_title(site_name) }}</title>
     <link href="{{Favicon}}" rel="icon" type="image/x-icon">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700|Roboto:300,400,500,600,700">

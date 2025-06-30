@@ -2,20 +2,20 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\Classes;
+use App\Models\Sections;
 use Illuminate\Http\Request;
 
-class ClassController extends Controller
+class SectionController extends Controller
 {
     /**
-     * Display a listing of the classes.
+     * Display a listing of the Sections.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $classes = Classes::select('id','name','status')->get();
-        return response()->json($classes);
+        $Sections = Sections::select('id','name','status')->get();
+        return response()->json($Sections);
     }
 
     /**
@@ -26,7 +26,7 @@ class ClassController extends Controller
      */
     public function show($id)
     {
-        $class = Classes::select('id','name','status')->findOrFail($id);
+        $class = Sections::select('id','name','status')->findOrFail($id);
         return response()->json($class);
     }
 }

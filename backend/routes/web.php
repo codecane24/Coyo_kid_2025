@@ -23,7 +23,7 @@ Route::get("clear-cache","General\GeneralController@ClearCache");
     Route::get('/', function () {
             return redirect()->route('home');
     });
-    Route::get('/home', 'frontend\HomeNewController@newtheme')->name('home');
+    Route::get('/home', 'General\GeneralController@Panel_Login')->name('home');
     Route::get('login', 'General\GeneralController@Panel_Login')->name('login');
 
   Route::group(['as'=>'user.', 'prefix' => 'user'], function() {
