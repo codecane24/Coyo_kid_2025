@@ -1,0 +1,459 @@
+/* Variables */
+:root {
+    --primary-color: #1A3765;
+    --secondary-color: #41A69C;
+    --text-light: #ffffff;
+    --text-dark: #333333;
+    --hover-color: rgba(65, 166, 156, 0.1);
+    --header-height: 60px;
+    --sidebar-width: 250px;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --transition: all 0.3s ease;
+}
+
+/* Modern Navigation Styles */
+.main-header {
+    background: var(--primary-color);
+    height: var(--header-height);
+    padding: 0;
+    box-shadow: var(--shadow-md);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+}
+
+/* Main Content Spacing */
+.main-content {
+    /* margin-top: var(--header-height); */
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+.nav-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+    padding: 0 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Left Side Styling */
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-right: auto;
+    min-width: 260px;
+}
+
+.mobile-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-light);
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.toggle-icon {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--text-light);
+    position: relative;
+    transition: var(--transition);
+}
+
+.toggle-icon::before,
+.toggle-icon::after {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 2px;
+    background: var(--text-light);
+    transition: var(--transition);
+}
+
+.toggle-icon::before { top: -6px; }
+.toggle-icon::after { bottom: -6px; }
+
+/* Logo Styling */
+.brand-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 1rem;
+}
+
+.logo-img {
+    height: 40px;
+    width: auto;
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-light);
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+
+/* Right Side Styling */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-left: auto;
+}
+
+/* Search Bar Styling */
+.nav-search {
+    position: relative;
+    width: 300px;
+}
+
+.search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.6rem 2.5rem 0.6rem 1.2rem;
+    border: none;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    color: var(--text-light);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.search-input::placeholder {
+    color: rgba(255,255,255,0.7);
+}
+
+.search-input:focus {
+    background: rgba(255,255,255,0.2);
+    outline: none;
+}
+
+.search-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    color: var(--text-light);
+    font-size: 1rem;
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.nav-btn:hover {
+    background: var(--secondary-color);
+    color: var(--text-light);
+    transform: translateY(-1px);
+}
+
+.nav-btn.warning {
+    background: rgba(240, 173, 78, 0.2);
+}
+
+.nav-btn.warning:hover {
+    background: #f0ad4e;
+}
+
+.badge {
+    background: var(--secondary-color);
+    color: var(--text-light);
+    padding: 0.25rem 0.6rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* User Profile */
+.user-profile {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    padding: 0.6rem;
+    border-radius: 20px;
+    transition: var(--transition);
+}
+
+.user-profile:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.user-info {
+    color: var(--text-light);
+}
+
+.user-name {
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.user-role {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    white-space: nowrap;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    min-width: 220px;
+    display: none;
+    z-index: 1001;
+    overflow: hidden;
+    left:auto;
+}
+
+.dropdown-menu.show {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+.dropdown-menu a {
+    padding: 0.75rem 1.2rem;
+    color: var(--text-dark);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: var(--transition);
+    font-size: 1rem;
+}
+
+.dropdown-menu a:hover {
+    background: var(--hover-color);
+    color: var(--primary-color);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.1);
+    margin: 0.5rem 0;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .nav-search {
+        width: 250px;
+    }
+}
+
+@media (max-width: 992px) {
+    .nav-search {
+        width: 200px;
+    }
+
+    .user-info {
+        display: none;
+    }
+
+    .nav-btn span {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-wrapper {
+        padding: 0 1rem;
+    }
+
+    .mobile-toggle {
+        display: block;
+    }
+
+    .nav-search {
+        display: none;
+    }
+
+    .nav-btn {
+        padding: 0.6rem;
+    }
+
+    .logo-text {
+        display: none;
+    }
+
+    .action-buttons {
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-wrapper {
+        padding: 0 0.75rem;
+    }
+
+    .action-buttons {
+        gap: 0.25rem;
+    }
+}
+
+/* Billing Dropdown Styles */
+.billing-dropdown {
+    position: relative;
+    cursor: pointer;
+}
+
+.billing-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    min-width: 220px;
+    padding: 8px 0;
+    z-index: 1000;
+    display: none;
+    margin-top: 1px;
+}
+
+.billing-dropdown:hover .billing-menu {
+    display: block;
+}
+
+.billing-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    color: #333333;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.billing-menu .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.billing-menu .dropdown-item:hover {
+    background: #f5f5f5;
+    color: #1A3765;
+}
+
+.billing-menu .dropdown-item i {
+    margin-right: 12px;
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+    color: #666666;
+}
+
+.billing-menu .dropdown-item:hover i {
+    color: #1A3765;
+}
+
+.billing-menu .dropdown-item span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Add arrow to dropdown */
+.billing-menu::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #ffffff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .billing-menu {
+        position: absolute;
+        top: 35px;
+        bottom: 0;
+        left: auto;
+        right: 0;
+        background: #ffffff;
+        border-radius: 16px 16px 0 0;
+        margin: 0;
+        max-height: fit-content;
+        overflow-y: auto;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .billing-menu::before {
+        display: none;
+    }
+
+    .billing-menu .dropdown-item span {
+    display: block;
+    }
+}

@@ -1,0 +1,36 @@
+.cstbtn a{
+    text-decoration: none;
+    color:#000;
+}
+.cstbtn .btn-group {  
+    white-space: nowrap;              
+}
+.cstbtn .btn-group .btn {  
+    float: none;
+    display: inline-block;
+}
+.cstbtn .btn + .dropdown-toggle { 
+    margin-left: -4px;
+}
+
+.cstbtn li{
+    padding: 6px 10px;
+    border-bottom: solid 1px #eff2f7;
+}
+.cstbtn li a{
+    color:grey;
+}
+.cstbtn li:hover{
+    background:#1ca89d;
+}
+.cstbtn li:hover a{
+    color:#fff;
+}
+.cstbtn li:hover{
+    border-left:solid 5px orange;
+}
+
+.dropdown-menu.show {
+    right:0px;
+    min-width: 12rem;
+  }

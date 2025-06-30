@@ -1,0 +1,114 @@
+/* Footer Variables */
+:root {
+    --primary-color: #1A3765;
+    --secondary-color: #41A69C;
+    --text-light: #ffffff;
+    --text-dark: #333333;
+    --footer-bg: #f8f9fa;
+    --footer-border: #e9ecef;
+    --sidebar-width: 250px;
+}
+
+/* Main Container */
+.ch-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.row {
+    flex: 1;
+    display: flex;
+}
+
+#content1 {
+    flex: 1;
+    padding-bottom: 80px; /* Space for footer */
+}
+
+/* Footer Container */
+.footer {
+    background: var(--footer-bg);
+    border-top: 1px solid var(--footer-border);
+    padding: 20px 0;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: calc(100% - var(--sidebar-width));
+    margin-left: auto;
+    height: auto;
+    min-height: 60px;
+}
+
+.footer-content {
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Copyright Text */
+.copyright {
+    color: var(--text-dark);
+    margin: 0;
+    font-size: 14px;
+}
+
+.copyright a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.copyright a:hover {
+    color: var(--primary-color);
+}
+
+/* Powered By Text */
+.powered-by {
+    color: var(--text-dark);
+    margin: 0;
+    font-size: 14px;
+    text-align: right;
+}
+
+.powered-by a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.powered-by a:hover {
+    color: var(--primary-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .footer {
+        width: 100%;
+        margin-left: 0;
+        position: relative;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .copyright, .powered-by {
+        width: 100%;
+    }
+
+    .powered-by {
+        text-align: center;
+    }
+
+    #content1 {
+        padding-bottom: 120px; /* More space for footer on mobile */
+    }
+}

@@ -1,0 +1,37 @@
+.megamenu-list li {
+    
+    padding: 5px 2px 5px 10px;
+    border-bottom: solid 1px var(--bs-info);
+    background: linear-gradient(359deg, #e9e7e7, #ffffff);
+    margin-bottom: 5px;
+    border-radius: 0 10px 10px 0px;
+}
+.megamenu-list li i{
+    padding: 4px;
+    border-radius: 10px;
+    background: var(--bs-info);
+    color: #fff;
+    margin-right: 5px;
+}
+
+.megamenu-list li:hover{
+    background: var(--bs-info);
+    color:#fff;
+}
+
+.megamenu-list li:hover a{
+    color:#fff;
+}
+
+.megamenu-list li:hover i{
+    background: var(--bs-white);
+    color:var(--bs-dark);
+}
+.imgpp{
+    cursor: pointer;
+    color:#046961;
+}
+.imgpp:hover{
+    color: orangered;
+    font-weight: bolder;
+}

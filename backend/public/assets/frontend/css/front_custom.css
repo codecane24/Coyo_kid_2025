@@ -1,0 +1,58 @@
+
+.SchListDiv{
+  display: none;
+      position: absolute;
+      background: #eaeaf5;
+      border: solid 1px #555555;
+      border-radius: 5px;
+      margin-top: 60px;
+      margin-left: 9px;
+      z-index: 9;
+      box-shadow: 7px 6px 11px 8px #6b6464;
+
+}
+.SchListDiv ul{
+  padding:5px;
+}
+.SchListDiv ul span{
+  padding-left:12px;
+  padding-right:10px;
+}
+.SchListDiv li{
+  list-style: none;
+  margin: 0.5px;
+  border-bottom: solid 1px #ced4da;
+}
+
+.SchListDiv li:hover {
+    background: #57595a;
+    cursor: pointer;
+    font-weight: bold;
+    color: #fff;
+}
+
+.searchedPdImg{
+  height: 180px;
+    width: 180px;
+    padding: 5px;
+    border: groove 2px #dd4814;
+    background: #eee;
+    box-shadow: 3px 3px 10px;
+}
+
+#srchPd div {
+    margin: 0px !important;
+    padding: 0px !important;
+}
+#srchPd{
+  padding-left: 15px;
+}
+#addTblBody input, tfoot input {
+    width: 90%;
+    border: none;
+    color: red;
+    padding: 0px;
+    background: transparent;
+    text-align: center;
+  pointer-events: none;
+}

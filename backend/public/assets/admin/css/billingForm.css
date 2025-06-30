@@ -1,0 +1,73 @@
+.SchListDiv{
+    display:none;
+    position: absolute;
+    background: #fff;
+    border: solid 2px #652001;
+    border-radius: 5px;
+    margin-top: 30px;
+    margin-left: 9px;
+    z-index: 9;
+    box-shadow: 3px 9px 10px 6px #1c1c1d;
+    max-height: 500px;
+    /* overflow-x: scroll; */
+    padding: 10px;
+    min-width:500px;
+}
+
+#paymentForm .form-group{
+    margin-top:10px;
+}
+
+.billForm .form-group label{
+
+}
+
+.bilno {
+    font-size: 18px;
+    color: #1aa79c;
+}
+.form-floating .form-control,.form-floating .form-select {
+    height: calc(3.5rem + 0px);
+    padding: 1rem .75rem;
+    border-radius: 0.5rem;
+    Border:none;
+    border-bottom: solid 1px #34c38f;
+    background: linear-gradient(1deg, #86ffd321, #fff, transparent);
+}
+
+.highlight {
+    background-color: #e9ecef;
+}
+.productRow {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom:solid 1px #dbd6d6;
+    cursor:pointer;
+}
+.productRow:hover{
+    background:#1aa79c;
+    color:#fff;
+}
+.inpt{
+width:100%;
+line-height:1.0;
+border-radius:5px;
+border:none;
+border-bottom:solid 1px red;
+text-align:center;
+}
+
+#prodVarientsDiv td,#prodVarientsDiv th {
+padding: 10px 2px 0px 2px !important;
+}
+
+#addTblBody input, tfoot input {
+width: 90%;
+border: none;
+color: red;
+padding: 0px;
+background: transparent;
+text-align: center;
+/* pointer-events: none; */
+}
