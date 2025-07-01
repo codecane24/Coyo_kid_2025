@@ -30,7 +30,7 @@ const Login3 = () => {
               <div className="d-flex flex-column justify-content-between vh-100">
                 <div className=" mx-auto p-4 text-center">
                   <ImageWithBasePath
-                    src="assets/img/authentication/authentication-logo.svg"
+                    src="assets/img/authentication/kidzy.png"
                     className="img-fluid"
                     alt="Logo"
                   />
@@ -43,6 +43,7 @@ const Login3 = () => {
                         Please enter your details to sign in
                       </p>
                     </div>
+                    {/*
                     <div className="mt-4">
                       <div className="d-flex align-items-center justify-content-center flex-wrap">
                         <div className="text-center me-2 flex-fill">
@@ -83,9 +84,11 @@ const Login3 = () => {
                         </div>
                       </div>
                     </div>
+                    
                     <div className="login-or">
                       <span className="span-or">Or</span>
                     </div>
+                    */}
                     <div className="mb-3 ">
                       <label className="form-label">Email Address</label>
                       <div className="input-icon mb-3 position-relative">
@@ -149,7 +152,14 @@ const Login3 = () => {
                   </div>
                 </div>
                 <div className="p-4 text-center">
-                  <p className="mb-0 ">Copyright © 2024 - Preskool</p>
+                  <div className="d-inline-flex align-items-center gap-2">
+                      <span>Powered by</span>
+                      <img
+                        src="assets/img/authentication/kidzy.png"
+                        alt="Logo"
+                        style={{ height: '20px' }}
+                      />
+                  </div>
                 </div>
               </div>
             </form>
