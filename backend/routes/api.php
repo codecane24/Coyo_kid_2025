@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 
-Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1'], function () {
+Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors'], function () {
     Route::post('login', 'GuestController@login');
     Route::post('signup', 'GuestController@signup');
     Route::post('forgot_password', 'GuestController@forgot_password');
@@ -19,7 +19,6 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1'], function () {
             Route::get('logout', 'UserController@logout');
         });
 
-
     });
 
     
@@ -30,6 +29,10 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1'], function () {
     // section API
     Route::get('sections', 'SectionController@index'); // Get all section
     Route::get('sections/{id}', 'SectionController@show'); // Get single section by ID
+
+    // branch API
+    Route::get('branch', 'BranchController@index'); // Get all section
+    Route::get('branch/{id}', 'BranchController@show'); // Get single section by ID
 
 });
 

@@ -21,6 +21,7 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \App\Http\Middleware\DefineConstants::class,
+        \App\Http\Middleware\Cors::class,
 
     ];
 
@@ -68,5 +69,6 @@ class Kernel extends HttpKernel
         'ApiTokenChecker' => \App\Http\Middleware\ApiTokenChecker::class,
         'Is_Admin' => \App\Http\Middleware\IsAdmin::class,
         'check.first.login' => \App\Http\Middleware\CheckFirstLogin::class,
+        'cors' => \App\Http\Middleware\Cors::class,
     ];
 }
