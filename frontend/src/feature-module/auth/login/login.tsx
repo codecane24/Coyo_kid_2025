@@ -90,10 +90,10 @@ const Login = () => {
                     </div>
                     */}
                     <div className="mb-3 ">
-                      <label className="form-label">Email Address</label>
+                      <label className="form-label">Mobile / Email / School-ID</label>
                       <div className="input-icon mb-3 position-relative">
                         <span className="input-icon-addon">
-                          <i className="ti ti-mail" />
+                          <i className="ti ti-user" />
                         </span>
                         <input type="text" className="form-control" />
                       </div>
