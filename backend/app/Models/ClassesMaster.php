@@ -2,9 +2,9 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
-class ClassesMastrer extends Model
+class ClassesMaster extends Model
 {
-	protected $table = 'classes';
+	protected $table = 'classes_master';
 
 	protected $fillable = [
 		'code',

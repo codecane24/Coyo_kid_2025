@@ -21,8 +21,9 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
 
     });
     // Master List API
-    Route::get('classmaster', 'MasterController@classmasterList'); // Get all class masters
-    
+    Route::get('classesmaster', 'MasterController@classmasterList'); // Get all class masters
+    Route::get('section', 'MasterController@sectionList'); // Get all sections (A-Z)
+
      // Role API
     Route::get('role', 'RoleController@index');
     Route::get('role/{id}', 'RoleController@show');
@@ -30,10 +31,6 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     // Classes API
     Route::get('classes', 'ClassController@index'); // Get all classes
     Route::get('classes/{id}', 'ClassController@show'); // Get single class by ID
-
-    // section API
-    Route::get('sections', 'SectionController@index'); // Get all section
-    Route::get('sections/{id}', 'SectionController@show'); // Get single section by ID
 
     // branch API
     Route::get('branch', 'BranchController@index'); // Get all section

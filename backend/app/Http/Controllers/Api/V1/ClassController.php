@@ -12,10 +12,10 @@ class ClassController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    
+
     public function index()
     {
-        $classes = Classes::select('id','code','name','section_id','room_id','status')->get();
+        $classes = Classes::select('id','code','name','section','room_no','status')->get();
         return response()->json($classes);
     }
 

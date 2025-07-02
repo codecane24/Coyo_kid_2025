@@ -20,5 +20,20 @@ class MasterController extends Controller
         return response()->json($list);
     }
 
+    public function sectionList()
+    {
+        $sections = [];
+        
+        // Generate A-Z sections
+        foreach (range('A', 'Z') as $letter) {
+            $sections[] = [
+                'id' => $letter,
+                'name' => $letter 
+            ];
+        }
+
+        return response()->json($sections);
+    }
+
    
 }
