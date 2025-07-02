@@ -85,6 +85,25 @@ class ClassController extends Controller
             ], 422);
         }
 
+        // check if combination of classmaster_id,sectin, room_no, and company_id already exists
+        $exists = Classes::where('classmaster_id', $request->classmaster_id)
+            ->where('section', $request->section)
+            ->where('branch_id', $request->branch_id ?? null) // Allow null branch_id
+            ->where('company_id', $request->company_id ?? null) // Allow null company_id
+            ->exists(); 
+        if ($exists) {
+            return response()->json([   
+                'status' => false,
+                'message' => 'Class with the same class, section  already exists.'
+            ], 422);
+        }
+        // Create the class
+        $request->merge([
+            'code' => strtoupper($request->code) ?? '', // Ensure code is uppercase
+            'company_id' => decrypt($request->company_id) ?? 1, // Decrypt company_id
+            'branch_id' => decrypt($request->branch_id) ?? 1 // Decrypt branch_id
+        ]);
+
         $class = Classes::create($request->all());
 
         return response()->json([
