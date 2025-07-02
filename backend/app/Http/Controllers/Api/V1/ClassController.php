@@ -80,7 +80,7 @@ class ClassController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -88,7 +88,7 @@ class ClassController extends Controller
         $class = Classes::create($request->all());
 
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'Class created successfully',
             'data' => $class
         ], 201);
