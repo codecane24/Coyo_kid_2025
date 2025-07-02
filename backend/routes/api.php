@@ -20,7 +20,6 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
         });
 
     });
-
      // Role API
     Route::get('role', 'RoleController@index');
     Route::get('role/{id}', 'RoleController@show');
