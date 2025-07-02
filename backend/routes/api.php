@@ -20,6 +20,9 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
         });
 
     });
+    // Master List API
+    Route::get('classmaster', 'MasterController@classmasterList'); // Get all class masters
+    
      // Role API
     Route::get('role', 'RoleController@index');
     Route::get('role/{id}', 'RoleController@show');
