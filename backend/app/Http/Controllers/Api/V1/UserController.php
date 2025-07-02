@@ -11,6 +11,206 @@ use Illuminate\Validation\Rule;
 class UserController extends ResponseController
 {
 
+
+    public function login(Request $request)
+    {
+        if (!$request->isBranch || $request->isBranch != 1) {
+            // Validate request
+            $request->validate([
+                'username' => 'required',
+                'password' => 'required',
+            ]);
+
+            // Determine if username is email or username
+            $find_field = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? "email" : "username";
+            $creds = [$find_field => $request->username, 'password' => $request->password, 'status' => 'active'];
+
+            // Find user
+            $user = User::where('email', $request->username)->first();
+            if (!$user) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User not found',
+                ], 404);
+            }
+
+            // Check IP address restriction
+            $clientIp = $request->ip();
+            if ($user->assigned_ip_address && $clientIp !== $user->assigned_ip_address) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Login not allowed from this IP address',
+                ], 403);
+            }
+
+            // Check login time restrictions
+            $currentTime = now()->format('H:i:s');
+            if ($user->login_start_time && $user->login_end_time) {
+                if ($currentTime < $user->login_start_time || $currentTime > $user->login_end_time) {
+                    $startTime = date('h:i A', strtotime($user->login_start_time));
+                    $endTime = date('h:i A', strtotime($user->login_end_time));
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => "Login not allowed at this time. Allowed time is between $startTime and $endTime",
+                    ], 403);
+                }
+            }
+
+            // Check if user has multiple branches
+            $userBranches = UserBranch::where('user_id', $user->id)->count();
+            if ($userBranches > 1) {
+                $encryptedUserId = Crypt::encryptString($user->id);
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Multiple branches detected, please select a branch',
+                    'data' => [
+                        'user_id' => $encryptedUserId,
+                        'redirect' => route('admin.select_branch', ['user' => $encryptedUserId]),
+                    ],
+                ], 200);
+            }
+
+            // Authenticate user
+            if ($user && Hash::check($request->password, $user->password)) {
+                // Log in the user and generate a token
+                Auth::login($user, $request->remember ?? false);
+                $token = $user->createToken('auth_token')->plainTextToken;
+
+                // Update last login
+                $user->last_login = Carbon::now()->toDateTimeString();
+                $user->save();
+
+                // Fetch branch details
+                $branch = Branch::where('id', $user->branch_id)->first();
+                if (!$branch) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Branch not found',
+                    ], 404);
+                }
+
+                // Get financial year data (assuming getFinancialYearId is defined in the controller)
+                $fydata = $this->getFinancialYearId();
+
+                // Prepare user data for response
+                $userData = [
+                    'user_id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'type' => $user->type,
+                    'branch_id' => $user->branch_id,
+                    'branch_name' => $branch->name,
+                    'fyear' => $fydata,
+                ];
+
+                // Check if company exists
+                if (Company::count() == 0) {
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'No company found, redirect to company creation',
+                        'data' => [
+                            'token' => $token,
+                            'user' => $userData,
+                            'redirect' => route('admin.company.create'),
+                        ],
+                    ], 200);
+                }
+
+                // Determine dashboard based on user type
+                $dashboardRoute = ($user->type == 'customer' || $user->type == 'Customer' || $user->type == 'supplier')
+                    ? route('user.dashboard')
+                    : route($this->getDashboardRouteName());
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Login successful',
+                    'data' => [
+                        'token' => $token,
+                        'user' => $userData,
+                        'redirect' => $dashboardRoute,
+                    ],
+                ], 200);
+            } else {
+                $errorMessage = $find_field == 'username'
+                    ? 'Invalid username or password'
+                    : 'Invalid email or password';
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $errorMessage,
+                ], 401);
+            }
+        } else {
+            // Branch-specific login
+            $request->validate([
+                'userId' => 'required',
+                'branch_id' => 'required|exists:branches,id',
+            ]);
+
+            $user = User::where('id', $request->userId)->first();
+            if (!$user) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User not found',
+                ], 404);
+            }
+
+            // Log in the user and generate a token
+            Auth::login($user);
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            // Fetch branch details
+            $branch = Branch::find($request->branch_id);
+            if (!$branch) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Branch not found',
+                ], 404);
+            }
+
+            // Get financial year data
+            $fydata = $this->getFinancialYearId();
+
+            // Prepare user data for response
+            $userData = [
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'type' => $user->type,
+                'branch_id' => $request->branch_id,
+                'branch_name' => $branch->name,
+                'fyear' => $fydata,
+            ];
+
+            // Check if company exists
+            if (Company::count() == 0) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'No company found, redirect to company creation',
+                    'data' => [
+                        'token' => $token,
+                        'user' => $userData,
+                        'redirect' => route('admin.company.create'),
+                    ],
+                ], 200);
+            }
+
+            // Determine dashboard based on user type
+            $dashboardRoute = ($user->type == 'customer' || $user->type == 'Customer')
+                ? route('user.dashboard')
+                : route($this->getDashboardRouteName());
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Login successful',
+                'data' => [
+                    'token' => $token,
+                    'user' => $userData,
+                    'redirect' => $dashboardRoute,
+                ],
+            ], 200);
+        }
+    }
+
     public function getProfile()
     {
         $this->sendResponse(200, __('api.succ'), $this->get_user_data());
