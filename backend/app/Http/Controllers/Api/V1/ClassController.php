@@ -26,7 +26,7 @@ class ClassController extends Controller
             'status',
             'company_id',
             'branch_id'
-        )->get();
+        )->with('classmaster')->withCount('students')->get();
         
         return response()->json($classes);
     }
