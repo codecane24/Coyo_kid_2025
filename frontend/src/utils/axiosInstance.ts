@@ -1,15 +1,35 @@
 // src/utils/axiosInstance.ts
 import axios from "axios";
-import { API_BASE_URL } from "../config/config";
 
 const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: "https://your-api-url.com/api", // ✅ Your Laravel backend base URL
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Optional: Add interceptors if needed
-// axiosInstance.interceptors.request...
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("selectedBranch");
+      window.location.href = "/"; // redirect to login
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default axiosInstance;

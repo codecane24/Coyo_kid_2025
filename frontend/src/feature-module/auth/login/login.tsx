@@ -1,17 +1,23 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { all_routes } from "../../router/all_routes";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "../../../utils/axiosInstance";
+
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 
-type PasswordField = "password";
+// Axios Interceptor to add token to headers
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 const Login = () => {
-  const routes = all_routes;
   const navigate = useNavigate();
-
-  const [passwordVisibility, setPasswordVisibility] = useState({
-    password: false,
-  });
 
   const [formData, setFormData] = useState({
     username: "",
@@ -23,11 +29,27 @@ const Login = () => {
     password: "",
   });
 
-  const togglePasswordVisibility = (field: PasswordField) => {
-    setPasswordVisibility((prevState) => ({
-      ...prevState,
-      [field]: !prevState[field],
-    }));
+  const [branches, setBranches] = useState<any[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [userRole, setUserRole] = useState("");
+  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
+
+  const validateForm = () => {
+    const newErrors = { username: "", password: "" };
+    let isValid = true;
+
+    if (!formData.username.trim()) {
+      newErrors.username = "Username is required";
+      isValid = false;
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,37 +58,78 @@ const Login = () => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const validateForm = () => {
-    let isValid = true;
-    const newErrors = { username: "", password: "" };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    if (!formData.username.trim()) {
-      newErrors.username = "Username is required";
-      isValid = false;
-    } else if (formData.username.trim().length < 6) {
-      newErrors.username = "Username must be at least 6 characters";
-      isValid = false;
+  try {
+    const response = await axios.post(
+      "https://coyokid.abbangles.com/backend/api/v1/login",
+      formData
+    );
+
+    const result = response.data;
+
+    // Check for success status
+    if (result.status !== "success") {
+      alert(result.message || "Login failed.");
+      return;
     }
 
-    if (!formData.password.trim()) {
-      newErrors.password = "Password is required";
-      isValid = false;
-    } else if (formData.password.trim().length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-      isValid = false;
-    }
+    const { token, user, redirect, branches  } = result.data;
 
-    setErrors(newErrors);
-    return isValid;
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("user", JSON.stringify(user));
+    setUserRole(user.type);
+
+    // Handle branches
+   if (branches?.length === 1) {
+  localStorage.setItem("selectedBranch", JSON.stringify(branches[0]));
+  redirectToDashboard(user.type); // ✅ no redirect from API
+}
+ else if (branches?.length > 1) {
+      setBranches(branches);
+      setShowBranchDropdown(true);
+    } else {
+      alert("No branches assigned to this user.");
+    }
+  } catch (error: any) {
+    console.error("Login error:", error);
+    alert("Login failed. Please check credentials.");
+  }
+};
+
+
+
+  const handleBranchSelect = () => {
+    if (!selectedBranch) return alert("Please select a branch.");
+
+    const selected = branches.find((b) => b.id === selectedBranch);
+    if (selected) {
+      localStorage.setItem("selectedBranch", JSON.stringify(selected));
+      redirectToDashboard(userRole);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      // Replace this with actual login logic later
-      navigate(routes.adminDashboard);
-    }
-  };
+const redirectToDashboard = (role: string) => {
+  switch (role) {
+    case "admin":
+      navigate("/index");
+      break;
+    case "teacher":
+      navigate("/teacher-dashboard");
+      break;
+    case "student":
+      navigate("/student-dashboard");
+      break;
+       case "parent":
+      navigate("/student-dashboard");
+      break;
+    default:
+      navigate("/unauthorized");
+  }
+};
+
 
   return (
     <div className="container">
@@ -75,86 +138,85 @@ const Login = () => {
           <form onSubmit={handleSubmit}>
             <div className="d-flex flex-column justify-content-between vh-100">
               <div className="mx-auto p-4 text-center">
-                <ImageWithBasePath
-                  src="assets/img/authentication/kidzy.png"
-                  className="img-fluid"
-                  alt="Logo"
-                />
+                <div style={{ maxWidth: "120px", margin: "0 auto" }}>
+                  <ImageWithBasePath
+                    src="assets/img/authentication/kidzy.png"
+                    className="img-fluid"
+                    alt="Logo"
+                  />
+                </div>
               </div>
+
               <div className="card">
                 <div className="card-body p-4">
-                  <div className="mb-4">
+                  <div className="mb-4 text-center">
                     <h2 className="mb-2">Welcome</h2>
                     <p className="mb-0">Please enter your details to sign in</p>
                   </div>
 
-                  <div className="mb-3">
-                    <label className="form-label">Mobile / Email / School-ID</label>
-                    <div className="input-icon mb-2 position-relative">
-                      <span className="input-icon-addon">
-                        <i className="ti ti-user" />
-                      </span>
-                      <input
-                        type="text"
-                        className={`form-control ${errors.username && "is-invalid"}`}
-                        name="username"
-                        value={formData.username}
-                        onChange={handleInputChange}
-                      />
-                      {errors.username && (
-                        <div className="invalid-feedback">{errors.username}</div>
-                      )}
-                    </div>
-
-                    <label className="form-label">Password</label>
-                    <div className="pass-group position-relative">
-                      <input
-                        type={passwordVisibility.password ? "text" : "password"}
-                        className={`form-control ${errors.password && "is-invalid"}`}
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                      />
-                      <span
-                        className={`ti toggle-passwords ${
-                          passwordVisibility.password ? "ti-eye" : "ti-eye-off"
-                        }`}
-                        onClick={() => togglePasswordVisibility("password")}
-                      ></span>
-                      {errors.password && (
-                        <div className="invalid-feedback d-block">{errors.password}</div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="form-wrap form-wrap-checkbox mb-3">
-                    <div className="d-flex align-items-center">
-                      <div className="form-check form-check-md mb-0">
-                        <input className="form-check-input mt-0" type="checkbox" />
+                  {!showBranchDropdown && (
+                    <>
+                      <div className="mb-3">
+                        <label className="form-label">Mobile / Email / School-ID</label>
+                        <input
+                          type="text"
+                          className={`form-control ${errors.username && "is-invalid"}`}
+                          name="username"
+                          value={formData.username}
+                          onChange={handleInputChange}
+                        />
+                        {errors.username && (
+                          <div className="invalid-feedback">{errors.username}</div>
+                        )}
                       </div>
-                      <p className="ms-1 mb-0">Remember Me</p>
-                    </div>
-                    <div className="text-end">
-                      <Link to={routes.forgotPassword} className="link-danger">
-                        Forgot Password?
-                      </Link>
-                    </div>
-                  </div>
 
-                  <div className="mb-3">
-                    <button type="submit" className="btn btn-primary w-100">
-                      Sign In
-                    </button>
-                  </div>
+                      <div className="mb-3">
+                        <label className="form-label">Password</label>
+                        <input
+                          type="password"
+                          className={`form-control ${errors.password && "is-invalid"}`}
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                        />
+                        {errors.password && (
+                          <div className="invalid-feedback">{errors.password}</div>
+                        )}
+                      </div>
 
-                  <div className="text-center">
-                    <h6 className="fw-normal text-dark mb-0">
-                      Don’t have an account?{" "}
-                      <Link to={routes.register3} className="hover-a">
-                        Create Account
-                      </Link>
-                    </h6>
-                  </div>
+                      <div className="mb-3">
+                        <button type="submit" className="btn btn-primary w-100">
+                          Sign In
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {showBranchDropdown && (
+                    <div className="mb-3">
+                      <label className="form-label">Select Branch</label>
+                      <select
+                        className="form-control"
+                        value={selectedBranch}
+                        onChange={(e) => setSelectedBranch(e.target.value)}
+                      >
+                        <option value="">-- Choose Branch --</option>
+                        {branches.map((branch: any, idx) => (
+                          <option key={idx} value={branch.id}>
+                            {branch.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        className="btn btn-success mt-3 w-100"
+                        onClick={handleBranchSelect}
+                        disabled={!selectedBranch}
+                      >
+                        Continue
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -177,4 +239,3 @@ const Login = () => {
 };
 
 export default Login;
- 

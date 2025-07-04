@@ -8,7 +8,7 @@ import {
   classSylabus,
 } from "../../../core/common/selectoption/selectoption";
 import CommonSelect from "../../../core/common/commonSelect";
-import { TableData } from "../../../core/data/interface";
+// import { TableData } from "../../../core/data/interface";
 import { Link } from "react-router-dom";
 import TooltipOption from "../../../core/common/tooltipOption";
 import { all_routes } from "../../router/all_routes";
@@ -52,6 +52,26 @@ type FormDataType = {
 type ErrorType = {
   [key in keyof FormDataType]?: string;
 };
+interface TableData {
+  key: number;
+  id: string;
+  class: string;
+  section: string;
+  noOfStudents: number;
+  noOfSubjects: number;
+  status: string;
+}
+
+interface ClassTableRow {
+  key: number;
+  id: string;
+  class: string;
+  section: string;
+  roomNo: string;
+  noOfStudents: number | string; // number or 'N/A'
+  noOfSubjects: number;
+  status: string;
+}
 
 const Classes = () => {
   const routes = all_routes;
@@ -114,6 +134,34 @@ useEffect(() => {
 
   fetchSection();
 }, []);
+const [tableData, setTableData] = useState<ClassTableRow[]>([]);
+
+
+useEffect(() => {
+  const fetchTableData = async () => {
+    try {
+      const res = await getClassesList();
+
+      const formatted = res.map((item: any, i: number) => ({
+        key: i + 1,
+        id: `C${1000 + i}`, // or item.class_code if it exists
+        class: item.name || "N/A",         // ✅ from `name`
+        section: item.section || "N/A",
+        roomNo: item.room_no || "N/A",
+        noOfStudents: item.noOfStudents ?? "N/A", // optional field for future
+        noOfSubjects: item.noOfSubjects ?? 0,
+        status: item.status === "1" ? "Active" : "Inactive",
+      }));
+
+      setTableData(formatted);
+    } catch (err) {
+      console.error("Failed to fetch data", err);
+    }
+  };
+
+  fetchTableData();
+}, []);
+
 
 const selectedClass = allClassData.find(cls => cls.id === selectedClassId);
   const data = classes;
@@ -126,105 +174,107 @@ const selectedClass = allClassData.find(cls => cls.id === selectedClassId);
   };
   const route = all_routes
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      render: (text: string, record: any, index: number) => (
-        <>
-          <Link to="#" className="link-primary">
-            {record.id}
-          </Link>
-        </>
-      ),
-    },
+  {
+    title: "ID",
+    dataIndex: "id",
+    render: (text: string, record: any) => (
+      <Link to="#" className="link-primary">
+        {record.id ?? "N/A"}
+      </Link>
+    ),
+  },
+  {
+    title: "Class",
+    dataIndex: "class",
+    sorter: (a: any, b: any) => (a.class ?? "").localeCompare(b.class ?? ""),
+    render: (value: string) => value ?? "N/A",
+  },
+  {
+    title: "Section",
+    dataIndex: "section",
+    sorter: (a: any, b: any) =>
+      (a.section ?? "").localeCompare(b.section ?? ""),
+    render: (value: string) => value ?? "N/A",
+  },
+  {
+    title: "No of Student",
+    dataIndex: "noOfStudents",
+    sorter: (a: any, b: any) =>
+      (a.noOfStudents ?? 0) - (b.noOfStudents ?? 0),
+    render: (value: number) => value ?? "N/A",
+  },
+ {
+  title: "Class Room No",
+  dataIndex: "roomNo", // ✅ use the correct field
+  sorter: (a: any, b: any) =>
+    (a.roomNo ?? "").localeCompare(b.roomNo ?? ""),
+  render: (value: string) => value ?? "N/A",
+},
 
-    {
-      title: "Class",
-      dataIndex: "class",
-      sorter: (a: TableData, b: TableData) => a.class.length - b.class.length,
-    },
-    {
-      title: "Section",
-      dataIndex: "section",
-      sorter: (a: TableData, b: TableData) =>
-        a.section.length - b.section.length,
-    },
-    {
-      title: "No of Student",
-      dataIndex: "noOfStudents",
-      sorter: (a: TableData, b: TableData) =>
-        a.noOfStudents.length - b.noOfStudents.length,
-    },
-    {
-      title: "Class Room",
-      dataIndex: "noOfSubjects",
-      sorter: (a: TableData, b: TableData) =>
-        a.noOfSubjects.length - b.noOfSubjects.length,
-    },
-    // {
-    //   title: "Status",
-    //   dataIndex: "status",
-    //   render: (text: string) => (
-    //     <>
-    //       {text === "Active" ? (
-    //         <span className="badge badge-soft-success d-inline-flex align-items-center">
-    //           <i className="ti ti-circle-filled fs-5 me-1"></i>
-    //           {text}
-    //         </span>
-    //       ) : (
-    //         <span className="badge badge-soft-danger d-inline-flex align-items-center">
-    //           <i className="ti ti-circle-filled fs-5 me-1"></i>
-    //           {text}
-    //         </span>
-    //       )}
-    //     </>
-    //   ),
-    // },
-    {
-      title: "Action",
-      dataIndex: "action",
-      render: () => (
-        <>
-          <div className="d-flex align-items-center">
-            <div className="dropdown">
+ 
+  {
+    title: "Status",
+    dataIndex: "status",
+    render: (text: string) => (
+      <>
+        {text === "Active" ? (
+          <span className="badge badge-soft-success d-inline-flex align-items-center">
+            <i className="ti ti-circle-filled fs-5 me-1"></i>
+            {text}
+          </span>
+        ) : (
+          <span className="badge badge-soft-danger d-inline-flex align-items-center">
+            <i className="ti ti-circle-filled fs-5 me-1"></i>
+            {text}
+          </span>
+        )}
+      </>
+    ),
+  },
+  {
+    title: "Action",
+    dataIndex: "action",
+    render: () => (
+      <div className="d-flex align-items-center">
+        <div className="dropdown">
+          <Link
+            to="#"
+            className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i className="ti ti-dots-vertical fs-14" />
+          </Link>
+          <ul className="dropdown-menu dropdown-menu-right p-3">
+            <li>
               <Link
+                className="dropdown-item rounded-1"
                 to="#"
-                className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
+                data-bs-toggle="modal"
+                data-bs-target="#edit_class"
               >
-                <i className="ti ti-dots-vertical fs-14" />
+                <i className="ti ti-edit-circle me-2" />
+                Edit
               </Link>
-              <ul className="dropdown-menu dropdown-menu-right p-3">
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#edit_class"
-                  >
-                    <i className="ti ti-edit-circle me-2" />
-                    Edit
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#delete-modal"
-                  >
-                    <i className="ti ti-trash-x me-2" />
-                    Delete
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </>
-      ),
-    },
-  ];
+            </li>
+            <li>
+              <Link
+                className="dropdown-item rounded-1"
+                to="#"
+                data-bs-toggle="modal"
+                data-bs-target="#delete-modal"
+              >
+                <i className="ti ti-trash-x me-2" />
+                Delete
+              </Link>
+            </li>
+          </ul>
+        </div>
+      </div>
+    ),
+  },
+];
+
   const statusOptions = [
   { label: "Active", value: "1" },
   { label: "Inactive", value: "0" },
@@ -293,7 +343,7 @@ const selectedClass = allClassData.find(cls => cls.id === selectedClassId);
   }
   console.log(payload)
 };
-
+// console.log(getClassesList)
   return (
     <div>
       {/* Page Wrapper */}
@@ -441,8 +491,13 @@ const selectedClass = allClassData.find(cls => cls.id === selectedClassId);
               </div>
             </div>
             <div className="card-body p-0 py-3">
-              {/* Guardians List */}
-              <Table columns={columns} dataSource={data} Selection={true} />
+            
+    {tableData.length === 0 ? (
+  <p className="text-center text-gray-500">No class data comming.</p>
+) : (
+  <Table columns={columns} dataSource={tableData} />
+)}
+
               {/* /Guardians List */}
             </div>
           </div>
