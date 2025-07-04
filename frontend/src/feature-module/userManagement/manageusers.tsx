@@ -138,15 +138,15 @@ const Manageusers = () => {
               </div>
               <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
               <TooltipOption />
-                {/* <div className="mb-2">
+                <div className="mb-2">
                   <Link
-                    to="#"
+                    to="/user-management/add-users"
                     className="btn btn-primary d-flex align-items-center"
                   >
                     <i className="ti ti-square-rounded-plus me-2" />
                     Add User
                   </Link>
-                </div> */}
+                </div>
               </div>
             </div>
             {/* /Page Header */}

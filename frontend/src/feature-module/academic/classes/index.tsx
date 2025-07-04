@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect, ChangeEvent, FormEvent  } from "react";
 import { classes } from "../../../core/data/json/classes";
 import Table from "../../../core/common/dataTable/index";
 import PredefinedDateRanges from "../../../core/common/datePicker";
@@ -12,12 +12,113 @@ import { TableData } from "../../../core/data/interface";
 import { Link } from "react-router-dom";
 import TooltipOption from "../../../core/common/tooltipOption";
 import { all_routes } from "../../router/all_routes";
+import { getClassesList } from "../../../services/ClassData";
+import { getClassMaster } from "../../../services/ClassData";
+import { getSection } from "../../../services/ClassData";
+import { createClass } from "../../../services/ClassData";
+type Section = {
+  id: string;
+  name: string;
+  // Add more fields if needed
+};
+
+type ClassItem = {
+  id: string;
+  name: string;
+  masterclass_id: string;
+  class_code: string;
+  room_number: string;
+  section_id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  section: Section; // Nested section
+};
+
+// At the top of your component file (or separately)
+type OptionType = {
+  label: string;
+  value: string;
+};
+
+type FormDataType = {
+  classMaster: OptionType;
+  className: string;
+  section: OptionType;
+  roomNo: string;
+  status: OptionType;
+};
+
+type ErrorType = {
+  [key in keyof FormDataType]?: string;
+};
 
 const Classes = () => {
   const routes = all_routes;
+const [allClassData, setAllClassData] = useState<ClassItem[]>([]);
+const [classOptions, setClassOptions] = useState<{ label: string; value: string }[]>([]);
+const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+const [classSection, setClassSection] = useState<{ label: string; value: string }[]>([]);
+const [classMasterOptions, setClassMasterOptions] = useState<{ label: string; value: string }[]>([]);
+const [Section, setSection] = useState<{ label: string; value: string }[]>([]);
+useEffect(() => {
+  const fetchClassMasterList = async () => {
+    try {
+      const res = await getClassMaster(); // 👈 this API returns master class list
 
+      const formatted = res.map((cls: any) => ({
+        label: cls.name,
+        value: cls.id.toString(),
+      }));
+
+      setClassMasterOptions(formatted);
+    } catch (error) {
+      console.error("Failed to fetch class master list:", error);
+    }
+  };
+
+  fetchClassMasterList();
+}, []);
+
+useEffect(() => {
+  const fetchMasterClasses = async () => {
+    try {
+      const res = await getClassesList(); // API you already used
+      const formatted = res.map((cls: any) => ({
+        label: cls.name,
+        value: cls.id.toString(), // or keep it number if you prefer
+      }));
+      setClassSection(formatted);
+    } catch (err) {
+      console.error("Failed to fetch master classes:", err);
+    }
+  };
+
+  fetchMasterClasses();
+}, []);
+useEffect(() => {
+  const fetchSection= async () => {
+    try {
+      const res = await getSection(); // 👈 this API returns master class list
+
+      const formatted = res.map((section: any) => ({
+        label: section.name,
+        value: section.id.toString(),
+      }));
+
+      setSection(formatted);
+    } catch (error) {
+      console.error("Failed to fetch class master list:", error);
+    }
+  };
+
+  fetchSection();
+}, []);
+
+const selectedClass = allClassData.find(cls => cls.id === selectedClassId);
   const data = classes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
+  
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
@@ -124,6 +225,75 @@ const Classes = () => {
       ),
     },
   ];
+  const statusOptions = [
+  { label: "Active", value: "1" },
+  { label: "Inactive", value: "0" },
+];
+  // Form validation and post request logic for add form
+   const [formData, setFormData] = useState<FormDataType>({
+    classMaster: classMasterOptions[0],
+    className: "",
+    section: Section[0],
+    roomNo: "",
+    status: statusOptions[0],
+  });
+
+  const [errors, setErrors] = useState<ErrorType>({});
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSelectChange = (name: keyof FormDataType, selectedOption: OptionType) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: selectedOption,
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors: ErrorType = {};
+    // if (!formData.className.trim()) newErrors.className = "Class name is required.";
+    if (!formData.roomNo.trim()) newErrors.roomNo = "Room number is required.";
+    if (!formData.classMaster) newErrors.classMaster = "Class master is required.";
+    if (!formData.section) newErrors.section = "Section is required.";
+    if (!formData.status) newErrors.status = "Status is required.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+ const handleSubmit = async (e: FormEvent) => {
+  e.preventDefault();
+  if (!validateForm()) return;
+
+  const payload = {
+    classmaster_id: formData.classMaster.value,
+    name: formData.className,
+    section: formData.section.value,
+    room_no: formData.roomNo,
+    status: formData.status.value,
+  };
+
+  try {
+    const response = await createClass(payload); // 👈 using imported API
+    console.log(response)
+    if (response.status ) {
+      alert("Class added successfully!");
+      // Reset form if needed
+    } else {
+      alert("Failed to add class.");
+    }
+  } catch (error: any) {
+    console.error("Error:", error);
+    alert("Something went wrong. Please try again.");
+  }
+  console.log(payload)
+};
+
   return (
     <div>
       {/* Page Wrapper */}
@@ -201,11 +371,12 @@ const Classes = () => {
                           <div className="col-md-12">
                             <div className="mb-3">
                               <label className="form-label">Section</label>
-                              <CommonSelect
-                                className="select"
-                                options={classSection}
-                                defaultValue={classSection[0]}
-                              />
+                          <CommonSelect
+  className="select"
+  options={classSection}
+  defaultValue={classSection[0]}
+/>
+
                             </div>
                           </div>
                           <div className="col-md-12">
@@ -281,85 +452,99 @@ const Classes = () => {
       ;{/* /Page Wrapper */}
       <>
         {/* Add Classes */}
-        <div className="modal fade" id="add_class">
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h4 className="modal-title">Add Class</h4>
-                <button
-                  type="button"
-                  className="btn-close custom-btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                >
-                  <i className="ti ti-x" />
-                </button>
-              </div>
-              <form>
-                <div className="modal-body">
-                  <div className="row">
-                    <div className="col-md-12">
-                      <div className="mb-3">
-                        <label className="form-label">Class Name</label>
-                        <input type="text" className="form-control" />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Section</label>
-                        <CommonSelect
-                          className="select"
-                          options={classSection}
-                          defaultValue={classSection[0]}
-                        />
-                      </div>
-                        <div className="mb-3">
-                        <label className="form-label">Class Room</label>
-                        <CommonSelect
-                          className="select"
-                          options={classSection}
-                          defaultValue={classSection[0]}
-                        />
-                      </div>
-                      {/* <div className="mb-3">
-                        <label className="form-label">No of Students</label>
-                        <input type="text" className="form-control" />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">No of Subjects</label>
-                        <input type="text" className="form-control" />
-                      </div>
-                      <div className="d-flex align-items-center justify-content-between">
-                        <div className="status-title">
-                          <h5>Status</h5>
-                          <p>Change the Status by toggle </p>
-                        </div>
-                        <div className="form-check form-switch">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            role="switch"
-                            id="switch-sm"
-                          />
-                        </div>
-                      </div> */}
-                    </div>
+    <div className="modal fade" id="add_class">
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+          <form onSubmit={handleSubmit}>
+            <div className="modal-header">
+              <h4 className="modal-title">Add Class</h4>
+              <button type="button" className="btn-close custom-btn-close" data-bs-dismiss="modal">
+                <i className="ti ti-x" />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="row">
+                <div className="col-md-12">
+                  {/* Class Master */}
+                  <div className="mb-3">
+                    <label className="form-label">Class Master</label>
+                    <CommonSelect
+                      className="select"
+                      options={classMasterOptions}
+                      defaultValue={formData.classMaster}
+                      onChange={(val: OptionType) => handleSelectChange("classMaster", val)}
+                    />
+                    {errors.classMaster && <p className="text-danger">{errors.classMaster}</p>}
+                  </div>
+
+                  {/* Class Name */}
+                  <div className="mb-3">
+                    <label className="form-label">Class Name (Optional)</label>
+                    <input
+                      type="text"
+                      name="className"
+                      className="form-control"
+                      value={formData.className}
+                      onChange={handleInputChange}
+                    />
+    
+                  </div>
+
+                  {/* Section */}
+                  <div className="mb-3">
+                    <label className="form-label">Section</label>
+                    <CommonSelect
+                      className="select"
+                      options={Section}
+                      defaultValue={formData.section}
+                      onChange={(val: OptionType) => handleSelectChange("section", val)}
+                    />
+                    {errors.section && <p className="text-danger">{errors.section}</p>}
+                  </div>
+
+                  {/* Room No */}
+                  <div className="mb-3">
+                    <label className="form-label">Class Room No.</label>
+                    <input
+                      type="text"
+                      name="roomNo"
+                      className="form-control"
+                      value={formData.roomNo}
+                      onChange={handleInputChange}
+                    />
+                    {errors.roomNo && <p className="text-danger">{errors.roomNo}</p>}
+                  </div>
+
+                  {/* Active-Inactive */}
+                  <div className="mb-3">
+                    <label className="form-label">Active-Inactive</label>
+                    <CommonSelect
+                      className="select"
+                      options={statusOptions}
+                      defaultValue={formData.status}
+                      onChange={(val: OptionType) => handleSelectChange("status", val)}
+                    />
+                    {errors.status && <p className="text-danger">{errors.status}</p>}
                   </div>
                 </div>
-                <div className="modal-footer">
-                  <Link
-                    to="#"
-                    className="btn btn-light me-2"
-                    data-bs-dismiss="modal"
-                  >
-                    Cancel
-                  </Link>
-                  <Link to="#" className="btn btn-primary" data-bs-dismiss="modal">
-                    Add Class
-                  </Link>
-                </div>
-              </form>
+              </div>
             </div>
-          </div>
+
+          <div className="modal-footer">
+  <Link to="#" className="btn btn-light me-2" data-bs-dismiss="modal">
+    Cancel
+  </Link>
+
+  {/* ✅ REMOVE data-bs-dismiss here */}
+  <button type="submit" className="btn btn-primary">
+    Add Class
+  </button>
+</div>
+
+          </form>
         </div>
+      </div>
+    </div>
         {/* /Add Classes */}
         {/* Edit Classes */}
         <div className="modal fade" id="edit_class">
