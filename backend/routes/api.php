@@ -20,15 +20,24 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
         });
 
     });
+    // Master List API
+    Route::get('company/{companyEncruptedId}', 'MasterController@companydata'); // Get company data by encrypted ID
+    Route::get('branch', 'MasterController@branchList'); // Get all branches
+    Route::get('branch/{id}', 'MasterController@showBranch'); // Get single branch by ID
+    Route::get('classesmaster', 'MasterController@classmasterList'); // Get all class masters
+    Route::get('section', 'MasterController@sectionList'); // Get all sections (A-Z)
 
-    
+    // ecnrypted ID API
+    Route::get('encrypt/{id}', 'MasterController@encryptId'); // Encrypt provided ID
+    Route::get('serialNo/{type}', 'MasterController@getSerialNo'); // Decrypt provided ID
+
+     // Role API
+    Route::get('role', 'RoleController@index');
+    Route::get('role/{id}', 'RoleController@show');
+
     // Classes API
-    Route::get('classes', 'ClassController@index'); // Get all classes
+    Route::resource('classes', 'ClassController'); 
     Route::get('classes/{id}', 'ClassController@show'); // Get single class by ID
-
-    // section API
-    Route::get('sections', 'SectionController@index'); // Get all section
-    Route::get('sections/{id}', 'SectionController@show'); // Get single section by ID
 
     // branch API
     Route::get('branch', 'BranchController@index'); // Get all section

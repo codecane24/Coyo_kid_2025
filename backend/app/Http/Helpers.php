@@ -22,6 +22,47 @@ use Intervention\Image\Encoders\JpegEncoder;
 
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
+
+function getNewSerialNo($type)
+{
+    $sqry = SerialNo::withoutGlobalScope('fyear_branch_filter')->where('name', '=', $type)->first();
+
+    if ($sqry && $sqry->type == 'transaction') {
+        $billNo = SerialNo::where('name', '=', $type)
+            ->select('prefix', 'length', 'financialYear', 'next_number')
+            ->first();
+
+    } else {
+        $billNo = SerialNo::withoutGlobalScope('fyear_branch_filter')->where('name', '=', $type)
+            ->select('prefix', 'length', 'financialYear', 'next_number')
+            ->first();
+    }
+
+    if ($billNo) {
+        $next_number = str_pad($billNo->next_number, $billNo->length, "0", STR_PAD_LEFT);
+        // dd($billNo->prefix . $billNo->financialYear . $next_number);
+        return $billNo->prefix . $billNo->financialYear . $next_number;
+    } else {
+        success_session('Serial Number Not Found..');
+        // return redirect()->back()->with('error', 'Serial No not found');
+    }
+
+}
+
+function increaseSerialNo($type)
+{
+    $sqry = SerialNo::withoutGlobalScope('fyear_branch_filter')->where('name', '=', $type)->first();
+
+    if ($sqry && $sqry->type == 'transaction') {
+        SerialNo::where('name', '=', $type)->increment('next_number', 1);
+    } else {
+        //======for transaction type 'MASTER'====
+        SerialNo::withoutGlobalScope('fyear_branch_filter')->where('name', '=', $type)->increment('next_number', 1);
+    }
+
+}
+
+
 if (!function_exists('send_response')) {
 
     function companyinfo(){
@@ -1408,44 +1449,6 @@ function upload_base_64_img($base64 = "", $path = "uploads/product/")
     return $file;
 }
 
-function getNewSerialNo($type)
-{
-    $sqry = SerialNo::withoutGlobalScope('fyear_branch_filter')->where('name', '=', $type)->first();
-
-    if ($sqry && $sqry->type == 'transaction') {
-        $billNo = SerialNo::where('name', '=', $type)
-            ->select('prefix', 'length', 'financialYear', 'next_number')
-            ->first();
-
-    } else {
-        $billNo = SerialNo::withoutGlobalScope('fyear_branch_filter')->where('name', '=', $type)
-            ->select('prefix', 'length', 'financialYear', 'next_number')
-            ->first();
-    }
-
-    if ($billNo) {
-        $next_number = str_pad($billNo->next_number, $billNo->length, "0", STR_PAD_LEFT);
-        // dd($billNo->prefix . $billNo->financialYear . $next_number);
-        return $billNo->prefix . $billNo->financialYear . $next_number;
-    } else {
-        success_session('Serial Number Not Found..');
-        // return redirect()->back()->with('error', 'Serial No not found');
-    }
-
-}
-
-function increaseSerialNo($type)
-{
-    $sqry = SerialNo::withoutGlobalScope('fyear_branch_filter')->where('name', '=', $type)->first();
-
-    if ($sqry && $sqry->type == 'transaction') {
-        SerialNo::where('name', '=', $type)->increment('next_number', 1);
-    } else {
-        //======for transaction type 'MASTER'====
-        SerialNo::withoutGlobalScope('fyear_branch_filter')->where('name', '=', $type)->increment('next_number', 1);
-    }
-
-}
 
 function accountType($accountType)
 {

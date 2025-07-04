@@ -2,18 +2,9 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
-class Classes extends Model
+class Student extends Model
 {
-	protected $table = 'classes';
-
-	protected $fillable = [
-		'code',
-		'name',
-		'classmaster_id',
-		'room_no',
-		'section',
-		'status'
-	];
+	protected $table = 'users';
 
 	protected $hidden = [
 		'created_at',
@@ -21,7 +12,7 @@ class Classes extends Model
 	];
 
 	
-	public function students()
+	public function classes()
 	{
 		return $this->hasMany(Student::class, 'class_id');
 	}
