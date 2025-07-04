@@ -100,8 +100,8 @@ class ClassController extends Controller
         // Create the class
         $request->merge([
             'code' => strtoupper($request->code) ?? '', // Ensure code is uppercase
-            'company_id' => decrypt($request->company_id) ?? 1, // Decrypt company_id
-            'branch_id' => decrypt($request->branch_id) ?? 1 // Decrypt branch_id
+            'company_id' => $request->company_id ?? 1, // Decrypt company_id
+            'branch_id' => $request->branch_id ?? 1 // Decrypt branch_id
         ]);
 
         $class = Classes::create($request->all());
