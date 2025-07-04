@@ -26,7 +26,13 @@ class ClassController extends Controller
             'status',
             'company_id',
             'branch_id'
-        )->with('classmaster')->withCount('students')->get();
+        )->with('classmaster')
+        ->withCount('students')
+        ->get()
+        ->map(function ($class) {
+        $class->name = empty($class->name) ? optional($class->classmaster)->name : $class->name;
+        return $class;
+    });
         
         return response()->json($classes);
     }
