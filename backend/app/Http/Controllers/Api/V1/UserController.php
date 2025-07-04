@@ -51,7 +51,7 @@ class UserController extends ResponseController
                     ->orWhere('username', $loginInput)
                     ->orWhere('mobile', $loginInput)
                     ->orWhere('code', $loginInput);
-            })->with('role')->first();
+            })->first();
 
             if (!$user) {
                 return response()->json([
