@@ -21,12 +21,28 @@ class UserController extends ResponseController
                 'password' => 'required',
             ]);
 
-            // Determine if username is email or username
-            $find_field = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? "email" : "username";
-            $creds = [$find_field => $request->username, 'password' => $request->password, 'status' => 'active'];
+            // Determine login field (email, username, mobile, or code)
+            $loginInput = $request->username;
+            $findField = 'username'; // default
+            
+            if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
+                $findField = 'email';
+            } elseif (is_numeric($loginInput)) {
+                // Check if it's a mobile number (assuming mobile is stored as string)
+                $findField = 'mobile';
+            } else {
+                // Check if it matches a user code pattern (adjust as needed)
+                $findField = 'code';
+            }
 
-            // Find user
-            $user = User::where('email', $request->username)->first();
+            // Find user by any of the possible fields
+            $user = User::where(function($query) use ($loginInput) {
+                $query->where('email', $loginInput)
+                    ->orWhere('username', $loginInput)
+                    ->orWhere('mobile', $loginInput)
+                    ->orWhere('code', $loginInput);
+            })->first();
+
             if (!$user) {
                 return response()->json([
                     'status' => 'error',
@@ -43,18 +59,7 @@ class UserController extends ResponseController
                 ], 403);
             }
 
-            // Check login time restrictions
-            $currentTime = now()->format('H:i:s');
-            if ($user->login_start_time && $user->login_end_time) {
-                if ($currentTime < $user->login_start_time || $currentTime > $user->login_end_time) {
-                    $startTime = date('h:i A', strtotime($user->login_start_time));
-                    $endTime = date('h:i A', strtotime($user->login_end_time));
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => "Login not allowed at this time. Allowed time is between $startTime and $endTime",
-                    ], 403);
-                }
-            }
+      
 
             // Check if user has multiple branches
             $userBranches = UserBranch::where('user_id', $user->id)->count();
@@ -89,7 +94,7 @@ class UserController extends ResponseController
                     ], 404);
                 }
 
-                // Get financial year data (assuming getFinancialYearId is defined in the controller)
+                // Get financial year data
                 $fydata = $this->getFinancialYearId();
 
                 // Prepare user data for response
@@ -131,16 +136,13 @@ class UserController extends ResponseController
                     ],
                 ], 200);
             } else {
-                $errorMessage = $find_field == 'username'
-                    ? 'Invalid username or password'
-                    : 'Invalid email or password';
                 return response()->json([
                     'status' => 'error',
-                    'message' => $errorMessage,
+                    'message' => 'Invalid credentials',
                 ], 401);
             }
         } else {
-            // Branch-specific login
+            // Branch-specific login (unchanged)
             $request->validate([
                 'userId' => 'required',
                 'branch_id' => 'required|exists:branches,id',

@@ -3,7 +3,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Classes;
-use App\Models\ClassesMaster;
+use App\Models\ClassMaster;
 use App\Models\Branch;
 use App\Models\Company;
 use Illuminate\Support\Facades\Crypt;
@@ -98,7 +98,7 @@ class MasterController extends Controller
 
     public function classmasterList()
     {
-        $list = ClassesMaster::select('id','code','name','status')->get();
+        $list = ClassMaster::select('id','code','name','status')->get();
         return response()->json($list);
     }
 
