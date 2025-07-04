@@ -2,11 +2,20 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-
+use App\Http\Controllers\Controller;
 use App\DeviceToken;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\ResponseController;
 use Illuminate\Validation\Rule;
+use App\Models\UserModel as User;
+use App\Models\UserBranch;  
+use App\Models\Branch;
+use App\Models\Company;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
+
 
 class UserController extends ResponseController
 {
@@ -14,6 +23,7 @@ class UserController extends ResponseController
 
     public function login(Request $request)
     {
+     
         if (!$request->isBranch || $request->isBranch != 1) {
             // Validate request
             $request->validate([
@@ -70,7 +80,16 @@ class UserController extends ResponseController
                     'message' => 'Multiple branches detected, please select a branch',
                     'data' => [
                         'user_id' => $encryptedUserId,
-                        'redirect' => route('admin.select_branch', ['user' => $encryptedUserId]),
+                        'branches' => UserBranch::where('user_id', $user->id)
+                            ->with('branch')
+                            ->get()
+                            ->map(function ($branch) {
+                                return [
+                                    'id' => $branch->branch->id,
+                                    'name' => $branch->branch->name,
+                                    'code' => $branch->branch->code,
+                                ];
+                            }),
                     ],
                 ], 200);
             }
@@ -79,7 +98,7 @@ class UserController extends ResponseController
             if ($user && Hash::check($request->password, $user->password)) {
                 // Log in the user and generate a token
                 Auth::login($user, $request->remember ?? false);
-                $token = $user->createToken('auth_token')->plainTextToken;
+                $token = token_generator();
 
                 // Update last login
                 $user->last_login = Carbon::now()->toDateTimeString();
@@ -116,15 +135,15 @@ class UserController extends ResponseController
                         'data' => [
                             'token' => $token,
                             'user' => $userData,
-                            'redirect' => route('admin.company.create'),
+                            //'redirect' => route('admin.company.create'),
                         ],
                     ], 200);
                 }
 
                 // Determine dashboard based on user type
-                $dashboardRoute = ($user->type == 'customer' || $user->type == 'Customer' || $user->type == 'supplier')
-                    ? route('user.dashboard')
-                    : route($this->getDashboardRouteName());
+                // $dashboardRoute = ($user->type == 'admin' || $user->type == 'subadmin')
+                //     ? route('user.dashboard')
+                //     : route($this->getDashboardRouteName());
 
                 return response()->json([
                     'status' => 'success',
@@ -132,7 +151,7 @@ class UserController extends ResponseController
                     'data' => [
                         'token' => $token,
                         'user' => $userData,
-                        'redirect' => $dashboardRoute,
+                        'redirect' => 'Dashboard', // $dashboardRoute
                     ],
                 ], 200);
             } else {
@@ -158,7 +177,7 @@ class UserController extends ResponseController
 
             // Log in the user and generate a token
             Auth::login($user);
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $token = token_generator();
 
             // Fetch branch details
             $branch = Branch::find($request->branch_id);
@@ -197,9 +216,9 @@ class UserController extends ResponseController
             }
 
             // Determine dashboard based on user type
-            $dashboardRoute = ($user->type == 'customer' || $user->type == 'Customer')
-                ? route('user.dashboard')
-                : route($this->getDashboardRouteName());
+            // $dashboardRoute = ($user->type == 'customer' || $user->type == 'Customer')
+            //     ? route('user.dashboard')
+            //     : route($this->getDashboardRouteName());
 
             return response()->json([
                 'status' => 'success',
@@ -207,10 +226,24 @@ class UserController extends ResponseController
                 'data' => [
                     'token' => $token,
                     'user' => $userData,
-                    'redirect' => $dashboardRoute,
+                    'redirect' => '',//$dashboardRoute,
                 ],
             ], 200);
         }
+    }
+
+    
+    public function ClearCache()
+    {
+        Artisan::call('optimize:clear');
+        return "Cleared!";
+    }
+
+
+    private function getFinancialYearId()
+    {
+        $financialYear = \App\Models\FinancialYear::where('status', 1)->first();
+        return $financialYear ? $financialYear : null;
     }
 
     public function getProfile()
