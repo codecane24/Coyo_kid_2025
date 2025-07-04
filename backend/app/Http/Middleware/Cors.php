@@ -15,6 +15,7 @@ class Cors
             'http://localhost:3000',
             'https://localhost:3000',
             'https://coyokid.abbangles.com',
+            'http://coyokid.abbangles.com:3000',
         ];
 
         // Get the origin from the request
