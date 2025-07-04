@@ -151,6 +151,16 @@ class UserController extends ResponseController
                     'data' => [
                         'token' => $token,
                         'user' => $userData,
+                        'branches' => UserBranch::where('user_id', $user->id)
+                            ->with('branch')
+                            ->get()
+                            ->map(function ($branch) {
+                                return [
+                                    'id' => $branch->branch->id,
+                                    'name' => $branch->branch->name,
+                                    'code' => $branch->branch->code,
+                                ];
+                            }),
                         'redirect' => 'Dashboard', // $dashboardRoute
                     ],
                 ], 200);
@@ -226,6 +236,16 @@ class UserController extends ResponseController
                 'data' => [
                     'token' => $token,
                     'user' => $userData,
+                    'branches' => UserBranch::where('user_id', $user->id)
+                        ->with('branch')
+                        ->get()
+                        ->map(function ($branch) {
+                            return [
+                                'id' => $branch->branch->id,
+                                'name' => $branch->branch->name,
+                                'code' => $branch->branch->code,
+                            ];
+                        }),
                     'redirect' => '',//$dashboardRoute,
                 ],
             ], 200);
