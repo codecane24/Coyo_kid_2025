@@ -26,7 +26,13 @@ class ClassController extends Controller
             'status',
             'company_id',
             'branch_id'
-        )->with('classmaster')->withCount('students')->get();
+        )->with('classmaster')
+        ->withCount('students')
+        ->get()
+        ->map(function ($class) {
+        $class->name = empty($class->name) ? optional($class->classmaster)->name : $class->name;
+        return $class;
+    });
         
         return response()->json($classes);
     }
@@ -100,8 +106,8 @@ class ClassController extends Controller
         // Create the class
         $request->merge([
             'code' => strtoupper($request->code) ?? '', // Ensure code is uppercase
-            'company_id' => decrypt($request->company_id) ?? 1, // Decrypt company_id
-            'branch_id' => decrypt($request->branch_id) ?? 1 // Decrypt branch_id
+            'company_id' => $request->company_id ?? 1, // Decrypt company_id
+            'branch_id' => $request->branch_id ?? 1 // Decrypt branch_id
         ]);
 
         $class = Classes::create($request->all());

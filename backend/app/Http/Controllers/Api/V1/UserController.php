@@ -2,11 +2,20 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-
+use App\Http\Controllers\Controller;
 use App\DeviceToken;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\ResponseController;
 use Illuminate\Validation\Rule;
+use App\Models\UserModel as User;
+use App\Models\UserBranch;  
+use App\Models\Branch;
+use App\Models\Company;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
+
 
 class UserController extends ResponseController
 {
@@ -14,6 +23,7 @@ class UserController extends ResponseController
 
     public function login(Request $request)
     {
+     
         if (!$request->isBranch || $request->isBranch != 1) {
             // Validate request
             $request->validate([
@@ -21,12 +31,28 @@ class UserController extends ResponseController
                 'password' => 'required',
             ]);
 
-            // Determine if username is email or username
-            $find_field = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? "email" : "username";
-            $creds = [$find_field => $request->username, 'password' => $request->password, 'status' => 'active'];
+            // Determine login field (email, username, mobile, or code)
+            $loginInput = $request->username;
+            $findField = 'username'; // default
+            
+            if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
+                $findField = 'email';
+            } elseif (is_numeric($loginInput)) {
+                // Check if it's a mobile number (assuming mobile is stored as string)
+                $findField = 'mobile';
+            } else {
+                // Check if it matches a user code pattern (adjust as needed)
+                $findField = 'code';
+            }
 
-            // Find user
-            $user = User::where('email', $request->username)->first();
+            // Find user by any of the possible fields
+            $user = User::where(function($query) use ($loginInput) {
+                $query->where('email', $loginInput)
+                    ->orWhere('username', $loginInput)
+                    ->orWhere('mobile', $loginInput)
+                    ->orWhere('code', $loginInput);
+            })->first();
+
             if (!$user) {
                 return response()->json([
                     'status' => 'error',
@@ -43,18 +69,7 @@ class UserController extends ResponseController
                 ], 403);
             }
 
-            // Check login time restrictions
-            $currentTime = now()->format('H:i:s');
-            if ($user->login_start_time && $user->login_end_time) {
-                if ($currentTime < $user->login_start_time || $currentTime > $user->login_end_time) {
-                    $startTime = date('h:i A', strtotime($user->login_start_time));
-                    $endTime = date('h:i A', strtotime($user->login_end_time));
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => "Login not allowed at this time. Allowed time is between $startTime and $endTime",
-                    ], 403);
-                }
-            }
+      
 
             // Check if user has multiple branches
             $userBranches = UserBranch::where('user_id', $user->id)->count();
@@ -65,7 +80,16 @@ class UserController extends ResponseController
                     'message' => 'Multiple branches detected, please select a branch',
                     'data' => [
                         'user_id' => $encryptedUserId,
-                        'redirect' => route('admin.select_branch', ['user' => $encryptedUserId]),
+                        'branches' => UserBranch::where('user_id', $user->id)
+                            ->with('branch')
+                            ->get()
+                            ->map(function ($branch) {
+                                return [
+                                    'id' => $branch->branch->id,
+                                    'name' => $branch->branch->name,
+                                    'code' => $branch->branch->code,
+                                ];
+                            }),
                     ],
                 ], 200);
             }
@@ -74,7 +98,7 @@ class UserController extends ResponseController
             if ($user && Hash::check($request->password, $user->password)) {
                 // Log in the user and generate a token
                 Auth::login($user, $request->remember ?? false);
-                $token = $user->createToken('auth_token')->plainTextToken;
+                $token = token_generator();
 
                 // Update last login
                 $user->last_login = Carbon::now()->toDateTimeString();
@@ -89,7 +113,7 @@ class UserController extends ResponseController
                     ], 404);
                 }
 
-                // Get financial year data (assuming getFinancialYearId is defined in the controller)
+                // Get financial year data
                 $fydata = $this->getFinancialYearId();
 
                 // Prepare user data for response
@@ -111,15 +135,15 @@ class UserController extends ResponseController
                         'data' => [
                             'token' => $token,
                             'user' => $userData,
-                            'redirect' => route('admin.company.create'),
+                            //'redirect' => route('admin.company.create'),
                         ],
                     ], 200);
                 }
 
                 // Determine dashboard based on user type
-                $dashboardRoute = ($user->type == 'customer' || $user->type == 'Customer' || $user->type == 'supplier')
-                    ? route('user.dashboard')
-                    : route($this->getDashboardRouteName());
+                // $dashboardRoute = ($user->type == 'admin' || $user->type == 'subadmin')
+                //     ? route('user.dashboard')
+                //     : route($this->getDashboardRouteName());
 
                 return response()->json([
                     'status' => 'success',
@@ -127,20 +151,27 @@ class UserController extends ResponseController
                     'data' => [
                         'token' => $token,
                         'user' => $userData,
-                        'redirect' => $dashboardRoute,
+                        'branches' => UserBranch::where('user_id', $user->id)
+                            ->with('branch')
+                            ->get()
+                            ->map(function ($branch) {
+                                return [
+                                    'id' => $branch->branch->id,
+                                    'name' => $branch->branch->name,
+                                    'code' => $branch->branch->code,
+                                ];
+                            }),
+                        'redirect' => 'Dashboard', // $dashboardRoute
                     ],
                 ], 200);
             } else {
-                $errorMessage = $find_field == 'username'
-                    ? 'Invalid username or password'
-                    : 'Invalid email or password';
                 return response()->json([
                     'status' => 'error',
-                    'message' => $errorMessage,
+                    'message' => 'Invalid credentials',
                 ], 401);
             }
         } else {
-            // Branch-specific login
+            // Branch-specific login (unchanged)
             $request->validate([
                 'userId' => 'required',
                 'branch_id' => 'required|exists:branches,id',
@@ -156,7 +187,7 @@ class UserController extends ResponseController
 
             // Log in the user and generate a token
             Auth::login($user);
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $token = token_generator();
 
             // Fetch branch details
             $branch = Branch::find($request->branch_id);
@@ -195,9 +226,9 @@ class UserController extends ResponseController
             }
 
             // Determine dashboard based on user type
-            $dashboardRoute = ($user->type == 'customer' || $user->type == 'Customer')
-                ? route('user.dashboard')
-                : route($this->getDashboardRouteName());
+            // $dashboardRoute = ($user->type == 'customer' || $user->type == 'Customer')
+            //     ? route('user.dashboard')
+            //     : route($this->getDashboardRouteName());
 
             return response()->json([
                 'status' => 'success',
@@ -205,10 +236,34 @@ class UserController extends ResponseController
                 'data' => [
                     'token' => $token,
                     'user' => $userData,
-                    'redirect' => $dashboardRoute,
+                    'branches' => UserBranch::where('user_id', $user->id)
+                        ->with('branch')
+                        ->get()
+                        ->map(function ($branch) {
+                            return [
+                                'id' => $branch->branch->id,
+                                'name' => $branch->branch->name,
+                                'code' => $branch->branch->code,
+                            ];
+                        }),
+                    'redirect' => '',//$dashboardRoute,
                 ],
             ], 200);
         }
+    }
+
+    
+    public function ClearCache()
+    {
+        Artisan::call('optimize:clear');
+        return "Cleared!";
+    }
+
+
+    private function getFinancialYearId()
+    {
+        $financialYear = \App\Models\FinancialYear::where('status', 1)->first();
+        return $financialYear ? $financialYear : null;
     }
 
     public function getProfile()
