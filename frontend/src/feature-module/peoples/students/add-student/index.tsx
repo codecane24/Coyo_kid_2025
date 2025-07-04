@@ -27,10 +27,20 @@ import {
 import { TagsInput } from "react-tag-input-component";
 import CommonSelect from "../../../../core/common/commonSelect";
 import { useLocation } from "react-router-dom";
+import { getClassesList } from "../../../../services/ClassData";
+
+type ClassItem = {
+  id: string;
+  name: string; 
+   
+};
 
 const AddStudent = () => {
   const routes = all_routes;
+  const [classOptions, setClassOptions] = useState<{ label: string; value: string }[]>([]);
 
+ const [allClass, setAllClass] = useState<{ label: string; value: string }[]>([]);
+  const [loading, setLoading] = useState(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [owner, setOwner] = useState<string[]>(['English','Spanish']);
   const [owner1, setOwner1] = useState<string[]>([]);
@@ -44,6 +54,25 @@ const AddStudent = () => {
   const removeContent = (index:any) => {
     setNewContents(newContents.filter((_, i) => i !== index));
   };
+  useEffect(() => {
+  const fetchClasses = async () => {
+    try {
+      const data: ClassItem[] = await getClassesList();
+      const formatted = data.map((cls) => ({
+        label: cls.name,
+        value: cls.id,
+         
+      }));
+      setClassOptions(formatted);
+    } catch (err) {
+      console.error("Failed to fetch class list:", err);
+    }
+  };
+
+  fetchClasses();
+
+}, []);
+
   useEffect(() => {
     if (location.pathname === routes.editStudent ) {
       const today = new Date();
@@ -209,16 +238,17 @@ const AddStudent = () => {
                           <input type="text" className="form-control" defaultValue={isEdit? 'claudia': undefined}/>
                         </div>
                       </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Class</label>
-                          <CommonSelect
-                            className="select"
-                            options={allClass}
-                            defaultValue={isEdit?allClass[0]:undefined}
-                          />
-                        </div>
-                      </div>
+                    <div className="col-xxl col-xl-3 col-md-6">
+  <div className="mb-3">
+    <label className="form-label">Class</label>
+    <CommonSelect
+      className="select"
+      options={classOptions}
+      defaultValue={isEdit ? classOptions[0] : undefined}
+    />
+  </div>
+</div>
+
                       <div className="col-xxl col-xl-3 col-md-6">
                         <div className="mb-3">
                           <label className="form-label">Section</label>
@@ -1327,7 +1357,7 @@ const AddStudent = () => {
           </div>
         </div>
       </div>
-      {/* /Page Wrapper */}
+     
     </>
   );
 };

@@ -2,90 +2,51 @@ import { all_routes } from "../../../feature-module/router/all_routes";
 const routes = all_routes;
 
 export const SidebarData = [
-  {
-    label: "USER MANAGMENT",
-    submenuOpen: true,
-    showSubRoute: false,
-    submenuHdr: "Main",
-    submenuItems: [
+// {
+//   label: "USER MANAGEMENT",
+//   submenuOpen: true,
+//   showSubRoute: false,
+//   submenuHdr: "Main",
+//   submenuItems: [
+//     {
+//       label: "Manage Users",
+//       icon: "ti ti-users-group", // 👥 Group of users
+//       submenu: true,
+//       showSubRoute: false,
+//       submenuItems: [
+//         { label: "Add Users", link: routes.adminDashboard, icon: "ti ti-user" }, // 👤
 
-    // Dashboard  
-      {
-        label: "Manage Users",
-        icon: "ti ti-layout-dashboard",
-        submenu: true,
-        showSubRoute: false,
+//       ],
+//     },
 
-        submenuItems: [
-          { label: "Users", link: routes.adminDashboard },
-          { label: "Roles", link: routes.teacherDashboard },
-          { label: "Permissions", link: routes.studentDashboard },
-          { label: "", link: routes.parentDashboard },
-        ],
-      },
+//     {
+//       label: "Roles",
+//       icon: "ti ti-id-badge", // 🪪 Role identity
+//       submenu: true,
+//       showSubRoute: false,
+//       submenuItems: [
+//         { label: "Chat", link: routes.chat, icon: "ti ti-message-circle" }, // 💬
+//         { label: "Call", link: routes.audioCall, icon: "ti ti-phone-call" }, // 📞
+//         { label: "Calendar", link: routes.calendar, icon: "ti ti-calendar" }, // 📅
+//         { label: "Email", link: routes.email, icon: "ti ti-mail" }, // ✉️
+//         { label: "To Do", link: routes.todo, icon: "ti ti-checklist" }, // ✅
+//         { label: "Notes", link: routes.notes, icon: "ti ti-notes" }, // 📝
+//         { label: "File Manager", link: routes.fileManager, icon: "ti ti-folder" }, // 📁
+//       ],
+//     },
 
-      // Application
-      {
-        label: "Application",
-     icon: "ti ti-apps",
-
-        submenu: true,
-        showSubRoute: false,
-        submenuItems: [
-          {
-            label: "Chat",
-            link: routes.chat,
-            showSubRoute: false,
-          },
-          {
-            label: "Call",
-            link: routes.audioCall,
-            showSubRoute: false,
-          },
-          {
-            label: "Calendar",
-            link: routes.calendar,
-            showSubRoute: false,
-          },
-          {
-            label: "Email",
-            link: routes.email,
-            showSubRoute: false,
-          },
-          {
-            label: "To Do",
-            link: routes.todo,
-            showSubRoute: false,
-          },
-          {
-            label: "Notes",
-            link: routes.notes,
-            showSubRoute: false,
-          },
-          {
-            label: "File Manager",
-            link: routes.fileManager,
-            showSubRoute: false,
-          },
-        ],
-      },
-      // Other
-          {
-        label: "Other",
-        icon: "ti ti-layout-list",
-        submenu: true,
-        showSubRoute: false,
-        submenuItems: [
-          {
-            label: "Inquiry",
-            link: routes.inquiry,
-            showSubRoute: false,
-          },
-  
-        ],
-      },
-    ],
-  },
+//     {
+//       label: "Permissions",
+//       icon: "ti ti-key", // 🔑 Permissions
+//       submenu: true,
+//       showSubRoute: false,
+//       submenuItems: [
+//         { label: "Inquiry", link: routes.inquiry, icon: "ti ti-search" }, // 🔍
+//       ],
+//     },
+//   ],
+// }
+// ,
   {
     label: "MAIN",
     submenuOpen: true,

@@ -6,6 +6,7 @@ import ThemeSettings from "../core/common/theme-settings";
 import Loader from "../core/common/loader";
 import { useEffect, useState } from "react";
 import { all_routes } from "./router/all_routes";
+import LoaderTwo from "../core/common/loader/loaderTwo";
 const Feature = () => {
   const routes = all_routes;
   const [showLoader, setShowLoader] = useState(true);
@@ -60,9 +61,7 @@ const Feature = () => {
   }, [location.pathname]);
   const Preloader = () => {
     return (
-      <div id="global-loader">
-        <div className="page-loader"></div>
-      </div>
+        <LoaderTwo/>
     );
   };
   return (

@@ -182,6 +182,7 @@ export const all_routes = {
   deleteRequest: "/user-management/delete-request",
   rolesPermissions: "/user-management/roles-permissions",
   manageusers: "/user-management/manage-users",
+    addusers: "/user-management/add-users",
   permissions: "/user-management/permissions",
 
   //support routes
@@ -245,7 +246,7 @@ export const all_routes = {
   transportVehicleDrivers:"/management/transport-vehicle-drivers",
   transportPickupPoints:"/management/transport-pickup-points",
   transportRoutes:"/management/transport-routes",
-
+loadertwo:'/loadertwo',
 
 
 

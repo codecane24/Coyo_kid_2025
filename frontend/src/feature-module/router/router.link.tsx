@@ -251,6 +251,8 @@ import Inquiry from "../peoples/students/add-student/inquiry";
 import AcadmicFees from "../management/feescollection/acadmicFees";
 
 import CollectFees from "../management/feescollection/collectFees";
+import AddUser from "../userManagement/AddUser";
+import LoaderTwo from "../../core/common/loader/loaderTwo";
 
 
 const routes = all_routes;
@@ -265,6 +267,11 @@ export const publicRoutes = [
   {
     path: routes.adminDashboard,
     element: <AdminDashboard />,
+    route: Route,
+  },
+   {
+    path: routes.loadertwo,
+    element: <LoaderTwo/>,
     route: Route,
   },
   {
@@ -1244,6 +1251,10 @@ export const publicRoutes = [
   {
     path: routes.manageusers,
     element: <Manageusers />,
+  },
+   {
+    path: routes.addusers,
+    element: <AddUser/>,
   },
   {
     path: routes.allBlogs,

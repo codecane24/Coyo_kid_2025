@@ -1,0 +1,76 @@
+.loader-container {
+  height: 100vh;
+  width: 100vw;
+  background: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: fixed;
+  z-index: 9999;
+}
+
+.pulse-wrapper {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+
+.pulse-logo {
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  border-radius: 16px;
+}
+
+.pulse-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.7;
+  animation: pulse 1.6s infinite ease-out;
+}
+
+.pulse-circle.green {
+  background-color: #00a859;
+  animation-delay: 0s;
+}
+
+.pulse-circle.blue {
+  background-color: #00aeef;
+  animation-delay: 0.3s;
+}
+
+.pulse-circle.yellow {
+  background-color: #fbb03b;
+  animation-delay: 0.6s;
+}
+
+.pulse-circle.pink {
+  background-color: #ec008c;
+  animation-delay: 0.9s;
+}
+
+.pulse-circle.gray {
+  background-color: #888888;
+  animation-delay: 1.2s;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4.5); /* More spread */
+    opacity: 0;
+  }
+}
