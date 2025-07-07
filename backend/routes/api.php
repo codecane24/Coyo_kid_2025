@@ -34,16 +34,18 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
      // Role API
     Route::get('role', 'RoleController@index');
 
-     // Permission  API
+    // Permission  API
     Route::resource('permission', 'PermissionApiController');
+
+    // Permission  API
+    Route::resource('user', 'UserApiController');
 
     // Classes API
     Route::resource('classes', 'ClassController'); 
     Route::get('classes/{id}', 'ClassController@show'); // Get single class by ID
 
     // branch API
-    Route::get('branch', 'BranchController@index'); // Get all section
-    Route::get('branch/{id}', 'BranchController@show'); // Get single section by ID
+    Route::resource('branch', 'BranchApiController');
 
 });
 

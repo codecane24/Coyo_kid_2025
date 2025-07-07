@@ -3,243 +3,303 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\WebController;
 use Spatie\Permission\Models\Role;
-use Illuminate\Http\Request;
-use Yajra\DataTables\Facades\DataTables;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-class RoleController extends WebController
+class RoleController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public $role_obj;
+    protected $role_obj;
+
     public function __construct()
     {
         $this->role_obj = new Role();
     }
 
+    /**
+     * Display a listing of the roles.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index()
     {
-        $a['title'] = 'Role';
-        $a['role'] = $this->role_obj::where('status',1)->get();
-         return response()->json($a);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        if (!hasPermission('role_create')) {
-            return redirect()->back();
-        }
-        $groupedPermissions = Permission::all()->groupBy(function ($permission) {
-            return explode('_', $permission->name)[0]; // Extract category from permission name
+        $roles = $this->role_obj::where('status', 1)->get()->map(function ($role) {
+            return [
+                'id' => $role->id,
+                'name' => $role->name,
+                'status' => $role->status ? 'Active' : 'Inactive',
+                'permissions' => $role->permissions->pluck('name'),
+            ];
         });
-        return view('admin.role.create', [
-            'title' => "Create Role",
-            'groupedPermissions' => $groupedPermissions,
-            'breadcrumb' => breadcrumb([
-                'Role' => route('admin.role.index')
-            ]),
-        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $roles,
+        ], 200);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created role in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'permissions' => 'required|array',
-            'permissions.*' => 'exists:permissions,name',
-        ]);
-
-        if ($request->statusData == 'active') {
-            $status = 1;
-        } else {
-            $status = 0;
+        if (!$this->hasPermission('role_create')) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
-        $role = Role::create(['name' => $request->name, 'status' => $status]);
-        $role->syncPermissions($request->permissions); // Assign permissions by name
-
-        return redirect()->route('admin.role.index')->with('success', 'Role created successfully.');
-    }
-
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name',
             'permissions' => 'required|array',
             'permissions.*' => 'exists:permissions,name',
+            'status' => 'required|in:active,inactive',
         ]);
 
-        $role = Role::findById($id);
-        $role->update(['name' => $request->name]);
-        $role->syncPermissions($request->permissions); // Assign permissions by name
+        $status = $validated['status'] === 'active' ? 1 : 0;
 
-        return redirect()->route('admin.role.index')->with('success', 'Role updated successfully.');
+        $role = Role::create([
+            'name' => $validated['name'],
+            'status' => $status,
+        ]);
+
+        $role->syncPermissions($validated['permissions']);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Role created successfully.',
+            'data' => [
+                'id' => $role->id,
+                'name' => $role->name,
+                'status' => $role->status ? 'Active' : 'Inactive',
+                'permissions' => $role->permissions->pluck('name'),
+            ],
+        ], 201);
     }
 
-
-
     /**
-     * Display the specified resource.
+     * Display the specified role.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
-        //
+        if (!$this->hasPermission('role_view')) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        $role = $this->role_obj::find($id);
+        if (!$role) {
+            return response()->json(['status' => 'error', 'message' => 'Role not found'], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'id' => $role->id,
+                'name' => $role->name,
+                'status' => $role->status ? 'Active' : 'Inactive',
+                'permissions' => $role->permissions->pluck('name'),
+            ],
+        ], 200);
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        if (!hasPermission('role_edit')) {
-            return redirect()->back();
-        }
-        $data = $this->role_obj->find($id);
-        $groupedPermissions = Permission::all()->groupBy(function ($permission) {
-            return explode('_', $permission->name)[0]; // Extract category from permission name
-        });
-        if (isset($data) && !empty($data)) {
-            return view('admin.role.create', [
-                'title' => 'Role Update',
-                'groupedPermissions' => $groupedPermissions,
-                'breadcrumb' => breadcrumb([
-                    'Role' => route('admin.role.index'),
-                    'edit' => route('admin.role.edit', $id),
-                ]),
-            ])->with(compact('data'));
-        }
-        return redirect()->route('admin.role.index');
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Update the specified role in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    // public function update(Request $request, $id)
-    // {
-    //     $request->validate([
-    //         'name' => ['required', 'max:255'],
-    //     ]);
-    //     $categories = $this->role_obj->find($id);
-    //     if(isset($categories) && !empty($categories)){
-    //         $return_data = $request->all();
-    //         $this->role_obj->saveRole($return_data,$id,$categories);
-    //         success_session('Role updated successfully');
-    //     }
-    //     else{
-    //         error_session('Role not found');
-    //     }
-    //     return redirect()->route('admin.role.index');
-    // }
+    public function update(Request $request, $id)
+    {
+        if (!$this->hasPermission('role_edit')) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        $role = $this->role_obj::find($id);
+        if (!$role) {
+            return response()->json(['status' => 'error', 'message' => 'Role not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', \Illuminate\Validation\Rule::unique('roles')->ignore($id)],
+            'permissions' => 'required|array',
+            'permissions.*' => 'exists:permissions,name',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        $status = $validated['status'] === 'active' ? 1 : 0;
+
+        $role->update([
+            'name' => $validated['name'],
+            'status' => $status,
+        ]);
+
+        $role->syncPermissions($validated['permissions']);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Role updated successfully.',
+            'data' => [
+                'id' => $role->id,
+                'name' => $role->name,
+                'status' => $role->status ? 'Active' : 'Inactive',
+                'permissions' => $role->permissions->pluck('name'),
+            ],
+        ], 200);
+    }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified role from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
-        if (!hasPermission('role_delete')) {
-            return redirect()->back();
+        if (!$this->hasPermission('role_delete')) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
-        $data = $this->role_obj::where('id', $id)->delete();
-        if ($data) {
-            success_session('Role deleted successfully');
-        } else {
-            error_session('Role not found');
+
+        $role = $this->role_obj::find($id);
+        if (!$role) {
+            return response()->json(['status' => 'error', 'message' => 'Role not found'], 404);
         }
-        return redirect()->route('admin.role.index');
+
+        if ($role->is_perm_delete != 1) {
+            return response()->json(['status' => 'error', 'message' => 'Role cannot be deleted'], 403);
+        }
+
+        $role->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Role deleted successfully',
+        ], 200);
     }
 
+    /**
+     * Get a listing of roles for DataTables.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function listing(Request $request)
     {
-        $data = $this->role_obj::all();
-        return DataTables::of($data)
-            ->addIndexColumn()
-            ->addColumn('status', function ($row) {
-                $statusText = $row->status == "1" ? "Active" : "Inactive";
-                $btnClass = $row->status == "1" ? "btn-success" : "btn-danger";
+        $roles = $this->role_obj::all();
 
-                return '<button class="btn btn-sm ' . $btnClass . ' toggle-status" data-id="' . $row->id . '">
-                        ' . $statusText . '
-                    </button>';
-            })
-            ->addColumn('action', function ($row) {
-                $param = [
-                    'id' => $row->id,
-                    'url' => [
-                        'delete' => (auth()->user()->hasPermissionTo('role_delete') && $row->is_perm_delete == 1)
-                            ? route('admin.role.destroy', $row->id)
-                            : null,
-                        'edit' => auth()->user()->hasPermissionTo('role_edit') ? route('admin.role.edit', $row->id) : null,
-                    ]
-                ];
-                return $this->generate_actions_buttons($param);
-            })
-            ->rawColumns(["status", "action"])
-            ->make(true);
+        $data = $roles->map(function ($role) {
+            $statusText = $role->status == 1 ? 'Active' : 'Inactive';
+            $btnClass = $role->status == 1 ? 'btn-success' : 'btn-danger';
+
+            return [
+                'id' => $role->id,
+                'name' => $role->name,
+                'status' => [
+                    'text' => $statusText,
+                    'class' => $btnClass,
+                    'id' => $role->id,
+                    'url' => $this->hasPermission('role_edit') ? route('api.v1.roles.status-update') : null,
+                ],
+                'action' => $this->generateActionLinks($role),
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
+            'recordsTotal' => $roles->count(),
+            'recordsFiltered' => $roles->count(),
+        ], 200);
     }
 
-
-
-    public function status_update(Request $request)
+    /**
+     * Update the status of the specified role.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function statusUpdate(Request $request)
     {
-        $id = $request->id;
-        $response = ['status' => 0, 'message' => 'Role Not Found'];
-
-        $find = $this->role_obj->find($id);
-        if ($find) {
-            $newStatus = ($find->status == "1") ? "0" : "1"; // Toggle status
-            $find->update(['status' => $newStatus]);
-
-            $response = [
-                'status' => 1,
-                'message' => 'Role status updated',
-                'new_status' => $newStatus == "1" ? "Active" : "Inactive" // Return new status
-            ];
+        if (!$this->hasPermission('role_edit')) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
-        return response()->json($response);
+        $request->validate(['id' => 'required|exists:roles,id']);
+
+        $role = $this->role_obj::find($request->id);
+        if (!$role) {
+            return response()->json(['status' => 'error', 'message' => 'Role not found'], 404);
+        }
+
+        $newStatus = $role->status == 1 ? 0 : 1;
+        $role->update(['status' => $newStatus]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Role status updated',
+            'data' => [
+                'new_status' => $newStatus == 1 ? 'Active' : 'Inactive',
+                'btn_class' => $newStatus == 1 ? 'btn-success' : 'btn-danger',
+            ],
+        ], 200);
     }
 
-
+    /**
+     * Get permissions for a specific role.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getPermissionsForRole(Request $request)
     {
-        $roleId = $request->input('role_id');
-        $role = Role::find($roleId);
+        $request->validate(['role_id' => 'required|exists:roles,id']);
 
-        if ($role) {
-            // Get the permissions associated with the selected role
-            $permissions = $role->permissions->pluck('name')->toArray();
-            return response()->json(['permissions' => $permissions]);
+        $role = Role::find($request->role_id);
+        if (!$role) {
+            return response()->json(['status' => 'error', 'message' => 'Role not found', 'permissions' => []], 404);
         }
 
-        return response()->json(['permissions' => []]);
+        $permissions = $role->permissions->pluck('name')->toArray();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'permissions' => $permissions,
+            ],
+        ], 200);
+    }
+
+    /**
+     * Helper method to check permissions.
+     *
+     * @param string $permission
+     * @return bool
+     */
+    private function hasPermission($permission)
+    {
+        return Auth::user()->hasPermissionTo($permission);
+    }
+
+    /**
+     * Helper method to generate action links.
+     *
+     * @param Role $role
+     * @return array
+     */
+    private function generateActionLinks($role)
+    {
+        $actions = [];
+        if ($this->hasPermission('role_edit')) {
+            $actions['edit'] = route('api.v1.roles.update', $role->id);
+        }
+        if ($this->hasPermission('role_delete') && $role->is_perm_delete == 1) {
+            $actions['delete'] = route('api.v1.roles.destroy', $role->id);
+        }
+        return $actions;
     }
 }

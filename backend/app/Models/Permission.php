@@ -12,6 +12,7 @@ class Permission extends Model
         'guard_name',
         'is_perm_deleted'
     ];
+    
     public function parent()
     {
         return $this->belongsTo(Permission::class, 'parent_id');
