@@ -125,6 +125,8 @@ class UserController extends ResponseController
                     'branch_id' => $user->branch_id,
                     'branch_name' => $branch->name,
                     'fyear' => $fydata,
+                    'role' => $user->role, // Assuming role is a field in User model
+                    'profile_image' => $user->profile_image,
                 ];
 
                 // Check if company exists
