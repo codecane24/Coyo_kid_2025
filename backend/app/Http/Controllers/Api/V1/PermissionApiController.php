@@ -148,8 +148,7 @@ class PermissionApiController extends Controller
                     }
 
                     // Find child permission by parent_id and child_id (if provided) or by name
-                    $query = Permission::where('parent_id', $id)
-                        ->where('name', "{$permission->name}_{$action}");
+                    $query = Permission::where('parent_id', $id);
 
                     if ($childId) {
                         $query->where('id', $childId); // Add child_id check
