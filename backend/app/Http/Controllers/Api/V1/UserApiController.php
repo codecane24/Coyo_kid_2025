@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
-use App\Models\User;
+use App\Models\UserModel as User;
 use App\Models\Branch;
 use App\Models\Company;
 use Illuminate\Http\Request;
@@ -30,8 +30,8 @@ class UserApiController extends Controller
         $offset = $datatable_filter['offset'] ?? 0;
         $search = $datatable_filter['search'];
         $userType = $request->query('user_type');
-
-        $query = Auth::user()->type == 'superadmin'
+        $AurhUrerType = Auth::user()->type ?? 'admin';
+        $query = $AurhUrerType == 'superadmin'
             ? User::whereIn('type', ['superadmin', 'admin', 'user', 'subadmin', 'customer', 'supplier'])
             : User::whereIn('type', ['user', 'subadmin', 'customer', 'supplier']);
 
@@ -52,7 +52,7 @@ class UserApiController extends Controller
 
         $filteredRecords = $query->count();
 
-        $users = $query->orderBy($datatable_filter['sort'], $datatable_filter['order'])
+        $users = $query->orderBy('id')
                        ->offset($offset)
                        ->limit($datatable_filter['limit'])
                        ->get();
@@ -391,7 +391,7 @@ class UserApiController extends Controller
      */
     private function hasPermission($permission)
     {
-        return Auth::user()->hasPermissionTo($permission);
+       // return Auth::user()->hasPermissionTo($permission);
     }
 
     /**
@@ -406,7 +406,7 @@ class UserApiController extends Controller
             'offset' => $request->query('start', 0),
             'limit' => $request->query('length', 10),
             'search' => $request->query('search')['value'] ?? null,
-            'sort' => $request->query('columns')[$request->query('order')[0]['column']]['data'] ?? 'id',
+         //   'sort' => $request->query('columns')[$request->query('order')[0]['column']]['data'] ?? 'id',
             'order' => $request->query('order')[0]['dir'] ?? 'asc',
         ];
     }

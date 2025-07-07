@@ -4,31 +4,34 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\DeviceToken;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Api\ResponseController;
-use Illuminate\Validation\Rule;
-use App\Models\UserModel as User;
-use App\Models\UserBranch;  
+use App\Models\User as UserModel;
+use App\Models\UserBranch;
 use App\Models\Branch;
 use App\Models\Company;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
+use Artisan;
 
-
-class UserController extends ResponseController
+class UserController extends Controller
 {
-
-
+    /**
+     * Handle user login and store device token.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function login(Request $request)
     {
-     
         if (!$request->isBranch || $request->isBranch != 1) {
             // Validate request
             $request->validate([
                 'username' => 'required',
                 'password' => 'required',
+                'device_token' => 'nullable|string|max:255', // Added device_token validation
             ]);
 
             // Determine login field (email, username, mobile, or code)
@@ -38,15 +41,13 @@ class UserController extends ResponseController
             if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
                 $findField = 'email';
             } elseif (is_numeric($loginInput)) {
-                // Check if it's a mobile number (assuming mobile is stored as string)
                 $findField = 'mobile';
             } else {
-                // Check if it matches a user code pattern (adjust as needed)
                 $findField = 'code';
             }
 
             // Find user by any of the possible fields
-            $user = User::where(function($query) use ($loginInput) {
+            $user = UserModel::where(function($query) use ($loginInput) {
                 $query->where('email', $loginInput)
                     ->orWhere('username', $loginInput)
                     ->orWhere('mobile', $loginInput)
@@ -54,44 +55,32 @@ class UserController extends ResponseController
             })->first();
 
             if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                ], 404);
+                return $this->sendError(404, __('api.err_user_not_found'));
             }
 
             // Check IP address restriction
             $clientIp = $request->ip();
             if ($user->assigned_ip_address && $clientIp !== $user->assigned_ip_address) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Login not allowed from this IP address',
-                ], 403);
+                return $this->sendError(403, __('api.err_ip_restricted'));
             }
-
-      
 
             // Check if user has multiple branches
             $userBranches = UserBranch::where('user_id', $user->id)->count();
             if ($userBranches > 1) {
                 $encryptedUserId = Crypt::encryptString($user->id);
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Multiple branches detected, please select a branch',
-                    'data' => [
-                        'user_id' => $encryptedUserId,
-                        'branches' => UserBranch::where('user_id', $user->id)
-                            ->with('branch')
-                            ->get()
-                            ->map(function ($branch) {
-                                return [
-                                    'id' => $branch->branch->id,
-                                    'name' => $branch->branch->name,
-                                    'code' => $branch->branch->code,
-                                ];
-                            }),
-                    ],
-                ], 200);
+                return $this->sendResponse(200, __('api.succ_multiple_branches'), [
+                    'user_id' => $encryptedUserId,
+                    'branches' => UserBranch::where('user_id', $user->id)
+                        ->with('branch')
+                        ->get()
+                        ->map(function ($branch) {
+                            return [
+                                'id' => $branch->branch->id,
+                                'name' => $branch->branch->name,
+                                'code' => $branch->branch->code,
+                            ];
+                        }),
+                ]);
             }
 
             // Authenticate user
@@ -100,6 +89,20 @@ class UserController extends ResponseController
                 Auth::login($user, $request->remember ?? false);
                 $token = token_generator();
 
+                // Store device token if provided
+                if ($request->filled('device_token')) {
+                    DeviceToken::updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'token' => $request->device_token,
+                        ],
+                        [
+                            'user_id' => $user->id,
+                            'token' => $request->device_token,
+                        ]
+                    );
+                }
+
                 // Update last login
                 $user->last_login = Carbon::now()->toDateTimeString();
                 $user->save();
@@ -107,10 +110,7 @@ class UserController extends ResponseController
                 // Fetch branch details
                 $branch = Branch::where('id', $user->branch_id)->first();
                 if (!$branch) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Branch not found',
-                    ], 404);
+                    return $this->sendError(404, __('api.err_branch_not_found'));
                 }
 
                 // Get financial year data
@@ -119,125 +119,28 @@ class UserController extends ResponseController
                 // Prepare user data for response
                 $userData = [
                     'user_id' => $user->id,
+                    'username' => $user->username,
                     'name' => $user->name,
                     'code' => $user->code,
-                    'username' => $user->username,
                     'email' => $user->email,
                     'type' => $user->type,
                     'branch_id' => $user->branch_id,
                     'branch_name' => $branch->name,
                     'fyear' => $fydata,
-                    'role' => $user->role, // Assuming role is a field in User model
+                    'role' => $user->role,
                     'profile_image' => $user->profile_image,
+                    'device_token' => $request->device_token ?? null, // Include device token in response
                 ];
 
                 // Check if company exists
                 if (Company::count() == 0) {
-                    return response()->json([
-                        'status' => 'success',
-                        'message' => 'No company found, redirect to company creation',
-                        'data' => [
-                            'token' => $token,
-                            'user' => $userData,
-                            //'redirect' => route('admin.company.create'),
-                        ],
-                    ], 200);
+                    return $this->sendResponse(200, __('api.succ_no_company'), [
+                        'token' => $token,
+                        'user' => $userData,
+                    ]);
                 }
-                // Determine dashboard based on user type
-                // $dashboardRoute = ($user->type == 'admin' || $user->type == 'subadmin')
-                //     ? route('user.dashboard')
-                //     : route($this->getDashboardRouteName());
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Login successful',
-                    'data' => [
-                        'token' => $token,
-                        'user' => $userData,
-                        'branches' => UserBranch::where('user_id', $user->id)
-                            ->with('branch')
-                            ->get()
-                            ->map(function ($branch) {
-                                return [
-                                    'id' => $branch->branch->id,
-                                    'name' => $branch->branch->name,
-                                    'code' => $branch->branch->code,
-                                ];
-                            }),
-                        'redirect' => 'Dashboard', // $dashboardRoute
-                    ],
-                ], 200);
-            } else {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Invalid credentials',
-                ], 401);
-            }
-        } else {
-            // Branch-specific login (unchanged)
-            $request->validate([
-                'userId' => 'required',
-                'branch_id' => 'required|exists:branches,id',
-            ]);
 
-            $user = User::where('id', $request->userId)->first();
-            if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                ], 404);
-            }
-
-            // Log in the user and generate a token
-            Auth::login($user);
-            $token = token_generator();
-
-            // Fetch branch details
-            $branch = Branch::find($request->branch_id);
-            if (!$branch) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Branch not found',
-                ], 404);
-            }
-
-            // Get financial year data
-            $fydata = $this->getFinancialYearId();
-
-            // Prepare user data for response
-            $userData = [
-                'user_id' => $user->id,
-                'name' => $user->name,
-                'code' => $user->code,
-                'username' => $user->username,
-                'email' => $user->email,
-                'type' => $user->type,
-                'branch_id' => $request->branch_id,
-                'branch_name' => $branch->name,
-                'fyear' => $fydata,
-            ];
-
-            // Check if company exists
-            if (Company::count() == 0) {
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'No company found, redirect to company creation',
-                    'data' => [
-                        'token' => $token,
-                        'user' => $userData,
-                        'redirect' => route('admin.company.create'),
-                    ],
-                ], 200);
-            }
-
-            // Determine dashboard based on user type
-            // $dashboardRoute = ($user->type == 'customer' || $user->type == 'Customer')
-            //     ? route('user.dashboard')
-            //     : route($this->getDashboardRouteName());
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Login successful',
-                'data' => [
+                return $this->sendResponse(200, __('api.succ_login'), [
                     'token' => $token,
                     'user' => $userData,
                     'branches' => UserBranch::where('user_id', $user->id)
@@ -250,37 +153,131 @@ class UserController extends ResponseController
                                 'code' => $branch->branch->code,
                             ];
                         }),
-                    'redirect' => '',//$dashboardRoute,
-                ],
-            ], 200);
+                    'redirect' => 'Dashboard',
+                ]);
+            } else {
+                return $this->sendError(401, __('api.err_invalid_credentials'));
+            }
+        } else {
+            // Branch-specific login
+            $request->validate([
+                'userId' => 'required',
+                'branch_id' => 'required|exists:branches,id',
+                'device_token' => 'nullable|string|max:255', // Added device_token validation
+            ]);
+
+            $user = UserModel::where('id', $request->userId)->first();
+            if (!$user) {
+                return $this->sendError(404, __('api.err_user_not_found'));
+            }
+
+            // Log in the user and generate a token
+            Auth::login($user);
+            $token = token_generator();
+
+            // Store device token if provided
+            if ($request->filled('device_token')) {
+                DeviceToken::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'token' => $request->device_token,
+                    ],
+                    [
+                        'user_id' => $user->id,
+                        'token' => $request->device_token,
+                    ]
+                );
+            }
+
+            // Fetch branch details
+            $branch = Branch::find($request->branch_id);
+            if (!$branch) {
+                return $this->sendError(404, __('api.err_branch_not_found'));
+            }
+
+            // Get financial year data
+            $fydata = $this->getFinancialYearId();
+
+            // Prepare user data for response
+            $userData = [
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'name' => $user->name,
+                'code' => $user->code,
+                'email' => $user->email,
+                'type' => $user->type,
+                'branch_id' => $request->branch_id,
+                'branch_name' => $branch->name,
+                'fyear' => $fydata,
+                'device_token' => $request->device_token ?? null, // Include device token in response
+            ];
+
+            // Check if company exists
+            if (Company::count() == 0) {
+                return $this->sendResponse(200, __('api.succ_no_company'), [
+                    'token' => $token,
+                    'user' => $userData,
+                    'redirect' => route('admin.company.create'),
+                ]);
+            }
+
+            return $this->sendResponse(200, __('api.succ_login'), [
+                'token' => $token,
+                'user' => $userData,
+                'branches' => UserBranch::where('user_id', $user->id)
+                    ->with('branch')
+                    ->get()
+                    ->map(function ($branch) {
+                        return [
+                            'id' => $branch->branch->id,
+                            'name' => $branch->branch->name,
+                            'code' => $branch->branch->code,
+                        ];
+                    }),
+                'redirect' => '',
+            ]);
         }
     }
 
-    
+    /**
+     * Clear application cache.
+     *
+     * @return string
+     */
     public function ClearCache()
     {
         Artisan::call('optimize:clear');
         return "Cleared!";
     }
 
-
-    private function getFinancialYearId()
-    {
-        $financialYear = \App\Models\FinancialYear::where('status', 1)->first();
-        return $financialYear ? $financialYear : null;
-    }
-
+    /**
+     * Get authenticated user's profile data.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getProfile()
     {
-        $this->sendResponse(200, __('api.succ'), $this->get_user_data());
+        return $this->sendResponse(200, __('api.succ'), $this->get_user_data());
     }
 
+    /**
+     * Log out the authenticated user and delete device token.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function logout(Request $request)
     {
         DeviceToken::where('token', get_header_auth_token())->delete();
-        $this->sendResponse(200, __('api.succ_logout'), false);
+        return $this->sendResponse(200, __('api.succ_logout'), false);
     }
 
+    /**
+     * Update authenticated user's name.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function update_name(Request $request)
     {
         $user_data = $request->user();
@@ -293,9 +290,15 @@ class UserController extends ResponseController
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
         ]);
-        $this->sendResponse(200, __('api.succ_name_update'), $this->get_user_data());
+        return $this->sendResponse(200, __('api.succ_name_update'), $this->get_user_data());
     }
 
+    /**
+     * Update authenticated user's email.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function update_email(Request $request)
     {
         $user_data = $request->user();
@@ -305,9 +308,15 @@ class UserController extends ResponseController
         $user_data->update([
             'email' => $request->email,
         ]);
-        $this->sendResponse(200, __('api.succ_email_update'), $this->get_user_data());
+        return $this->sendResponse(200, __('api.succ_email_update'), $this->get_user_data());
     }
 
+    /**
+     * Update authenticated user's mobile number.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function update_mobile_number(Request $request)
     {
         $user_data = $request->user();
@@ -321,9 +330,15 @@ class UserController extends ResponseController
             'mobile' => $request->mobile,
             'country_code' => $request->country_code,
         ]);
-        $this->sendResponse(200, __('api.succ_number_update'), $this->get_user_data());
+        return $this->sendResponse(200, __('api.succ_number_update'), $this->get_user_data());
     }
 
+    /**
+     * Update authenticated user's profile image.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function update_profile_image(Request $request)
     {
         $user_data = $request->user();
@@ -334,10 +349,82 @@ class UserController extends ResponseController
         if ($up) {
             un_link_file($user_data->profile_image);
             $user_data->update(['profile_image' => $up]);
-            $this->sendResponse(200, __('api.succ_profile_picture_update'), $this->get_user_data());
+            return $this->sendResponse(200, __('api.succ_profile_picture_update'), $this->get_user_data());
         } else {
-            $this->sendError(412, __('api.errr_fail_to_upload_image'));
+            return $this->sendError(412, __('api.errr_fail_to_upload_image'));
         }
     }
 
+    /**
+     * Get financial year ID.
+     *
+     * @return mixed
+     */
+    private function getFinancialYearId()
+    {
+        $financialYear = \App\Models\FinancialYear::where('status', 1)->first();
+        return $financialYear ? $financialYear : null;
+    }
+
+    /**
+     * Helper method to generate token.
+     * Placeholder: Implement as needed.
+     *
+     * @return string
+     */
+    private function token_generator()
+    {
+        // Implement your token generation logic here (e.g., Sanctum, JWT)
+        return \Str::random(60); // Placeholder
+    }
+
+    /**
+     * Get authenticated user data.
+     * Placeholder: Implement as needed.
+     *
+     * @return array
+     */
+    private function get_user_data()
+    {
+        $user = Auth::user();
+        return [
+            'user_id' => $user->id,
+            'username' => $user->username,
+            'email' => $user->email,
+            'name' => $user->name,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'mobile' => $user->mobile,
+            'country_code' => $user->country_code,
+            'profile_image' => $user->profile_image,
+            'type' => $user->type,
+            'role' => $user->role,
+        ];
+    }
+
+    /**
+     * Placeholder for upload_file method.
+     *
+     * @param string $field
+     * @param string $directory
+     * @return string|null
+     */
+    private function upload_file($field, $directory)
+    {
+        // Implement your file upload logic here
+        return request()->file($field)->store($directory, 'public'); // Placeholder
+    }
+
+    /**
+     * Placeholder for un_link_file method.
+     *
+     * @param string $path
+     * @return void
+     */
+    private function un_link_file($path)
+    {
+        if ($path && \Storage::disk('public')->exists($path)) {
+            \Storage::disk('public')->delete($path);
+        }
+    }
 }
