@@ -21,7 +21,7 @@
     "antd": "^5.24.1",
     "apexcharts": "^3.54.1",
     "axios": "^1.10.0",
-    "bootstrap": "^5.3.3",
+    "bootstrap": "^5.3.7",
     "clipboard-copy": "^4.0.1",
     "dragula": "^3.7.3",
     "feather-icons-react": "^0.7.1",

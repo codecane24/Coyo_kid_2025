@@ -219,28 +219,14 @@ const AddUser = () => {
                           <input type="text" className="form-control" defaultValue={isEdit? '35013': undefined} />
                         </div>
                       </div> */}
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Status</label>
-                          <CommonSelect
-                            className="select"
-                            options={status}
-                            defaultValue={isEdit?status[0]:undefined}
-                          />
-                        </div>
-                      </div>
+                
                       <div className="col-xxl col-xl-3 col-md-6">
                         <div className="mb-3">
                           <label className="form-label">First Name</label>
                           <input type="text" className="form-control" defaultValue={isEdit? 'Ralph': undefined}/>
                         </div>
                       </div>
-                             {/* <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Middel Name</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'claudia': undefined}/>
-                        </div>
-                      </div> */}
+                   
                       <div className="col-xxl col-xl-3 col-md-6">
                         <div className="mb-3">
                           <label className="form-label">Last Name</label>
@@ -365,7 +351,7 @@ const AddUser = () => {
                           <input type="text" className="form-control" defaultValue={isEdit? 'Catholic': undefined}/>
                         </div>
                       </div> */}
-                      <div className="col-xxl col-xl-3 col-md-6">
+                      {/* <div className="col-xxl col-xl-3 col-md-6">
                         <div className="mb-3">
                           <label className="form-label">Suitable Batch</label>
                           <CommonSelect
@@ -374,7 +360,7 @@ const AddUser = () => {
                             defaultValue={isEdit?mothertongue[0]:undefined}
                           />
                         </div>
-                      </div>
+                      </div> */}
                       <div className="col-xxl col-xl-3 col-md-6">
       <div className="mb-3">
         <label className="form-label">Select Branch</label>
@@ -389,7 +375,7 @@ const AddUser = () => {
                 checked={selectedBranches.includes(branch)}
                 onChange={() => handleCheckboxChange(branch)}
               />
-              <label className="form-check-label" htmlFor={branch}>
+              <label className="form-check-label " htmlFor={branch}>
                 {branch}
               </label>
             </div>
