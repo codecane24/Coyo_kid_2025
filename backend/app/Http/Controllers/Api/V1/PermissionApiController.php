@@ -112,13 +112,18 @@ class PermissionApiController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            // Validate the request
             $request->validate([
                 'name' => ['required', 'max:255'],
-                'allow_delete' => ['nullable', 'boolean']
+                'allow_delete' => ['nullable', 'boolean'],
+                'permissions' => ['nullable', 'array'],
+                'permissions.*.child_id' => ['nullable', 'exists:permissions,id'], // Validate child_id exists in permissions table
+                'permissions.*.action' => ['required_with:permissions', 'string'], // Ensure action is provided
             ]);
 
+            // Find the parent permission
             $permission = Permission::findOrFail($id);
-            
+
             // Prevent updating parent_id for child permissions
             if ($permission->parent_id && $request->has('parent_id')) {
                 return response()->json([
@@ -127,21 +132,38 @@ class PermissionApiController extends Controller
                 ], 422);
             }
 
+            // Update parent permission
             $permission->name = $request->name;
             $permission->is_perm_deleted = $request->input('allow_delete', $permission->is_perm_deleted);
             $permission->save();
-            // If the permission has children, update them as well
-            if ($request->has('permissions') && is_array($request->permissions)) { 
-                foreach ($request->permissions as $action) {
-                    $childPermission = Permission::where('parent_id', $id)
-                        ->where('name', "{$permission->name}_{$action}")
-                        ->first();
+
+            // Handle child permissions if provided
+            if ($request->has('permissions') && is_array($request->permissions)) {
+                foreach ($request->permissions as $childData) {
+                    $action = $childData['action'] ?? null;
+                    $childId = $childData['child_id'] ?? null;
+
+                    if (!$action) {
+                        continue; // Skip if action is missing
+                    }
+
+                    // Find child permission by parent_id and child_id (if provided) or by name
+                    $query = Permission::where('parent_id', $id)
+                        ->where('name', "{$permission->name}_{$action}");
+
+                    if ($childId) {
+                        $query->where('id', $childId); // Add child_id check
+                    }
+
+                    $childPermission = $query->first();
 
                     if ($childPermission) {
+                        // Update existing child permission
                         $childPermission->name = "{$permission->name}_{$action}";
                         $childPermission->is_perm_deleted = $request->input('allow_delete', $childPermission->is_perm_deleted);
                         $childPermission->save();
                     } else {
+                        // Create new child permission if it doesn’t exist
                         Permission::create([
                             'name' => "{$permission->name}_{$action}",
                             'parent_id' => $id,
@@ -151,8 +173,6 @@ class PermissionApiController extends Controller
                     }
                 }
             }
-
-
 
             return response()->json([
                 'status' => 'success',
