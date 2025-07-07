@@ -7,7 +7,7 @@ use App\DeviceToken;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\ResponseController;
 use Illuminate\Validation\Rule;
-use App\Models\UserModel as User;
+use App\User;
 use App\Models\UserBranch;  
 use App\Models\Branch;
 use App\Models\Company;
@@ -76,7 +76,7 @@ class UserController extends ResponseController
             if ($userBranches > 1) {
                 $encryptedUserId = Crypt::encryptString($user->id);
                 return response()->json([
-                    'status' => 'success',
+                    'status' => 'true',
                     'message' => 'Multiple branches detected, please select a branch',
                     'data' => [
                         'user_id' => $encryptedUserId,
