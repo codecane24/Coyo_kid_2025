@@ -120,6 +120,9 @@ class UserController extends ResponseController
                 $userData = [
                     'user_id' => $user->id,
                     'username' => $user->username,
+                    'name' => $user->name,
+                    'code' => $user->code,
+                    'mobile' => $user->mobile,
                     'email' => $user->email,
                     'type' => $user->type,
                     'branch_id' => $user->branch_id,
@@ -207,6 +210,9 @@ class UserController extends ResponseController
             $userData = [
                 'user_id' => $user->id,
                 'username' => $user->username,
+                'name' => $user->name,
+                'code' => $user->code,
+                'mobile' => $user->mobile,
                 'email' => $user->email,
                 'type' => $user->type,
                 'branch_id' => $request->branch_id,
