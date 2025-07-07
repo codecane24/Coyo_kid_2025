@@ -8,7 +8,7 @@ import CommonSelect from "../../core/common/commonSelect";
 import { Reason } from "../../core/common/selectoption/selectoption";
 import { all_routes } from "../router/all_routes";
 import TooltipOption from "../../core/common/tooltipOption";
-
+import { getUser } from "../../services/UserData";
 const Manageusers = () => {
   const routes = all_routes;
   const data = manageusersData;
@@ -112,9 +112,11 @@ const Manageusers = () => {
       dropdownMenuRef.current.classList.remove("show");
     }
   };
+
   return (
     <div>
       <>
+
         {/* Page Wrapper */}
         <div className="page-wrapper">
           <div className="content">
