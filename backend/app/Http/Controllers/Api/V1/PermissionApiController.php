@@ -193,10 +193,10 @@ class PermissionApiController extends Controller
                 }
                 
                 // Delete permissions that weren't submitted (removed from array)
-                $toDelete = array_diff($existingChildIds, $submittedChildIds);
-                if (!empty($toDelete)) {
-                    Permission::whereIn('id', $toDelete)->delete();
-                }
+                // $toDelete = array_diff($existingChildIds, $submittedChildIds);
+                // if (!empty($toDelete)) {
+                //     Permission::whereIn('id', $toDelete)->delete();
+                // }
             }
 
             return response()->json([

@@ -20,8 +20,8 @@ class BranchApiController extends Controller
         //     return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         // }
 
-        return Auth::user();
-        $branches = Branch::where('company_id', Auth::user()->company_id)->get();
+       $userid = Auth::id();
+        $branches = Branch::get();
 
         $data = $branches->map(function ($branch) {
             return [
@@ -183,7 +183,7 @@ class BranchApiController extends Controller
      */
     private function hasPermission($permission)
     {
-        return Auth::user()->hasPermissionTo($permission);
+        //return Auth::user()->hasPermissionTo($permission);
     }
 
     /**

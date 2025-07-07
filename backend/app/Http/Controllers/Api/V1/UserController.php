@@ -119,6 +119,8 @@ class UserController extends ResponseController
                 // Prepare user data for response
                 $userData = [
                     'user_id' => $user->id,
+                    'name' => $user->name,
+                    'code' => $user->code,
                     'username' => $user->username,
                     'email' => $user->email,
                     'type' => $user->type,
@@ -206,6 +208,8 @@ class UserController extends ResponseController
             // Prepare user data for response
             $userData = [
                 'user_id' => $user->id,
+                'name' => $user->name,
+                'code' => $user->code,
                 'username' => $user->username,
                 'email' => $user->email,
                 'type' => $user->type,
