@@ -143,7 +143,6 @@ class UserController extends ResponseController
                         ],
                     ], 200);
                 }
-
                 // Determine dashboard based on user type
                 // $dashboardRoute = ($user->type == 'admin' || $user->type == 'subadmin')
                 //     ? route('user.dashboard')
