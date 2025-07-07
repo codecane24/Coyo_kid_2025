@@ -1,54 +1,51 @@
-// src/context/AuthContext.tsx
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { createContext, useContext, useState } from "react";
 
+interface User {
+  name?: string;
+  type?: string;
+  role?: string;
+  [key: string]: any;
+}
 interface AuthContextProps {
+  user: User | null;
   token: string | null;
-  user: any;
   logout: () => void;
+  setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
 }
 
-const AuthContext = createContext<AuthContextProps | null>(null);
+
+const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const navigate = useNavigate();
-  const [token, setToken] = useState(localStorage.getItem("authToken"));
-  const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("user") || "null");
-    } catch {
-      return null;
-    }
+  // 👉 Immediately read from localStorage on init
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  const logout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    localStorage.removeItem("selectedBranch");
-    setToken(null);
-    setUser(null);
-    navigate("/", { replace: true });
-  };
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem("authToken");
+  });
+const logout = () => {
+  localStorage.clear();
+  setUser(null);
+  setToken(null);
+};
 
-  // Optional: handle external tab logout/login
-  useEffect(() => {
-    const syncLogout = () => {
-      setToken(localStorage.getItem("authToken"));
-      try {
-        setUser(JSON.parse(localStorage.getItem("user") || "null"));
-      } catch {
-        setUser(null);
-      }
-    };
-    window.addEventListener("storage", syncLogout);
-    return () => window.removeEventListener("storage", syncLogout);
-  }, []);
 
   return (
-    <AuthContext.Provider value={{ token, user, logout }}>
+  <AuthContext.Provider value={{ user, token, logout, setUser, setToken }}>
+
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = (): AuthContextProps => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

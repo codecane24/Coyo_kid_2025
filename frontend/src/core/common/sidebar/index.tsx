@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState} from "react";
+import { useNavigate } from "react-router-dom";
 import { Link, useLocation } from "react-router-dom";
 import Scrollbars from "react-custom-scrollbars-2";
 import { SidebarData } from "../../data/json/sidebarData";
@@ -6,6 +7,8 @@ import ImageWithBasePath from "../imageWithBasePath";
 import "../../../style/icon/tabler-icons/webfont/tabler-icons.css";
 import { setExpandMenu } from "../../data/redux/sidebarSlice";
 import { useDispatch } from "react-redux";
+import { AuthProvider } from "../../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import {
   resetAllMode,
   setDataLayout,
@@ -14,6 +17,13 @@ import usePreviousRoute from "./usePreviousRoute";
 
 const Sidebar = () => {
   const Location = useLocation();
+   const { logout } = useAuth();
+const navigate = useNavigate();
+const handleLogout = () => {
+  logout();
+  navigate("/");
+};
+
 
   const [subOpen, setSubopen] = useState<any>("");
   const [subsidebar, setSubsidebar] = useState("");
@@ -331,6 +341,23 @@ const Sidebar = () => {
                     </ul>
                   </li>
                 ))}
+                <ul className="mt-4 px-3">
+
+
+
+   <button
+    onClick={handleLogout}
+    className="btn logout-btn w-100 d-flex align-items-center justify-content-start px-4 py-2 gap-2"
+  >
+    <i className="fas fa-sign-out-alt"></i>
+    <span className="fw-semibold">Logout</span>
+  </button>
+
+
+
+
+</ul>
+
               </ul>
             </div>
           </div>
