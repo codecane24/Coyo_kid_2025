@@ -1,4 +1,4 @@
-// src/services/userService.ts
+// src/services/ClassData.ts
 import axiosInstance from "../utils/axiosInstance";
 
 export const getClassMaster= async () => {

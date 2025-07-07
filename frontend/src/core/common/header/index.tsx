@@ -12,7 +12,9 @@ import {
 } from "../../data/redux/sidebarSlice";
 import { useState } from "react";
 import { all_routes } from "../../../feature-module/router/all_routes";
+import { useAuth } from "../../../context/AuthContext";
 const Header = () => {
+  const { user } = useAuth();
   const routes = all_routes;
   const dispatch = useDispatch();
   const dataTheme = useSelector((state: any) => state.themeSetting.dataTheme);
@@ -514,60 +516,63 @@ const Header = () => {
                   <i className="ti ti-maximize" />
                 </Link>
               </div>
-              <div className="dropdown ms-1">
-                <Link
-                  to="#"
-                  className="dropdown-toggle d-flex align-items-center"
-                  data-bs-toggle="dropdown"
-                >
-                  <span className="avatar avatar-md rounded">
-                    <ImageWithBasePath
-                      src="assets/img/profiles/avatar-27.jpg"
-                      alt="Img"
-                      className="img-fluid"
-                    />
-                  </span>
-                </Link>
-                <div className="dropdown-menu">
-                  <div className="d-block">
-                    <div className="d-flex align-items-center p-2">
-                      <span className="avatar avatar-md me-2 online avatar-rounded">
-                        <ImageWithBasePath
-                          src="assets/img/profiles/avatar-27.jpg"
-                          alt="img"
-                        />
-                      </span>
-                      <div>
-                        <h6>Kevin Larry</h6>
-                        <p className="text-primary mb-0">Administrator</p>
-                      </div>
-                    </div>
-                    <hr className="m-0" />
-                    <Link
-                      className="dropdown-item d-inline-flex align-items-center p-2"
-                      to={routes.profile}
-                    >
-                      <i className="ti ti-user-circle me-2" />
-                      My Profile
-                    </Link>
-                    <Link
-                      className="dropdown-item d-inline-flex align-items-center p-2"
-                      to={routes.profilesettings}
-                    >
-                      <i className="ti ti-settings me-2" />
-                      Settings
-                    </Link>
-                    <hr className="m-0" />
-                    <Link
-                      className="dropdown-item d-inline-flex align-items-center p-2"
-                      to={routes.login}
-                    >
-                      <i className="ti ti-login me-2" />
-                      Logout
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              {/* profile */}
+             <div className="dropdown ms-1">
+      <Link
+        to="#"
+        className="dropdown-toggle d-flex align-items-center"
+        data-bs-toggle="dropdown"
+      >
+        <span className="avatar avatar-md rounded">
+          <ImageWithBasePath
+            src={user?.avatar || "assets/img/profiles/avatar-27.jpg"}
+            alt="Img"
+            className="img-fluid"
+          />
+        </span>
+      </Link>
+
+      <div className="dropdown-menu">
+        <div className="d-block">
+          <div className="d-flex align-items-center p-2">
+            <span className="avatar avatar-md me-2 online avatar-rounded">
+              <ImageWithBasePath
+                src={user?.profile_image || "assets/img/profiles/avatar-27.jpg"}
+                alt="img"
+              />
+            </span>
+            <div>
+              <h6>{user?.name || "Not found User"}</h6>
+              <p className="text-primary mb-0">{user?.type || user?.type || "No Role"}</p>
+                <p className="text-primary  mb-0">{user?.code || user?.code || "No Code"}</p>
+            </div>
+          </div>
+          <hr className="m-0" />
+          <Link
+            className="dropdown-item d-inline-flex align-items-center p-2"
+            to={routes.profile}
+          >
+            <i className="ti ti-user-circle me-2" />
+            My Profile
+          </Link>
+          <Link
+            className="dropdown-item d-inline-flex align-items-center p-2"
+            to={routes.profilesettings}
+          >
+            <i className="ti ti-settings me-2" />
+            Settings
+          </Link>
+          <hr className="m-0" />
+          <Link
+            className="dropdown-item d-inline-flex align-items-center p-2"
+            to={routes.login}
+          >
+            <i className="ti ti-login me-2" />
+            Logout
+          </Link>
+        </div>
+      </div>
+    </div>
             </div>
           </div>
         </div>
