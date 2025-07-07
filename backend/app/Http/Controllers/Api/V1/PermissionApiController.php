@@ -44,8 +44,8 @@ class PermissionApiController extends Controller
     {
         try {
             $request->validate([
-                'module_name' => 'required|string|max:100',
-                'chile_name' => 'required|string|max:100',
+                'name' => 'required|string|max:100',
+                'permissions' => 'array|nullable',
                 'child_name' => 'nullable|string|max:100',
                 'parent_id' => 'nullable|exists:permissions,id',
                 'allow_delete' => 'nullable|boolean'
@@ -55,7 +55,7 @@ class PermissionApiController extends Controller
 
             if ($request->has('name') && !empty($request->name)) {
                 $parentPermission = Permission::create([
-                    'name' => $request->module_name,
+                    'name' => $request->name,
                     'parent_id' => null,
                     'guard_name' => 'web',
                     'is_perm_deleted' => $allow_delete
@@ -75,7 +75,9 @@ class PermissionApiController extends Controller
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Parent permission created successfully',
-                    'data' => new PermissionResource($parentPermission->load('children'))
+                    'data' =>  $query = Permission::with('children')
+                                ->where('parent_id',$parentPermission->id)
+                                ->orderBy('name')->first(),
                 ], 201);
             }
 

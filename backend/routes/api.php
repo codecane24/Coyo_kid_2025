@@ -35,7 +35,7 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     Route::get('role', 'RoleController@index');
 
      // Permission  API
-    Route::get('permission', 'PermissionApiController@index');
+    Route::resource('permission', 'PermissionApiController');
 
     // Classes API
     Route::resource('classes', 'ClassController'); 
