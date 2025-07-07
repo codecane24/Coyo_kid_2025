@@ -22,12 +22,13 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("user");
-      localStorage.removeItem("selectedBranch");
-      window.location.href = "/"; // redirect to login
-    }
+   if (error.response?.status === 401) {
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("user");
+  localStorage.removeItem("selectedBranch");
+  // ❌ Don't redirect here; let the ProtectedRoute handle it
+}
+
     return Promise.reject(error);
   }
 );

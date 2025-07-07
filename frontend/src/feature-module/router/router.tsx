@@ -21,13 +21,13 @@ const ALLRoutes: React.FC = () => {
       </Route>
 
       {/* Protected + Role-Based Routes */}
-      <Route
-        element={
-          <ProtectedRoute allowedRoles={["admin", "teacher", "student"]}>
-            <AuthFeature />
-          </ProtectedRoute>
-        }
-      >
+     <Route
+  element={
+    <ProtectedRoute allowedRoles={["admin", "teacher", "student"]}>
+      <Feature />
+    </ProtectedRoute>
+  }
+>
         {authRoutes.map((route, idx) => (
           <Route path={route.path} element={route.element} key={idx} />
         ))}

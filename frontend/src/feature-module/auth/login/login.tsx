@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext";
 import axios from "../../../utils/axiosInstance";
 
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
@@ -18,7 +19,7 @@ axios.interceptors.request.use(
 
 const Login = () => {
   const navigate = useNavigate();
-
+  const { setUser, setToken } = useAuth(); // ✅ grab setUser and setToken from context
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -78,32 +79,31 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     const { token, user, redirect, branches  } = result.data;
 
-    localStorage.setItem("authToken", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    setUserRole(user.type);
+    
+      // ✅ Save in context + localStorage
+      setToken(token);
+      setUser(user);
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setUserRole(user.type);
 
-    // Handle branches
-   if (branches?.length === 1) {
-  localStorage.setItem("selectedBranch", JSON.stringify(branches[0]));
-  redirectToDashboard(user.type); // ✅ no redirect from API
-}
- else if (branches?.length > 1) {
-      setBranches(branches);
-      setShowBranchDropdown(true);
-    } else {
-      alert("No branches assigned to this user.");
+      // ✅ Branch handling
+      if (branches?.length === 1) {
+        localStorage.setItem("selectedBranch", JSON.stringify(branches[0]));
+        redirectToDashboard(user.type);
+      } else if (branches?.length > 1) {
+        setBranches(branches);
+        setShowBranchDropdown(true);
+      } else {
+        alert("No branches assigned to this user.");
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      alert("Login failed. Please check credentials.");
     }
-  } catch (error: any) {
-    console.error("Login error:", error);
-    alert("Login failed. Please check credentials.");
-  }
-};
-
-
-
-  const handleBranchSelect = () => {
+  };
+const handleBranchSelect = () => {
     if (!selectedBranch) return alert("Please select a branch.");
-
     const selected = branches.find((b) => b.id === selectedBranch);
     if (selected) {
       localStorage.setItem("selectedBranch", JSON.stringify(selected));
@@ -111,24 +111,23 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
   };
 
-const redirectToDashboard = (role: string) => {
-  switch (role) {
-    case "admin":
-      navigate("/index");
-      break;
-    case "teacher":
-      navigate("/teacher-dashboard");
-      break;
-    case "student":
-      navigate("/student-dashboard");
-      break;
-       case "parent":
-      navigate("/student-dashboard");
-      break;
-    default:
-      navigate("/unauthorized");
-  }
-};
+  const redirectToDashboard = (role: string) => {
+    switch (role) {
+      case "admin":
+        navigate("/index");
+        break;
+      case "teacher":
+        navigate("/teacher-dashboard");
+        break;
+      case "student":
+      case "parent":
+        navigate("/student-dashboard");
+        break;
+      default:
+        navigate("/unauthorized");
+    }
+  };
+
 
 
   return (

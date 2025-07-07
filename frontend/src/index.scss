@@ -9,6 +9,21 @@ a {
   text-decoration: none;
   color: #262a2a;
 }
+.logout-btn {
+  background-color: #f8d7da; /* soft red background */
+  color: #721c24;            /* Bootstrap danger text color */
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  box-shadow: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.logout-btn:hover {
+  background-color: #f1b0b7; /* slightly darker red */
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+  transform: translateY(-1px);
+   color: #721c24 !important;
+}
 
 .ant-tooltip {
   display: none;

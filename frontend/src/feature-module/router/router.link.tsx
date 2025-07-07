@@ -257,7 +257,7 @@ import LoaderTwo from "../../core/common/loader/loaderTwo";
 
 const routes = all_routes;
 
-export const publicRoutes = [
+export const authRoutes = [
   // {
   //   path: "/",
   //   name: "Root",
@@ -1354,7 +1354,7 @@ export const publicRoutes = [
   },
 ];
 
-export const authRoutes = [
+export const publicRoutes= [
   {
     path: routes.comingSoon,
     element: <ComingSoon />,
