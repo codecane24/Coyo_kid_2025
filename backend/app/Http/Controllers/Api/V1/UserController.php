@@ -147,7 +147,6 @@ class UserController extends ResponseController
                 // $dashboardRoute = ($user->type == 'admin' || $user->type == 'subadmin')
                 //     ? route('user.dashboard')
                 //     : route($this->getDashboardRouteName());
-
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Login successful',
