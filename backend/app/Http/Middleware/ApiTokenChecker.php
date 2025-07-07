@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\DeviceToken;
+use App\Models\DeviceToken;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 
