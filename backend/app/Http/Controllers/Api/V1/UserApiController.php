@@ -71,7 +71,7 @@ class UserApiController extends Controller
         });
 
         return response()->json([
-            'status' => 'success',
+            'status' => 'true',
             'data' => $data,
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $filteredRecords,
