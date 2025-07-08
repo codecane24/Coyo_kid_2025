@@ -199,6 +199,19 @@ class UserController extends ResponseController
             Auth::login($user);
             $token = token_generator();
 
+            // Device token handling
+            if ($token) {
+                    DeviceToken::updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'device_token' => $token,
+                        ],
+                        [
+                            'device_type' => $request->device_type ?? 'web',
+                        ]
+                    );
+                }
+            
             // Fetch branch details
             $branch = Branch::find($request->branch_id);
             if (!$branch) {
@@ -348,5 +361,7 @@ class UserController extends ResponseController
             $this->sendError(412, __('api.errr_fail_to_upload_image'));
         }
     }
+
+    
 
 }
