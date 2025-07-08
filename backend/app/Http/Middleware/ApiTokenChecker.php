@@ -17,25 +17,32 @@ class ApiTokenChecker
      */
     public function handle($request, Closure $next)
     {
-        $valid_type = ['user', 'vendor'];
+        $valid_types = ['user', 'vendor'];
         $token = get_header_auth_token();
+
         if ($token) {
-            $is_login = DeviceToken::where('token', $token)->with('user')->has('user')->first();
+            $is_login = DeviceToken::where('token', $token)
+                ->with('user')
+                ->has('user')
+                ->first();
+
             if ($is_login) {
-                $user_data = $is_login->user;
-                if ($user_data->status == "active") {
-                    if (in_array($user_data->type, $valid_type)) {
-                        Auth::loginUsingId($user_data->id);
+                $user = $is_login->user;
+
+                if ($user->status === "active") {
+                    if (in_array($user->type, $valid_types)) {
+                        Auth::loginUsingId($user->id);
                         return $next($request);
                     } else {
-                        send_response(401, __('api.err_not_allowed_task'));
+                        return send_response(401, __('api.err_not_allowed_task'));
                     }
                 } else {
-                    send_response(401, __('api.err_account_ban'));
+                    return send_response(401, __('api.err_account_ban'));
                 }
             }
         }
-        send_response(401, __('api.err_please_login'));
-    }
 
+        return send_response(401, __('api.err_please_login'));
+    }
 }
+

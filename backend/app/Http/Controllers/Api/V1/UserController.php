@@ -51,7 +51,11 @@ class UserController extends ResponseController
                     ->orWhere('username', $loginInput)
                     ->orWhere('mobile', $loginInput)
                     ->orWhere('code', $loginInput);
-            })->first();
+            })
+            ->with(['permissions' => function($q) {
+                $q->select('name');
+            }])
+            ->first();
 
             if (!$user) {
                 return response()->json([
@@ -130,6 +134,7 @@ class UserController extends ResponseController
                     'fyear' => $fydata,
                     'role' => $user->role, // Assuming role is a field in User model
                     'profile_image' => $user->profile_image,
+                    'permissions' => $user->permissions->pluck('name')->toArray(), // Assuming permissions is a field in User model
                 ];
 
                 // Check if company exists
@@ -194,6 +199,19 @@ class UserController extends ResponseController
             Auth::login($user);
             $token = token_generator();
 
+            // Device token handling
+            if ($token) {
+                    DeviceToken::updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'device_token' => $token,
+                        ],
+                        [
+                            'device_type' => $request->device_type ?? 'web',
+                        ]
+                    );
+                }
+            
             // Fetch branch details
             $branch = Branch::find($request->branch_id);
             if (!$branch) {
@@ -218,6 +236,7 @@ class UserController extends ResponseController
                 'branch_id' => $request->branch_id,
                 'branch_name' => $branch->name,
                 'fyear' => $fydata,
+                'permissions' => $user->permissions->pluck('name')->toArray(), // Assuming permissions is a field in User model
             ];
 
             // Check if company exists
@@ -266,7 +285,6 @@ class UserController extends ResponseController
         Artisan::call('optimize:clear');
         return "Cleared!";
     }
-
 
     private function getFinancialYearId()
     {
@@ -343,5 +361,7 @@ class UserController extends ResponseController
             $this->sendError(412, __('api.errr_fail_to_upload_image'));
         }
     }
+
+    
 
 }

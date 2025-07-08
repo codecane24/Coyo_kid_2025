@@ -5,13 +5,12 @@
 
     RewriteEngine On
 
-    # Handle Authorization Header
-    #RewriteCond %{HTTP:Authorization} .
-    #RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    # Pass Authorization header (for Apache CGI/FastCGI)
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 
-      RewriteCond %{HTTP:Authorization} ^(.*)
+    # OR if you're using mod_rewrite
+    RewriteCond %{HTTP:Authorization} ^(.*)
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]
-
 
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d

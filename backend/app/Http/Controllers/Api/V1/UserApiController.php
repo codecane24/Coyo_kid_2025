@@ -76,7 +76,7 @@ class UserApiController extends Controller
             'data' => $data,
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $filteredRecords,
-            'my_token' => request()->bearerToken(),
+           // 'mytoken' => request()->headers->get('MyToken'),
         ], 200);
     }
 
@@ -393,7 +393,7 @@ class UserApiController extends Controller
      */
     private function hasPermission($permission)
     {
-       // return Auth::user()->hasPermissionTo($permission);
+       return Auth::user()->hasPermissionTo($permission);
     }
 
     /**
