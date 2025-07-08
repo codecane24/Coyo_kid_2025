@@ -121,7 +121,7 @@ function token_generator()
 
 function get_header_auth_token()
 {
-    $full_token = request()->header('Authorization');
+    return $full_token = request()->header('Authorization');
     return (substr($full_token, 0, 7) === 'Bearer ') ? substr($full_token, 7) : null;
 }
 
