@@ -14,6 +14,12 @@ const Datatable: React.FC<DatatableProps> = ({ columns, dataSource , Selection }
   const [searchText, setSearchText] = useState<string>("");
   const [Selections, setSelections] = useState<any>(true);
   const [filteredDataSource, setFilteredDataSource] = useState(dataSource);
+useEffect(() => {
+  setFilteredDataSource(dataSource); // ✅ Sync filtered data
+}, [dataSource]);
+// useEffect(() => {
+//   console.log("🔁 Datatable received new dataSource:", dataSource);
+// }, [dataSource]);
 
   const onSelectChange = (newSelectedRowKeys: any[]) => {
     setSelectedRowKeys(newSelectedRowKeys);
