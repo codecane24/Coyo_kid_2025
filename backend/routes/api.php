@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
 Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors'], function () {
     Route::post('login', 'UserController@login');
     Route::post('signup', 'GuestController@signup');
-    Route::post('forgot_password', 'GuestController@forgot_password');
     Route::get('content/{type}', 'GuestController@content');
     Route::post('forgot_password', 'GuestController@forgot_password');
     Route::post('check_ability', 'GuestController@check_ability');
