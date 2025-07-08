@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef,useEffect,useState } from "react";
 import { Link } from "react-router-dom";
 import Table from "../../core/common/dataTable/index";
 import { manageusersData } from "../../core/data/json/manageuser";
@@ -9,103 +9,147 @@ import { Reason } from "../../core/common/selectoption/selectoption";
 import { all_routes } from "../router/all_routes";
 import TooltipOption from "../../core/common/tooltipOption";
 import { getUser } from "../../services/UserData";
+import Datatable from "../../core/common/dataTable/index";
+
+type User = {
+  id: string;
+  name: string;
+  class: string;
+  section: string;
+  dateOfJoined: string;
+  status: string;
+};
+
+
 const Manageusers = () => {
   const routes = all_routes;
-  const data = manageusersData;
-  const columns = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      render: (text: string, record: any, index: number) => (
-        <>
-          <Link to="#" className="link-primary">
-            {record.id}
-          </Link>
-        </>
-      ),
-      sorter: (a: TableData, b: TableData) => a.id.length - b.id.length,
-    },
 
-    {
-      title: "Name",
-      dataIndex: "name",
-      sorter: (a: TableData, b: TableData) => a.name.length - b.name.length,
+  // const data = manageusersData;
+  const [data, setData] = useState<User[]>([]);
+  // const safeText = (text: string | undefined | null) => text?.trim() || "N/A";
+
+  // ✅ Fetch user data from API
+useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const response = await getUser();
+      console.log("✅ API response: ", response);
+      console.log("✅ response.data: ", response?.data);
+
+   setData(
+  (response?.data || []).map((item: any) => ({
+    ...item,
+    key: item.id, // 👈 Required by Ant Design Table
+  }))
+);
+;
+    } catch (error) {
+      console.error("❌ API failed: ", error);
+    }
+  };
+
+  fetchUsers();
+}, []);
+
+
+
+
+  // ✅ Columns config
+const safeText = (text: string | null | undefined) => text?.trim() || "N/A";
+
+const columns = [
+  {
+    title: "ID",
+    dataIndex: "id",
+    render: (_: string, record: any) => (
+      <Link to="#" className="link-primary">
+        {safeText(record.id?.toString())}
+      </Link>
+    ),
+    sorter: (a: any, b: any) => a.id - b.id,
+  },
+  {
+    title: "Name",
+    dataIndex: "name",
+    render: (text: string) => safeText(text),
+    sorter: (a: any, b: any) => a.name?.localeCompare(b.name),
+  },
+  {
+    title: "Email",
+    dataIndex: "email",
+    render: (text: string) => safeText(text),
+    sorter: (a: any, b: any) => a.email?.localeCompare(b.email),
+  },
+  {
+    title: "Mobile",
+    dataIndex: "mobile_number",
+    render: (text: string) => safeText(text),
+    sorter: (a: any, b: any) => a.mobile_number?.localeCompare(b.mobile_number),
+  },
+  {
+    title: "Code",
+    dataIndex: "code",
+    render: (text: string) => safeText(text),
+    sorter: (a: any, b: any) => a.code?.localeCompare(b.code),
+  },
+  {
+    title: "Status",
+    dataIndex: "status",
+    render: (text: string) => {
+      const status = safeText(text);
+      return status.toLowerCase() === "active" ? (
+        <span className="badge badge-soft-success d-inline-flex align-items-center">
+          <i className="ti ti-circle-filled fs-5 me-1"></i>
+          {status}
+        </span>
+      ) : (
+        <span className="badge badge-soft-danger d-inline-flex align-items-center">
+          <i className="ti ti-circle-filled fs-5 me-1"></i>
+          {status}
+        </span>
+      );
     },
-    {
-      title: "Class",
-      dataIndex: "class",
-      sorter: (a: TableData, b: TableData) => a.class.length - b.class.length,
-    },
-    {
-      title: "Section",
-      dataIndex: "section",
-      sorter: (a: TableData, b: TableData) =>
-        a.section.length - b.section.length,
-    },
-    {
-      title: "DateOfJoined",
-      dataIndex: "dateOfJoined",
-      sorter: (a: TableData, b: TableData) =>
-        a.dateOfJoined.length - b.dateOfJoined.length,
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      render: (text: string) => (
-        <>
-          {text === "Active" ? (
-            <span className="badge badge-soft-success d-inline-flex align-items-center">
-              <i className="ti ti-circle-filled fs-5 me-1"></i>
-              {text}
-            </span>
-          ) : (
-            <span className="badge badge-soft-danger d-inline-flex align-items-center">
-              <i className="ti ti-circle-filled fs-5 me-1"></i>
-              {text}
-            </span>
-          )}
-        </>
-      ),
-      sorter: (a: any, b: any) => a.status.length - b.status.length,
-    },
-    {
-      title: "Action",
-      dataIndex: "action",
-      render: () => (
-        <>
-          <div className="d-flex align-items-center">
-            <div className="dropdown">
-              <Link
-                to="#"
-                className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <i className="ti ti-dots-vertical fs-14" />
+    sorter: (a: any, b: any) => a.status?.localeCompare(b.status),
+  },
+  {
+    title: "Action",
+    dataIndex: "action",
+    render: () => (
+      <div className="d-flex align-items-center">
+        <div className="dropdown">
+          <Link
+            to="#"
+            className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i className="ti ti-dots-vertical fs-14" />
+          </Link>
+          <ul className="dropdown-menu dropdown-menu-right p-3">
+            <li>
+              <Link className="dropdown-item rounded-1" to="#">
+                <i className="ti ti-trash-x me-2" />
+                Delete
               </Link>
-              <ul className="dropdown-menu dropdown-menu-right p-3">
-                {/* <li>
-                  <Link className="dropdown-item rounded-1" to="#">
-                    <i className="ti ti-edit-circle me-2" />
-                    Edit
-                  </Link>
-                </li> */}
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                  >
-                    <i className="ti ti-trash-x me-2" />
-                    Delete
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </>
-      ),
-    },
-  ];
+            </li>
+          </ul>
+        </div>
+      </div>
+    ),
+  },
+  {
+  title: "Profile",
+  dataIndex: "profile_image",
+  render: (url: string) => (
+    <img src={url} alt="Profile" style={{ width: 40, height: 40, borderRadius: "50%" }} />
+  ),
+}
+
+];
+
+
+
+
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
@@ -242,7 +286,14 @@ const Manageusers = () => {
               </div>
               {/* User List */}
               <div className="card-body p-0 py-3">
-                <Table columns={columns} dataSource={data} Selection={true} />
+ <Table
+  columns={columns}
+  dataSource={data}
+
+/>
+
+
+
               </div>
               {/* /User List */}
             </div>

@@ -78,6 +78,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
 
     const { token, user, redirect, branches  } = result.data;
+console.log("Logged in user:", user);
 
     
       // ✅ Save in context + localStorage
@@ -99,9 +100,10 @@ const handleSubmit = async (e: React.FormEvent) => {
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      alert("Login failed. Please check credentials.");
+      alert(error);
     }
   };
+  
 const handleBranchSelect = () => {
     if (!selectedBranch) return alert("Please select a branch.");
     const selected = branches.find((b) => b.id === selectedBranch);
