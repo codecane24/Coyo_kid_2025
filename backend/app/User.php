@@ -100,7 +100,7 @@ class User extends Authenticatable
         return $this->belongsToMany(\App\Models\Role::class);
     }
 
-    
+
     public function permissions()
     {
         return $this->belongsToMany(Permission::class);
@@ -115,6 +115,8 @@ class User extends Authenticatable
     {
         $this->permissions()->sync($permissions);
     }
+
+    
 
     public function branches()
     {
