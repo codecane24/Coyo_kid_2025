@@ -26,6 +26,7 @@ class UserApiController extends Controller
      */
     public function index(Request $request)
     {
+        return get_header_auth_token();
         $datatable_filter = $this->datatableFilters($request);
         $offset = $datatable_filter['offset'] ?? 0;
         $search = $datatable_filter['search'];
@@ -33,7 +34,7 @@ class UserApiController extends Controller
         $AurhUrerType = Auth::user()->type ?? 'admin';
         $query = $AurhUrerType == 'superadmin'
             ? User::whereIn('type', ['superadmin', 'admin', 'user', 'subadmin', 'teacher', 'student', 'parent'])
-            : User::whereIn('type', ['user','admin','subadmin', 'teacher', 'student','parent',]);
+            : User::whereIn('type', ['user','admin','subadmin', 'teacher', 'student','parent']);
 
         if (!empty($userType) && $userType !== 'all') {
             $query->where('type', $userType);
