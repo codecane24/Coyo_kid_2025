@@ -32,8 +32,8 @@ class UserApiController extends Controller
         $userType = $request->query('user_type');
         $AurhUrerType = Auth::user()->type ?? 'admin';
         $query = $AurhUrerType == 'superadmin'
-            ? User::whereIn('type', ['superadmin', 'admin', 'user', 'subadmin', 'customer', 'supplier'])
-            : User::whereIn('type', ['user','admin','subadmin', 'customer', 'supplier']);
+            ? User::whereIn('type', ['superadmin', 'admin', 'user', 'subadmin', 'teacher', 'student', 'parent'])
+            : User::whereIn('type', ['user','admin','subadmin', 'teacher', 'student','parent',]);
 
         if (!empty($userType) && $userType !== 'all') {
             $query->where('type', $userType);
