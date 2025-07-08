@@ -119,10 +119,15 @@ function token_generator()
     return genUniqueStr('', 100, 'device_tokens', 'token', true);
 }
 
+function get_header_auth_tokenkkk()
+{
+    $full_token = request()->header('Authorization');
+    return (substr($full_token, 0, 7) === 'Bearer ') ? substr($full_token, 7) : null;
+}
+
 function get_header_auth_token()
 {
-    return $full_token = request()->header('Authorization');
-    return (substr($full_token, 0, 7) === 'Bearer ') ? substr($full_token, 7) : null;
+    return request()->bearerToken(); // ✅ works with Bearer tokens
 }
 
 

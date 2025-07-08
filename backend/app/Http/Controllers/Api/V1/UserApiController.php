@@ -76,7 +76,7 @@ class UserApiController extends Controller
             'data' => $data,
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $filteredRecords,
-            'my_token' => get_header_auth_token(),
+            'my_token' => request()->bearerToken(),
         ], 200);
     }
 
