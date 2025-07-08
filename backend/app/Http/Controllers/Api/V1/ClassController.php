@@ -33,7 +33,7 @@ class ClassController extends Controller
         $class->name = empty($class->name) ? optional($class->classmaster)->name : $class->name;
         return $class;
     });
-        return get_header_auth_token();
+       
         return response()->json($classes);
     }
 

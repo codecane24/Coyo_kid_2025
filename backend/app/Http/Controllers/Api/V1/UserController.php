@@ -130,6 +130,7 @@ class UserController extends ResponseController
                     'fyear' => $fydata,
                     'role' => $user->role, // Assuming role is a field in User model
                     'profile_image' => $user->profile_image,
+                    'permissions' => $user->permissions, // Assuming permissions is a field in User model
                 ];
 
                 // Check if company exists
@@ -218,6 +219,7 @@ class UserController extends ResponseController
                 'branch_id' => $request->branch_id,
                 'branch_name' => $branch->name,
                 'fyear' => $fydata,
+                'permissions' => $user->permissions, // Assuming permissions is a field in User model
             ];
 
             // Check if company exists
@@ -266,7 +268,6 @@ class UserController extends ResponseController
         Artisan::call('optimize:clear');
         return "Cleared!";
     }
-
 
     private function getFinancialYearId()
     {
