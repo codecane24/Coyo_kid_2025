@@ -26,7 +26,7 @@ class UserApiController extends Controller
      */
     public function index(Request $request)
     {
-        return get_header_auth_token();
+        
         $datatable_filter = $this->datatableFilters($request);
         $offset = $datatable_filter['offset'] ?? 0;
         $search = $datatable_filter['search'];
@@ -76,6 +76,7 @@ class UserApiController extends Controller
             'data' => $data,
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $filteredRecords,
+            'my_token' => get_header_auth_token(),
         ], 200);
     }
 
