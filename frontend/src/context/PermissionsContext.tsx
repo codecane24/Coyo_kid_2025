@@ -1,24 +1,35 @@
-import React, { createContext, useContext, ReactNode } from "react";
+// context/PermissionContext.tsx
+import React, { createContext, useContext } from "react";
 import { useAuth } from "./AuthContext";
 
-interface PermissionsContextProps {
-  permissions: string[];
+type PermissionType = "sidebar" | "route" | "button" | "page" | "custom";
+
+interface PermissionContextProps {
+  hasPermission: (perm: string, type?: PermissionType) => boolean;
 }
 
-const PermissionsContext = createContext<PermissionsContextProps>({
-  permissions: [],
-});
+const PermissionContext = createContext<PermissionContextProps | undefined>(undefined);
 
-export const usePermissions = () => useContext(PermissionsContext);
-
-export const PermissionsProvider = ({ children }: { children: ReactNode }) => {
+export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  const permissions: string[] = user?.permissions || [];
 
-  const permissions = user?.permissions || [];
+  const hasPermission = (perm: string, type: PermissionType = "custom") => {
+    const fullPermissionName = `${type}:${perm}`; // e.g., sidebar:Dashboard
+    return permissions.includes(fullPermissionName) || permissions.includes(perm);
+  };
 
   return (
-    <PermissionsContext.Provider value={{ permissions }}>
+    <PermissionContext.Provider value={{ hasPermission }}>
       {children}
-    </PermissionsContext.Provider>
+    </PermissionContext.Provider>
   );
+};
+
+export const usePermission = (): PermissionContextProps => {
+  const context = useContext(PermissionContext);
+  if (!context) {
+    throw new Error("usePermission must be used within a PermissionProvider");
+  }
+  return context;
 };

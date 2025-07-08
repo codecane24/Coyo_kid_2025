@@ -70,39 +70,44 @@ const handleSubmit = async (e: React.FormEvent) => {
     );
 
     const result = response.data;
-
-    // Check for success status
     if (result.status !== "success") {
       alert(result.message || "Login failed.");
       return;
     }
 
-    const { token, user, redirect, branches  } = result.data;
-console.log("Logged in user:", user);
+    const { token, user, redirect, branches } = result.data;
+console.log("✅ user from login response:", user);
 
-    
-      // ✅ Save in context + localStorage
-      setToken(token);
-      setUser(user);
-      localStorage.setItem("authToken", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      setUserRole(user.type);
+    const permissions = user?.permissions || []; // ✅ ensure it exists
+    localStorage.setItem("permissions", JSON.stringify(permissions)); // ✅ store it here
 
-      // ✅ Branch handling
-      if (branches?.length === 1) {
-        localStorage.setItem("selectedBranch", JSON.stringify(branches[0]));
-        redirectToDashboard(user.type);
-      } else if (branches?.length > 1) {
-        setBranches(branches);
-        setShowBranchDropdown(true);
-      } else {
-        alert("No branches assigned to this user.");
-      }
-    } catch (error: any) {
-      console.error("Login error:", error);
-      alert(error);
+    const fullUser = {
+      ...user,
+      permissions,
+    };
+
+    setToken(token);
+    setUser(fullUser); // ✅ use fullUser that has permissions
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("user", JSON.stringify(fullUser));
+
+    setUserRole(user.type);
+
+    if (branches?.length === 1) {
+      localStorage.setItem("selectedBranch", JSON.stringify(branches[0]));
+      redirectToDashboard(user.type);
+    } else if (branches?.length > 1) {
+      setBranches(branches);
+      setShowBranchDropdown(true);
+    } else {
+      alert("No branches assigned to this user.");
     }
-  };
+  } catch (error: any) {
+    console.error("Login error:", error);
+    alert(error);
+  }
+};
+
   
 const handleBranchSelect = () => {
     if (!selectedBranch) return alert("Please select a branch.");

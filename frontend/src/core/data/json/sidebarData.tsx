@@ -270,16 +270,24 @@ export const SidebarData = [
         icon: "ti ti-school-bell",
         submenu: true,
         showSubRoute: false,
+          permissionKey: "class_view",
 
         submenuItems: [
           
-          { label: "Classes", link: routes.classes },
+         {
+  label: "Classes",
+  link: routes.classes,
+  icon: "ti ti-school-bell",
+  permissionKey: "class_view", // ✅ this must match what comes in localStorage
+}
+,
              {
         label: "Section",
         link: routes.classSection,
         icon: "ti ti-square-rotated-forbid-2",
         showSubRoute: false,
         submenu: false,
+           permissionKey: "class_view",
       },
         {
         label: "Class Room",
@@ -357,15 +365,16 @@ export const SidebarData = [
     submenuHdr: "Management",
     submenu: false,
     showSubRoute: false,
+ 
     submenuItems: [
       {
         label: "Fees & Collection",
         icon: "ti ti-report-money",
         submenu: true,
         showSubRoute: false,
-
+ 
         submenuItems: [
-           { label: "Collect Fees", link: routes.collectFees },
+           { label: "Collect Fees", link: routes.collectFees,   },
           { label: "Fees Group", link: routes.feesGroup },
           // { label: "Fees Type", link: routes.feesType },
             {
@@ -387,9 +396,9 @@ export const SidebarData = [
         icon: "ti ti-notebook",
         submenu: true,
         showSubRoute: false,
-
+ 
         submenuItems: [
-          { label: "Library Members", link: routes.libraryMembers },
+          { label: "Library Members", link: routes.libraryMembers ,  },
           { label: "Books", link: routes.libraryBooks },
           { label: "Issue Book", link: routes.libraryIssueBook },
           { label: "Return", link: routes.libraryReturn },
