@@ -207,7 +207,7 @@ class UserController extends ResponseController
                             'device_token' => $token,
                         ],
                         [
-                            'device_type' => $request->device_type ?? 'web',
+                            'type' => $request->device_type ?? 'web',
                         ]
                     );
                 }
