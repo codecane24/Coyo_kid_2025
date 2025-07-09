@@ -28,11 +28,9 @@ class UserController extends ResponseController
         // Step 1: Initial login or multi-branch re-auth
         if (!$request->filled('branchid')) {
             // First login attempt
-            $request->validate([
-                'username' => 'required',
-                'password' => 'required',
-            ]);
-          $loginInput = $request->username;
+          
+   
+            $loginInput = $request->username;
             $findField = 'username';
 
             if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
@@ -42,10 +40,11 @@ class UserController extends ResponseController
             } else {
                 $findField = 'code';
             }
-
+         
             $user = User::where($findField, $loginInput)
                 ->with('permissions:name')
                 ->first();
+              
 
             if (!$user || !Hash::check($request->password, $user->password)) {
                 return response()->json([
@@ -66,11 +65,21 @@ class UserController extends ResponseController
                 return $this->finalizeLogin($request, $user, null);
             }
 
+          
             // Other users: check branches
             $branches = UserBranch::where('user_id', $user->id)
                 ->with('branch:id,name,code')
                 ->get();
 
+            // If no branches found, return error
+            if ($branches->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No branches found for this user.',
+                ], 404);
+            }
+
+            // If multiple branches found, return them for selection
             if ($branches->count() > 1) {
                 return response()->json([
                     'status' => 'success',
@@ -90,20 +99,24 @@ class UserController extends ResponseController
                 ]);
             }
 
+
             // Only one branch, continue login
             $request->merge([
                 'userId' => $user->id,
-                'branch_id' => $branches->first()->branch_id ?? null,
+                'branch_id' => $user->branch_id,
             ]);
+
+             return $this->finalizeLogin($request, $user, null);
         }
 
         // Step 2: Re-authenticate with branchid present
         if ($request->branchid >= 1) {
-            $request->validate([
-                'username' => 'required',
-                'password' => 'required',
-                'branchid' => 'nullable|exists:branches,id',
-            ]);
+
+            // $request->validate([
+            //     'username' => 'required',
+            //     'password' => 'required',
+            //     'branchid' => 'nullable|exists:branches,id',
+            // ]);
 
             $loginInput = $request->username;
             $findField = 'username';
