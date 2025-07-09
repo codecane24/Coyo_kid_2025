@@ -11,10 +11,12 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     Route::post('check_ability', 'GuestController@check_ability');
     Route::post('version_checker', 'GuestController@version_checker');
 
+
+     Route::resource('user', 'UserApiController');
     //            Country Selection apis here
     Route::group(['middleware' => 'ApiTokenChecker'], function () {
 
-       Route::resource('user', 'UserApiController');
+       //Route::resource('user', 'UserApiController');
 
         Route::group(['prefix' => 'user'], function () {
             Route::get('getProfile', 'UserController@getProfile');
