@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import axios from "../../../utils/axiosInstance";
-
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 
-// Axios Interceptor to add token to headers
+// Axios Interceptor: Add token to requests (skip login route)
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("authToken");
-    if (token) {
+    if (
+      token &&
+      config.url !== "/backend/api/v1/login" &&
+      config.url !== "https://coyokid.abbangles.com/backend/api/v1/login"
+    ) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -19,17 +22,10 @@ axios.interceptors.request.use(
 
 const Login = () => {
   const navigate = useNavigate();
-  const { setUser, setToken } = useAuth(); // ✅ grab setUser and setToken from context
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
+  const { setUser, setToken } = useAuth();
 
-  const [errors, setErrors] = useState({
-    username: "",
-    password: "",
-  });
-
+  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [errors, setErrors] = useState({ username: "", password: "" });
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("");
   const [userRole, setUserRole] = useState("");
@@ -38,17 +34,14 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = { username: "", password: "" };
     let isValid = true;
-
     if (!formData.username.trim()) {
       newErrors.username = "Username is required";
       isValid = false;
     }
-
     if (!formData.password.trim()) {
       newErrors.password = "Password is required";
       isValid = false;
     }
-
     setErrors(newErrors);
     return isValid;
   };
@@ -59,64 +52,120 @@ const Login = () => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!validateForm()) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("🚀 Sending login payload:", formData);
+    if (!validateForm()) return;
+
+    try {
+      const response = await axios.post(
+        "https://coyokid.abbangles.com/backend/api/v1/login",
+        formData
+        
+      );
+
+
+      const result = response.data;
+      console.log("🚀 Full response:", result);
+console.log("✅ user:", result?.data?.user);
+console.log("✅ branches:", result?.data?.branches);
+
+      const isSuccess =
+        result.status === "success" || result.status === true || result.status === "true";
+
+      if (!isSuccess) {
+        alert(result.message || "Login failed.");
+        return;
+      }
+
+      const { token, user, branches: userBranches = [] } = result.data || {};
+
+      if (token) {
+        setToken(token);
+        localStorage.setItem("authToken", token);
+      }
+// ✅ SAFELY store user
+const safeUser = user || { type: "", permissions: [] };
+const fullUser = {
+  ...safeUser,
+  permissions: safeUser.permissions || [],
+};
+
+setUser(fullUser);
+localStorage.setItem("user", JSON.stringify(fullUser));
+localStorage.setItem("permissions", JSON.stringify(fullUser.permissions));
+localStorage.setItem("userRole", fullUser.type || ""); // 💥 THIS LINE is key
+setUserRole(fullUser.type || "");
+
+      // Handle branch selection
+      if (userBranches.length === 1) {
+        localStorage.setItem("selectedBranch", JSON.stringify(userBranches[0]));
+        redirectToDashboard(user?.type || "");
+      } else if (userBranches.length > 1) {
+        setBranches(userBranches);
+        setShowBranchDropdown(true);
+      } else {
+        alert("No branches assigned to this user.");
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      alert("Network error or CORS issue. Please check the server.");
+    }
+  };
+
+const handleBranchSelect = async () => {
+  if (!selectedBranch) return alert("Please select a branch.");
 
   try {
+    const { username, password } = formData;
+
     const response = await axios.post(
       "https://coyokid.abbangles.com/backend/api/v1/login",
-      formData
+      {
+        username,
+        password,
+        branchid: selectedBranch,
+      }
     );
 
     const result = response.data;
+
     if (result.status !== "success") {
       alert(result.message || "Login failed.");
       return;
     }
 
-    const { token, user, redirect, branches } = result.data;
-console.log("✅ user from login response:", user);
-
-    const permissions = user?.permissions || []; // ✅ ensure it exists
-    localStorage.setItem("permissions", JSON.stringify(permissions)); // ✅ store it here
+    const { token, user } = result.data;
 
     const fullUser = {
       ...user,
-      permissions,
+      permissions: user?.permissions || [],
     };
 
     setToken(token);
-    setUser(fullUser); // ✅ use fullUser that has permissions
+    setUser(fullUser);
+
     localStorage.setItem("authToken", token);
     localStorage.setItem("user", JSON.stringify(fullUser));
+    localStorage.setItem("permissions", JSON.stringify(fullUser.permissions));
+    localStorage.setItem("userRole", fullUser?.type || "");
+    localStorage.setItem("selectedBranch", selectedBranch);
 
-    setUserRole(user.type);
-
-    if (branches?.length === 1) {
-      localStorage.setItem("selectedBranch", JSON.stringify(branches[0]));
-      redirectToDashboard(user.type);
-    } else if (branches?.length > 1) {
-      setBranches(branches);
-      setShowBranchDropdown(true);
-    } else {
-      alert("No branches assigned to this user.");
-    }
+    redirectToDashboard(fullUser.type);
   } catch (error: any) {
-    console.error("Login error:", error);
-    alert(error);
+    console.error("🔴 Branch login error:", error);
+
+    if (error.response) {
+      console.log("🔍 Response:", error.response.data);
+      alert(error.response.data?.message || "Branch login failed.");
+    } else {
+      alert("Network or server error.");
+    }
   }
 };
 
-  
-const handleBranchSelect = () => {
-    if (!selectedBranch) return alert("Please select a branch.");
-    const selected = branches.find((b) => b.id === selectedBranch);
-    if (selected) {
-      localStorage.setItem("selectedBranch", JSON.stringify(selected));
-      redirectToDashboard(userRole);
-    }
-  };
+
+
 
   const redirectToDashboard = (role: string) => {
     switch (role) {
@@ -134,8 +183,6 @@ const handleBranchSelect = () => {
         navigate("/unauthorized");
     }
   };
-
-
 
   return (
     <div className="container">
@@ -199,29 +246,34 @@ const handleBranchSelect = () => {
                   )}
 
                   {showBranchDropdown && (
-                    <div className="mb-3">
-                      <label className="form-label">Select Branch</label>
-                      <select
-                        className="form-control"
-                        value={selectedBranch}
-                        onChange={(e) => setSelectedBranch(e.target.value)}
-                      >
-                        <option value="">-- Choose Branch --</option>
-                        {branches.map((branch: any, idx) => (
-                          <option key={idx} value={branch.id}>
-                            {branch.name}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        type="button"
-                        className="btn btn-success mt-3 w-100"
-                        onClick={handleBranchSelect}
-                        disabled={!selectedBranch}
-                      >
-                        Continue
-                      </button>
-                    </div>
+                    <>
+                      <div className="alert alert-info text-center mb-3">
+                        Multiple branches found. Please select one to continue.
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Select Branch</label>
+                        <select
+                          className="form-control"
+                          value={selectedBranch}
+                          onChange={(e) => setSelectedBranch(e.target.value)}
+                        >
+                          <option value="">-- Choose Branch --</option>
+                          {branches.map((branch: any, idx) => (
+                            <option key={idx} value={branch.id}>
+                              {branch.name}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          className="btn btn-success mt-3 w-100"
+                          onClick={handleBranchSelect}
+                          disabled={!selectedBranch}
+                        >
+                          Continue
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>

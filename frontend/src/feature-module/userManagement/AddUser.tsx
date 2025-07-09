@@ -138,7 +138,7 @@ const AddUser = () => {
                       <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
                         <i className="ti ti-info-square-rounded fs-16" />
                       </span>
-                      <h4 className="text-dark">Personal Information</h4>
+                      <h4 className="text-dark">Fill User Information</h4>
                     </div>
                   </div>
                   <div className="card-body pb-1">
@@ -383,11 +383,120 @@ const AddUser = () => {
         </div>
       </div>
     </div>
+    
                     </div>
                   </div>
                 </div>
             
-    
+{/* <!-- User Permissions --> */}
+<div className="mb-4">
+  <h5 className="mb-3">User Permissions</h5>
+  <div className="row">
+    <div className="col-md-3 col-sm-6 mb-2">
+      <div className="form-check">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          name="permissions[]"
+          id="userView"
+          value="userView"
+        />
+        <label className="form-check-label" htmlFor="userView">
+          View Users
+        </label>
+      </div>
+    </div>
+    <div className="col-md-3 col-sm-6 mb-2">
+      <div className="form-check">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          name="permissions[]"
+          id="userUpdate"
+          value="userUpdate"
+        />
+        <label className="form-check-label" htmlFor="userUpdate">
+          Update Users
+        </label>
+      </div>
+    </div>
+    <div className="col-md-3 col-sm-6 mb-2">
+      <div className="form-check">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          name="permissions[]"
+          id="userDelete"
+          value="userDelete"
+        />
+        <label className="form-check-label" htmlFor="userDelete">
+          Delete Users
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+{/* <!-- Role Permissions --> */}
+<div className="mb-4">
+  <h5 className="mb-3">Role Permissions</h5>
+  <div className="row">
+    <div className="col-md-3 col-sm-6 mb-2">
+      <div className="form-check">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          name="permissions[]"
+          id="roleView"
+          value="roleView"
+        />
+        <label className="form-check-label" htmlFor="roleView">
+          View Roles
+        </label>
+      </div>
+    </div>
+    <div className="col-md-3 col-sm-6 mb-2">
+      <div className="form-check">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          name="permissions[]"
+          id="roleEdit"
+          value="roleEdit"
+        />
+        <label className="form-check-label" htmlFor="roleEdit">
+          Edit Roles
+        </label>
+      </div>
+         <div className="form-check">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          name="permissions[]"
+          id="roleEdit"
+          value="roleEdit"
+        />
+        <label className="form-check-label" htmlFor="roleEdit">
+          Edit Roles
+        </label>
+      </div>
+         <div className="form-check">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          name="permissions[]"
+          id="roleEdit"
+          value="roleEdit"
+        />
+        <label className="form-check-label" htmlFor="roleEdit">
+          Edit Roles
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+
              
                 <div className="text-end">
                   <button type="button" className="btn btn-light me-3">

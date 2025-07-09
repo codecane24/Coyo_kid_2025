@@ -6,6 +6,7 @@ import AuthFeature from "../authFeature";
 import Login from "../auth/login/login";
 import ProtectedRoute from "../../routes/ProtectedRoute";
 import PublicRoute from "../../routes/PublicRoute";
+import Unauthorized from "../common/Unauthorized";
 
 const ALLRoutes: React.FC = () => {
   return (
@@ -14,7 +15,7 @@ const ALLRoutes: React.FC = () => {
       <Route path="/" element={ <PublicRoute>
             <Login />
           </PublicRoute>} />
-      <Route path="/unauthorized" element={<div>Un Authorized</div>} />
+      <Route path="/unauthorized" element={<Unauthorized/>} />
 
       {/* Public Layout Routes */}
       <Route element={<Feature />}>

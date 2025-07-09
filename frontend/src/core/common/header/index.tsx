@@ -13,6 +13,8 @@ import {
 import { useState } from "react";
 import { all_routes } from "../../../feature-module/router/all_routes";
 import { useAuth } from "../../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 const Header = () => {
   const { user } = useAuth();
   const routes = all_routes;
@@ -20,7 +22,13 @@ const Header = () => {
   const dataTheme = useSelector((state: any) => state.themeSetting.dataTheme);
   const dataLayout = useSelector((state: any) => state.themeSetting.dataLayout);
   const [notificationVisible, setNotificationVisible] = useState(false);
+   const { logout } = useAuth();
 
+const navigate = useNavigate();
+  const handleLogout = () => {
+  logout();
+  navigate("/");
+};
   const mobileSidebar = useSelector(
     (state: any) => state.sidebarSlice.mobileSidebar
   );
@@ -565,7 +573,8 @@ const Header = () => {
           <hr className="m-0" />
           <Link
             className="dropdown-item d-inline-flex align-items-center p-2"
-            to={routes.login}
+            to={''}
+                onClick={handleLogout}
           >
             <i className="ti ti-login me-2" />
             Logout
