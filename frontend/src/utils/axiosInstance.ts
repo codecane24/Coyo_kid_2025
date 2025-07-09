@@ -15,9 +15,9 @@ axiosInstance.interceptors.request.use(
     if (token) {
        console.log("🔐 Token being sent:", token); // <--- Add this
       config.headers.Authorization = `Bearer ${token}`;
-         config.headers.MyToken = token;
+         config.headers.mytoken = token;
          console.log("My Token being sent:",config.headers.MyToken)
-      config.headers.MyToken = token;
+      
     }
     return config;
   },
