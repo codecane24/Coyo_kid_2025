@@ -52,6 +52,7 @@ export const SidebarData = [
     submenuOpen: true,
     showSubRoute: false,
     submenuHdr: "Main",
+    
     submenuItems: [
 
     // Dashboard  
@@ -60,12 +61,13 @@ export const SidebarData = [
         icon: "ti ti-layout-dashboard",
         submenu: true,
         showSubRoute: false,
+   permissionKey: "class_view",
 
         submenuItems: [
-          { label: "Admin Dashboard", link: routes.adminDashboard },
-          { label: "Teacher Dashboard", link: routes.teacherDashboard },
-          { label: "Student Dashboard", link: routes.studentDashboard },
-          { label: "Parent Dashboard", link: routes.parentDashboard },
+          { label: "Admin Dashboard", link: routes.adminDashboard, permissionKey: "class_view",},
+          { label: "Teacher Dashboard", link: routes.teacherDashboard, permissionKey: "class_view", },
+          { label: "Student Dashboard", link: routes.studentDashboard, permissionKey: "class_view", },
+          { label: "Parent Dashboard", link: routes.parentDashboard, permissionKey: "class_view", },
         ],
       },
 
@@ -120,11 +122,13 @@ export const SidebarData = [
         icon: "ti ti-layout-list",
         submenu: true,
         showSubRoute: false,
+         permissionKey: "class_view",
         submenuItems: [
           {
             label: "Inquiry",
             link: routes.inquiry,
             showSubRoute: false,
+             permissionKey: "class_view",
           },
   
         ],
@@ -191,13 +195,14 @@ export const SidebarData = [
         icon: "ti ti-school",
         submenu: true,
         showSubRoute: false,
-
+permissionKey: "class_view",
         submenuItems: [
           {
             label: "All Students",
             link: routes.studentGrid,
             subLink1: routes.addStudent,
             subLink2: routes.editStudent,
+            permissionKey: "class_view",
           },
           { label: "Students List", link: routes.studentList },
           {
@@ -208,6 +213,7 @@ export const SidebarData = [
             subLink3: routes.studentFees,
             subLink4: routes.studentLeaves,
             subLink5: routes.studentTimeTable,
+            permissionKey: "class_view",
           },
           { label: "Student Promotion", link: routes.studentPromotion },
         ],
@@ -237,15 +243,16 @@ export const SidebarData = [
         icon: "ti ti-users",
         submenu: true,
         showSubRoute: false,
-
+permissionKey: "class_view",
         submenuItems: [
           {
             label: "All Teachers",
             link: routes.teacherGrid,
             subLink1: routes.addTeacher,
             subLink2: routes.editTeacher,
+            permissionKey: "class_view",
           },
-          { label: "Teacher List", link: routes.teacherList },
+          { label: "Teacher List", link: routes.teacherList,permissionKey: "class_view", },
           {
             label: "Teacher Details",
             link: routes.teacherDetails,
@@ -372,22 +379,23 @@ export const SidebarData = [
         icon: "ti ti-report-money",
         submenu: true,
         showSubRoute: false,
- 
+ permissionKey: "class_view",
         submenuItems: [
-           { label: "Collect Fees", link: routes.collectFees,   },
-          { label: "Fees Group", link: routes.feesGroup },
+           { label: "Collect Fees", link: routes.collectFees,permissionKey: "class_view",   },
+          { label: "Fees Group", link: routes.feesGroup ,permissionKey: "class_view",},
           // { label: "Fees Type", link: routes.feesType },
             {
             label: "Fees Master",
             submenu: true,
             showSubRoute: false,
+            permissionKey: "class_view",
             submenuItems: [
-              { label: "Acadmic Fees", link: routes.acadmicFees, showSubRoute: false },
-                        { label: "Other Charges", link: routes.otherCharges , showSubRoute: false },
+              { label: "Acadmic Fees", link: routes.acadmicFees, showSubRoute: false,permissionKey: "class_view", },
+                        { label: "Other Charges", link: routes.otherCharges , showSubRoute: false,permissionKey: "class_view", },
             ],
           },
           // { label: "Other Charges", link: routes.feesMaster },
-          { label: "Fees Assign", link: routes.feesAssign },
+          { label: "Fees Assign", link: routes.feesAssign,permissionKey: "class_view", },
           // { label: "Fees Collection Report", link: routes.feesCollectionReport },
         ],
       },
@@ -630,6 +638,7 @@ export const SidebarData = [
     submenuHdr: "Sales",
     submenu: false,
     showSubRoute: false,
+    permissionKey: "class_view",
     submenuItems: [
       {
         label: "Users",
@@ -637,6 +646,7 @@ export const SidebarData = [
         icon: "ti ti-users-minus",
         showSubRoute: false,
         submenu: false,
+        permissionKey: "class_view",
       },
       {
         label: "Roles & Permission",
@@ -644,6 +654,7 @@ export const SidebarData = [
         icon: "ti ti-shield-plus",
         showSubRoute: false,
         submenu: false,
+        permissionKey: "class_view",
       },
       {
         label: "Delete Account Request",
@@ -651,6 +662,7 @@ export const SidebarData = [
         icon: "ti ti-user-question",
         showSubRoute: false,
         submenu: false,
+        permissionKey: "class_view",
       },
     ],
   },
