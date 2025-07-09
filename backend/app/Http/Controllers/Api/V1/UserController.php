@@ -168,7 +168,7 @@ class UserController extends ResponseController
             );
         }
 
-        $branch = $branch_id ? Branch::find($branchid) : null;
+        $branch = $branchid ? Branch::find($branchid) : null;
         $fydata = $this->getFinancialYearId();
 
         $userData = [
