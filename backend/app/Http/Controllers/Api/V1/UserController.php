@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 
 class UserController extends ResponseController
@@ -22,132 +23,132 @@ class UserController extends ResponseController
 
 
     public function login(Request $request)
-{
-    // Step 1: Initial login or multi-branch re-auth
-    if (!$request->filled('branchid')) {
-        // First login attempt
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required',
-        ]);
+    {
+        
+        // Step 1: Initial login or multi-branch re-auth
+        if (!$request->filled('branchid')) {
+            // First login attempt
+            $request->validate([
+                'username' => 'required',
+                'password' => 'required',
+            ]);
+          $loginInput = $request->username;
+            $findField = 'username';
 
-        $loginInput = $request->username;
-        $findField = 'username';
+            if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
+                $findField = 'email';
+            } elseif (is_numeric($loginInput)) {
+                $findField = 'mobile';
+            } else {
+                $findField = 'code';
+            }
 
-        if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
-            $findField = 'email';
-        } elseif (is_numeric($loginInput)) {
-            $findField = 'mobile';
-        } else {
-            $findField = 'code';
-        }
+            $user = User::where($findField, $loginInput)
+                ->with('permissions:name')
+                ->first();
 
-        $user = User::where($findField, $loginInput)
-            ->with('permissions:name')
-            ->first();
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid credentials',
+                ], 401);
+            }
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid credentials',
-            ], 401);
-        }
+            if ($user->status !== 'active') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Account is not active. Please contact support.',
+                ], 403);
+            }
 
-        if ($user->status !== 'active') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Account is not active. Please contact support.',
-            ], 403);
-        }
+            // SUPERADMIN or ADMIN: login directly without branch
+            if (in_array($user->type, ['superadmin', 'admin'])) {
+                return $this->finalizeLogin($request, $user, null);
+            }
 
-        // SUPERADMIN or ADMIN: login directly without branch
-        if (in_array($user->type, ['superadmin', 'admin'])) {
-            return $this->finalizeLogin($request, $user, null);
-        }
+            // Other users: check branches
+            $branches = UserBranch::where('user_id', $user->id)
+                ->with('branch:id,name,code')
+                ->get();
 
-        // Other users: check branches
-        $branches = UserBranch::where('user_id', $user->id)
-            ->with('branch:id,name,code')
-            ->get();
+            if ($branches->count() > 1) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Multiple branches found. Please select one to continue.',
+                    'data' => [
+                        'user_id' => $user->id,
+                        'username' => $request->username,
+                        'password' => $request->password, // optionally remove this for security
+                        'branches' => $branches->map(function ($branch) {
+                            return [
+                                'id' => $branch->branch->id,
+                                'name' => $branch->branch->name,
+                                'code' => $branch->branch->code,
+                            ];
+                        }),
+                    ]
+                ]);
+            }
 
-        if ($branches->count() > 1) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Multiple branches found. Please select one to continue.',
-                'data' => [
-                    'user_id' => $user->id,
-                    'username' => $request->username,
-                    'password' => $request->password, // optionally remove this for security
-                    'branches' => $branches->map(function ($branch) {
-                        return [
-                            'id' => $branch->branch->id,
-                            'name' => $branch->branch->name,
-                            'code' => $branch->branch->code,
-                        ];
-                    }),
-                ]
+            // Only one branch, continue login
+            $request->merge([
+                'userId' => $user->id,
+                'branch_id' => $branches->first()->branch_id ?? null,
             ]);
         }
 
-        // Only one branch, continue login
-        $request->merge([
-            'userId' => $user->id,
-            'branch_id' => $branches->first()->branch_id ?? null,
-        ]);
+        // Step 2: Re-authenticate with branchid present
+        if ($request->branchid >= 1) {
+            $request->validate([
+                'username' => 'required',
+                'password' => 'required',
+                'branchid' => 'nullable|exists:branches,id',
+            ]);
+
+            $loginInput = $request->username;
+            $findField = 'username';
+
+            if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
+                $findField = 'email';
+            } elseif (is_numeric($loginInput)) {
+                $findField = 'mobile';
+            } else {
+                $findField = 'code';
+            }
+
+            $user = User::where($findField, $loginInput)
+                ->with('permissions:name')
+                ->first();
+
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid credentials',
+                ], 401);
+            }
+
+            //== check branch id belongs to user
+            $branch = UserBranch::where('user_id', $user->id)
+                ->where('branch_id', $request->branchid)
+                ->first();
+
+            if (!$branch) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Branch not found for this user.',
+                ], 404);
+            }
+
+            if ($user->status !== 'active') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Account is not active. Please contact support.',
+                ], 403);
+            }
+
+            return $this->finalizeLogin($request, $user, $request->branchid);
+        }
     }
-
-    // Step 2: Re-authenticate with branchid present
-    if ($request->branchid >= 1) {
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required',
-            'branchid' => 'nullable|exists:branches,id',
-        ]);
-
-        $loginInput = $request->username;
-        $findField = 'username';
-
-        if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
-            $findField = 'email';
-        } elseif (is_numeric($loginInput)) {
-            $findField = 'mobile';
-        } else {
-            $findField = 'code';
-        }
-
-        $user = User::where($findField, $loginInput)
-            ->with('permissions:name')
-            ->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid credentials',
-            ], 401);
-        }
-
-        //== check branch id belongs to user
-        $branch = UserBranch::where('user_id', $user->id)
-            ->where('branch_id', $request->branchid)
-            ->first();
-
-        if (!$branch) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Branch not found for this user.',
-            ], 404);
-        }
-
-        if ($user->status !== 'active') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Account is not active. Please contact support.',
-            ], 403);
-        }
-
-        return $this->finalizeLogin($request, $user, $request->branchid);
-    }
-}
 
 
     private function finalizeLogin($request, $user, $branchid = null)

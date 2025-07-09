@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Cart;
-use App\Countries;
+
 use App\Http\Controllers\Controller as Controller;
 use App\User;
-use App\UserCard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
