@@ -24,6 +24,7 @@ class DeviceToken extends Model
     protected $fillable = [
         'user_id',
         'token',
+        'type',
     ];
 
     /**

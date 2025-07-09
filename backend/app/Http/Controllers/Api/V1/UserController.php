@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\DeviceToken;
+use App\Models\DeviceToken;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\ResponseController;
 use Illuminate\Validation\Rule;
@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 
 class UserController extends ResponseController
@@ -23,261 +24,214 @@ class UserController extends ResponseController
 
     public function login(Request $request)
     {
-     
-        if (!$request->isBranch || $request->isBranch != 1) {
-            // Validate request
-            $request->validate([
-                'username' => 'required',
-                'password' => 'required',
-            ]);
-
-            // Determine login field (email, username, mobile, or code)
+        
+        // Step 1: Initial login or multi-branch re-auth
+        if (!$request->filled('branchid')) {
+            // First login attempt
+          
+   
             $loginInput = $request->username;
-            $findField = 'username'; // default
-            
+            $findField = 'username';
+
             if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
                 $findField = 'email';
             } elseif (is_numeric($loginInput)) {
-                // Check if it's a mobile number (assuming mobile is stored as string)
                 $findField = 'mobile';
             } else {
-                // Check if it matches a user code pattern (adjust as needed)
                 $findField = 'code';
             }
+         
+            $user = User::where($findField, $loginInput)
+                ->with('permissions:name')
+                ->first();
+              
 
-            // Find user by any of the possible fields
-            $user = User::where(function($query) use ($loginInput) {
-                $query->where('email', $loginInput)
-                    ->orWhere('username', $loginInput)
-                    ->orWhere('mobile', $loginInput)
-                    ->orWhere('code', $loginInput);
-            })
-            ->with(['permissions' => function($q) {
-                $q->select('name');
-            }])
-            ->first();
-
-            if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                ], 404);
-            }
-
-            // Check IP address restriction
-            $clientIp = $request->ip();
-            if ($user->assigned_ip_address && $clientIp !== $user->assigned_ip_address) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Login not allowed from this IP address',
-                ], 403);
-            }
-
-      
-
-            // Check if user has multiple branches
-            $userBranches = UserBranch::where('user_id', $user->id)->count();
-            if ($userBranches > 1) {
-                $encryptedUserId = Crypt::encryptString($user->id);
-                return response()->json([
-                    'status' => 'true',
-                    'message' => 'Multiple branches detected, please select a branch',
-                    'data' => [
-                        'user_id' => $encryptedUserId,
-                        'branches' => UserBranch::where('user_id', $user->id)
-                            ->with('branch')
-                            ->get()
-                            ->map(function ($branch) {
-                                return [
-                                    'id' => $branch->branch->id,
-                                    'name' => $branch->branch->name,
-                                    'code' => $branch->branch->code,
-                                ];
-                            }),
-                    ],
-                ], 200);
-            }
-
-            // Authenticate user
-            if ($user && Hash::check($request->password, $user->password)) {
-                // Log in the user and generate a token
-                Auth::login($user, $request->remember ?? false);
-                $token = token_generator();
-
-                // Update last login
-                $user->last_login = Carbon::now()->toDateTimeString();
-                $user->save();
-
-                // Fetch branch details
-                $branch = Branch::where('id', $user->branch_id)->first();
-                if (!$branch) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Branch not found',
-                    ], 404);
-                }
-
-                // Get financial year data
-                $fydata = $this->getFinancialYearId();
-
-                // Prepare user data for response
-                $userData = [
-                    'user_id' => $user->id,
-                    'username' => $user->username,
-                    'name' => $user->name,
-                    'code' => $user->code,
-                    'mobile' => $user->mobile,
-                    'email' => $user->email,
-                    'type' => $user->type,
-                    'branch_id' => $user->branch_id,
-                    'branch_name' => $branch->name,
-                    'fyear' => $fydata,
-                    'role' => $user->role, // Assuming role is a field in User model
-                    'profile_image' => $user->profile_image,
-                    'permissions' => $user->permissions->pluck('name')->toArray(), // Assuming permissions is a field in User model
-                ];
-
-                // Check if company exists
-                if (Company::count() == 0) {
-                    return response()->json([
-                        'status' => 'success',
-                        'message' => 'No company found, redirect to company creation',
-                        'data' => [
-                            'token' => $token,
-                            'user' => $userData,
-                            //'redirect' => route('admin.company.create'),
-                        ],
-                    ], 200);
-                }
-
-                // Determine dashboard based on user type
-                // $dashboardRoute = ($user->type == 'admin' || $user->type == 'subadmin')
-                //     ? route('user.dashboard')
-                //     : route($this->getDashboardRouteName());
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Login successful',
-                    'data' => [
-                        'token' => $token,
-                        'user' => $userData,
-                        'branches' => UserBranch::where('user_id', $user->id)
-                            ->with('branch')
-                            ->get()
-                            ->map(function ($branch) {
-                                return [
-                                    'id' => $branch->branch->id,
-                                    'name' => $branch->branch->name,
-                                    'code' => $branch->branch->code,
-                                ];
-                            }),
-                        'redirect' => 'Dashboard', // $dashboardRoute
-                    ],
-                ], 200);
-            } else {
+            if (!$user || !Hash::check($request->password, $user->password)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Invalid credentials',
                 ], 401);
             }
-        } else {
-            // Branch-specific login (unchanged)
-            $request->validate([
-                'userId' => 'required',
-                'branch_id' => 'required|exists:branches,id',
-            ]);
 
-            $user = User::where('id', $request->userId)->first();
-            if (!$user) {
+            if ($user->status !== 'active') {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'User not found',
+                    'message' => 'Account is not active. Please contact support.',
+                ], 403);
+            }
+
+            // SUPERADMIN or ADMIN: login directly without branch
+            if (in_array($user->type, ['superadmin', 'admin'])) {
+                return $this->finalizeLogin($request, $user, null);
+            }
+
+          
+            // Other users: check branches
+            $branches = UserBranch::where('user_id', $user->id)
+                ->with('branch:id,name,code')
+                ->get();
+
+            // If no branches found, return error
+            if ($branches->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No branches found for this user.',
                 ], 404);
             }
 
-            // Log in the user and generate a token
-            Auth::login($user);
-            $token = token_generator();
-
-            // Device token handling
-            if ($token) {
-                    DeviceToken::updateOrCreate(
-                        [
-                            'user_id' => $user->id,
-                            'device_token' => $token,
-                        ],
-                        [
-                            'type' => $request->device_type ?? 'web',
-                        ]
-                    );
-                }
-            
-            // Fetch branch details
-            $branch = Branch::find($request->branch_id);
-            if (!$branch) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Branch not found',
-                ], 404);
-            }
-
-            // Get financial year data
-            $fydata = $this->getFinancialYearId();
-
-            // Prepare user data for response
-            $userData = [
-                'user_id' => $user->id,
-                'username' => $user->username,
-                'name' => $user->name,
-                'code' => $user->code,
-                'mobile' => $user->mobile,
-                'email' => $user->email,
-                'type' => $user->type,
-                'branch_id' => $request->branch_id,
-                'branch_name' => $branch->name,
-                'fyear' => $fydata,
-                'permissions' => $user->permissions->pluck('name')->toArray(), // Assuming permissions is a field in User model
-            ];
-
-            // Check if company exists
-            if (Company::count() == 0) {
+            // If multiple branches found, return them for selection
+            if ($branches->count() > 1) {
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'No company found, redirect to company creation',
+                    'message' => 'Multiple branches found. Please select one to continue.',
                     'data' => [
-                        'token' => $token,
-                        'user' => $userData,
-                        'redirect' => route('admin.company.create'),
-                    ],
-                ], 200);
-            }
-
-            // Determine dashboard based on user type
-            // $dashboardRoute = ($user->type == 'customer' || $user->type == 'Customer')
-            //     ? route('user.dashboard')
-            //     : route($this->getDashboardRouteName());
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Login successful',
-                'data' => [
-                    'token' => $token,
-                    'user' => $userData,
-                    'branches' => UserBranch::where('user_id', $user->id)
-                        ->with('branch')
-                        ->get()
-                        ->map(function ($branch) {
+                        'user_id' => $user->id,
+                        'username' => $request->username,
+                        'password' => $request->password, // optionally remove this for security
+                        'branches' => $branches->map(function ($branch) {
                             return [
                                 'id' => $branch->branch->id,
                                 'name' => $branch->branch->name,
                                 'code' => $branch->branch->code,
                             ];
                         }),
-                    'redirect' => '',//$dashboardRoute,
-                ],
-            ], 200);
+                    ]
+                ]);
+            }
+
+
+            // Only one branch, continue login
+            $request->merge([
+                'userId' => $user->id,
+                'branch_id' => $user->branch_id,
+            ]);
+
+             return $this->finalizeLogin($request, $user, null);
+        }
+
+        // Step 2: Re-authenticate with branchid present
+        if ($request->branchid >= 1) {
+
+            // $request->validate([
+            //     'username' => 'required',
+            //     'password' => 'required',
+            //     'branchid' => 'nullable|exists:branches,id',
+            // ]);
+
+            $loginInput = $request->username;
+            $findField = 'username';
+
+            if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
+                $findField = 'email';
+            } elseif (is_numeric($loginInput)) {
+                $findField = 'mobile';
+            } else {
+                $findField = 'code';
+            }
+
+            $user = User::where($findField, $loginInput)
+                ->with('permissions:name')
+                ->first();
+
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid credentials',
+                ], 401);
+            }
+
+            //== check branch id belongs to user
+            $branch = UserBranch::where('user_id', $user->id)
+                ->where('branch_id', $request->branchid)
+                ->first();
+
+            if (!$branch) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Branch not found for this user.',
+                ], 404);
+            }
+
+            if ($user->status !== 'active') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Account is not active. Please contact support.',
+                ], 403);
+            }
+
+            return $this->finalizeLogin($request, $user, $request->branchid);
         }
     }
+
+
+    private function finalizeLogin($request, $user, $branchid = null)
+    {
+        Auth::login($user);
+
+        $token = token_generator();
+
+        if ($token) {
+            DeviceToken::updateOrCreate(
+                [
+                    'user_id' => $user->id
+                ],
+                [
+                    'type' => $request->device_type ?? 'web',
+                ]
+            );
+        }
+
+        $branch = $branchid ? Branch::find($branchid) : null;
+        $fydata = $this->getFinancialYearId();
+
+        $userData = [
+            'user_id' => $user->id,
+            'username' => $user->username,
+            'name' => $user->name,
+            'code' => $user->code,
+            'mobile' => $user->mobile,
+            'email' => $user->email,
+            'type' => $user->type,
+            'branch_id' => $branch?->id,
+            'branch_name' => $branch?->name,
+            'fyear' => $fydata,
+            'permissions' => $user->permissions->pluck('name')->toArray(),
+        ];
+
+        if (Company::count() == 0) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'No company found. Please create one.',
+                'data' => [
+                    'token' => $token,
+                    'user' => $userData,
+                    'redirect' => route('admin.company.create'),
+                ],
+            ]);
+        }
+
+        $branches = UserBranch::where('user_id', $user->id)
+            ->with('branch:id,name,code')
+            ->get()
+            ->map(function ($branch) {
+                return [
+                    'id' => $branch->branch->id,
+                    'name' => $branch->branch->name,
+                    'code' => $branch->branch->code,
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Login successful',
+            'data' => [
+                'token' => $token,
+                'user' => $userData,
+                'branches' => $branches,
+            ],
+        ]);
+    }
+
 
     
     public function ClearCache()
