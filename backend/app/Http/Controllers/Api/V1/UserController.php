@@ -160,8 +160,7 @@ class UserController extends ResponseController
         if ($token) {
             DeviceToken::updateOrCreate(
                 [
-                    'user_id' => $user->id,
-                    'token' => $token,
+                    'user_id' => $user->id
                 ],
                 [
                     'type' => $request->device_type ?? 'web',
@@ -216,7 +215,6 @@ class UserController extends ResponseController
                 'token' => $token,
                 'user' => $userData,
                 'branches' => $branches,
-                'redirect' => '', // can be filled based on user type if needed
             ],
         ]);
     }
