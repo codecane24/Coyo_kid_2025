@@ -29,10 +29,10 @@ class Cors
 
         // Set CORS headers if the origin is allowed
         if ($corsOrigin) {
+            
             $response->header('Access-Control-Allow-Origin', $corsOrigin)
                     ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
                     ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization,mytoken')
-                    ->header('Access-Control-Allow-Headers', 'Content-Type, mytoken')
                     ->header('Access-Control-Allow-Credentials', 'true');
         }
 
