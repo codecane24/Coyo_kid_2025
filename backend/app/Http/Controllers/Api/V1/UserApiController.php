@@ -393,7 +393,7 @@ class UserApiController extends Controller
      */
     private function hasPermission($permission)
     {
-       return Auth::user()->hasPermissionTo($permission);
+       //return Auth::user()->hasPermissionTo($permission);
     }
 
     /**
