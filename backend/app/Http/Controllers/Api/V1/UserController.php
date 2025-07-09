@@ -161,7 +161,7 @@ class UserController extends ResponseController
             DeviceToken::updateOrCreate(
                 [
                     'user_id' => $user->id,
-                    'device_token' => $token,
+                    'token' => $token,
                 ],
                 [
                     'type' => $request->device_type ?? 'web',
