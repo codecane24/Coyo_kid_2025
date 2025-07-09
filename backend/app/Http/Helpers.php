@@ -127,7 +127,7 @@ function get_header_auth_tokenddd()
 
 function get_header_auth_token()
 {
-    return request()->header('MyToken');
+    return request()->header('mytoken') ?? request()->header('Authorization');
 }
 
 
