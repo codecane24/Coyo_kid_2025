@@ -28,14 +28,55 @@ import { TagsInput } from "react-tag-input-component";
 import CommonSelect from "../../core/common/commonSelect";
 import { useLocation } from "react-router-dom";
 import { getClassesList } from "../../services/ClassData";
+import { getPermissionsList } from "../../services/Permissions";
 
 type ClassItem = {
   id: string;
   name: string;
 };
+type Permission = {
+  id: number;
+  name: string;
+  guard_name: string;
+};
+
+
 
 const AddUser = () => {
   const routes = all_routes;
+const [permissionsList, setPermissionsList] = useState<Permission[]>([]);
+
+
+
+
+const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+
+
+  // Fetch permissions on mount
+useEffect(() => {
+ const fetchPermissions = async () => {
+  try {
+    const res = await getPermissionsList();
+    console.log("Fetched permissions:", res);
+    setPermissionsList(res); // ← if response is directly the array
+  } catch (err) {
+    console.error("Error fetching permissions:", err);
+    setPermissionsList([]); // fallback in error case
+  }
+};
+
+
+  fetchPermissions();
+}, []);
+
+
+    const handlePermissionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { value, checked } = e.target;
+  setSelectedPermissions((prev) =>
+    checked ? [...prev, value] : prev.filter((perm) => perm !== value)
+  );
+};
+
   const [classOptions, setClassOptions] = useState<{ label: string; value: string }[]>([]);
 
  const [allClass, setAllClass] = useState<{ label: string; value: string }[]>([]);
@@ -127,7 +168,7 @@ const AddUser = () => {
               </nav>
             </div>
           </div>
-          {/* /Page Header */}
+        
           <div className="row">
             <div className="col-md-12">
               <form>
@@ -170,55 +211,7 @@ const AddUser = () => {
                       </div>
                     </div>
                     <div className="row row-cols-xxl-5 row-cols-md-6">
-                      {/* <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Academic Year</label>
-                          <CommonSelect
-                          className="select"
-                          options={academicYear}
-                          defaultValue={isEdit? academicYear[0]: undefined}
-                        />
-                        </div>
-                      </div> */}
-                      {/* <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Admission Number</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'AD9892434': undefined} />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Admission Date</label>
-                          <div className="input-icon position-relative">
-                          {isEdit? <DatePicker
-                                className="form-control datetimepicker"
-                                format={{
-                                  format: "DD-MM-YYYY",
-                                  type: "mask",
-                                }}
-                                value={defaultDate}
-                                placeholder="Select Date"
-                              /> : <DatePicker
-                              className="form-control datetimepicker"
-                              format={{
-                                format: "DD-MM-YYYY",
-                                type: "mask",
-                              }}
-                              defaultValue=""
-                              placeholder="Select Date"
-                            />}
-                            <span className="input-icon-addon">
-                              <i className="ti ti-calendar" />
-                            </span>
-                          </div>
-                        </div>
-                      </div> */}
-                      {/* <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Roll Number</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '35013': undefined} />
-                        </div>
-                      </div> */}
+               
                 
                       <div className="col-xxl col-xl-3 col-md-6">
                         <div className="mb-3">
@@ -233,27 +226,9 @@ const AddUser = () => {
                           <input type="text" className="form-control" defaultValue={isEdit? 'claudia': undefined}/>
                         </div>
                       </div>
-                    {/* <div className="col-xxl col-xl-3 col-md-6">
-  <div className="mb-3">
-    <label className="form-label">Class</label>
-    <CommonSelect
-      className="select"
-      options={classOptions}
-      defaultValue={isEdit ? classOptions[0] : undefined}
-    />
-  </div>
-</div> */}
+       
 
-                      {/* <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Section</label>
-                          <CommonSelect
-                            className="select"
-                            options={allSection}
-                            defaultValue={isEdit?allSection[0]:undefined}
-                          />
-                        </div>
-                      </div> */}
+                    
                       <div className="col-xxl col-xl-3 col-md-6">
                         <div className="mb-3">
                           <label className="form-label">Gender</label>
@@ -264,63 +239,7 @@ const AddUser = () => {
                           />
                         </div>
                       </div>
-                      {/* <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Date of Birth</label>
-                          <div className="input-icon position-relative">
-                          {isEdit? <DatePicker
-                                className="form-control datetimepicker"
-                                format={{
-                                  format: "DD-MM-YYYY",
-                                  type: "mask",
-                                }}
-                                value={defaultDate}
-                                placeholder="Select Date"
-                              /> : <DatePicker
-                              className="form-control datetimepicker"
-                              format={{
-                                format: "DD-MM-YYYY",
-                                type: "mask",
-                              }}
-                              defaultValue=""
-                              placeholder="Select Date"
-                            />}
-                            <span className="input-icon-addon">
-                              <i className="ti ti-calendar" />
-                            </span>
-                          </div>
-                        </div>
-                      </div> */}
-                      {/* <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Blood Group</label>
-                          <CommonSelect
-                            className="select"
-                            options={bloodGroup}
-                            defaultValue={isEdit? bloodGroup[0] : undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">House</label>
-                          <CommonSelect
-                            className="select"
-                            options={house}
-                            defaultValue={isEdit?house[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Religion</label>
-                          <CommonSelect
-                            className="select"
-                            options={religion}
-                            defaultValue={isEdit?religion[0]:undefined}
-                          />
-                        </div>
-                      </div> */}
+                 
                       <div className="col-xxl col-xl-3 col-md-6">
                         <div className="mb-3">
                           <label className="form-label">Role</label>
@@ -345,156 +264,66 @@ const AddUser = () => {
                           <input type="email" className="form-control" defaultValue={isEdit? 'jan@example.com': undefined}/>
                         </div>
                       </div>
-                      {/* <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Caste</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'Catholic': undefined}/>
-                        </div>
-                      </div> */}
-                      {/* <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Suitable Batch</label>
-                          <CommonSelect
-                            className="select"
-                            options={mothertongue}
-                            defaultValue={isEdit?mothertongue[0]:undefined}
-                          />
-                        </div>
-                      </div> */}
-                      <div className="col-xxl col-xl-3 col-md-6">
-      <div className="mb-3">
-        <label className="form-label">Select Branch</label>
-        <div className="d-flex flex-column">
-          {branches.map((branch) => (
-            <div className="form-check" key={branch}>
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id={branch}
-                value={branch}
-                checked={selectedBranches.includes(branch)}
-                onChange={() => handleCheckboxChange(branch)}
-              />
-              <label className="form-check-label " htmlFor={branch}>
-                {branch}
-              </label>
+                    </div>
+<div className="card mt-4">
+  {/* Section Header */}
+  <div className="card-header bg-light">
+    <div className="d-flex align-items-center">
+      <span className="avatar avatar-sm bg-white text-dark me-2 d-flex justify-content-center align-items-center">
+        <i className="ti ti-lock fs-18" />
+      </span>
+      <h5 className="mb-0 text-dark">User Permissions</h5>
+    </div>
+  </div>
+
+  <div className="card-body">
+    {permissionsList.map((parent: any) => (
+      <div key={parent.id} className="mb-4">
+        {/* Parent Permission Title */}
+        <h6 className="text-dark fw-semibold mb-3 d-flex align-items-center">
+          <i className="ti ti-shield-lock fs-16 me-2" />
+          {parent.name.charAt(0).toUpperCase() + parent.name.slice(1).replace(/_/g, " ")}
+        </h6>
+
+        <div className="row g-3">
+          {(parent.children || []).map((perm: any) => (
+            <div key={perm.id} className="col-12 col-sm-6 col-md-4 col-lg-3">
+              <div className="form-check">
+   <input
+  className="form-check-input"
+  type="checkbox"
+  id={`perm-${perm.id}`}
+  name="permissions[]"
+  value={perm.name}
+  checked={selectedPermissions.includes(perm.name)}
+  onChange={handlePermissionChange}
+/>
+
+
+   <label
+  className="form-check-label text-dark"
+  htmlFor={`perm-${perm.id}`}
+>
+  {perm.name}
+</label>
+
+
+
+              </div>
             </div>
           ))}
         </div>
       </div>
-    </div>
-    
-                    </div>
-                  </div>
-                </div>
-            
-{/* <!-- User Permissions --> */}
-<div className="mb-4">
-  <h5 className="mb-3">User Permissions</h5>
-  <div className="row">
-    <div className="col-md-3 col-sm-6 mb-2">
-      <div className="form-check">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          name="permissions[]"
-          id="userView"
-          value="userView"
-        />
-        <label className="form-check-label" htmlFor="userView">
-          View Users
-        </label>
-      </div>
-    </div>
-    <div className="col-md-3 col-sm-6 mb-2">
-      <div className="form-check">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          name="permissions[]"
-          id="userUpdate"
-          value="userUpdate"
-        />
-        <label className="form-check-label" htmlFor="userUpdate">
-          Update Users
-        </label>
-      </div>
-    </div>
-    <div className="col-md-3 col-sm-6 mb-2">
-      <div className="form-check">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          name="permissions[]"
-          id="userDelete"
-          value="userDelete"
-        />
-        <label className="form-check-label" htmlFor="userDelete">
-          Delete Users
-        </label>
-      </div>
-    </div>
+    ))}
   </div>
 </div>
 
-{/* <!-- Role Permissions --> */}
-<div className="mb-4">
-  <h5 className="mb-3">Role Permissions</h5>
-  <div className="row">
-    <div className="col-md-3 col-sm-6 mb-2">
-      <div className="form-check">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          name="permissions[]"
-          id="roleView"
-          value="roleView"
-        />
-        <label className="form-check-label" htmlFor="roleView">
-          View Roles
-        </label>
-      </div>
-    </div>
-    <div className="col-md-3 col-sm-6 mb-2">
-      <div className="form-check">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          name="permissions[]"
-          id="roleEdit"
-          value="roleEdit"
-        />
-        <label className="form-check-label" htmlFor="roleEdit">
-          Edit Roles
-        </label>
-      </div>
-         <div className="form-check">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          name="permissions[]"
-          id="roleEdit"
-          value="roleEdit"
-        />
-        <label className="form-check-label" htmlFor="roleEdit">
-          Edit Roles
-        </label>
-      </div>
-         <div className="form-check">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          name="permissions[]"
-          id="roleEdit"
-          value="roleEdit"
-        />
-        <label className="form-check-label" htmlFor="roleEdit">
-          Edit Roles
-        </label>
-      </div>
-    </div>
-  </div>
-</div>
+
+
+                  </div>
+                </div>
+            
+
 
 
              
@@ -509,6 +338,7 @@ const AddUser = () => {
               </form>
             </div>
           </div>
+           
         </div>
       </div>
      
