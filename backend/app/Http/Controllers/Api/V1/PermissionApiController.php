@@ -16,7 +16,7 @@ class PermissionApiController extends Controller
       
         try {
            $search = $request->get('search', '');
-            $withChildren = $request->get('with_children', false);
+            $withChildren = $request->get('with_children', true);
 
             // Base query with eager loading
             $query = ModuleGroup::with(['modules' => function($q) use ($withChildren) {
