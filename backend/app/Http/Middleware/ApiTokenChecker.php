@@ -17,7 +17,7 @@ class ApiTokenChecker
      */
     public function handle($request, Closure $next)
     {
-        $valid_types = ['user', 'vendor'];
+        $valid_types = ['superadmin', 'admin', 'teacher', 'parent', 'student'];
         $token = get_header_auth_token();
 
         if ($token) {
