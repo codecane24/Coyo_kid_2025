@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Permission;
-use App\Modesl\ModuleGroup;
+use App\Models\ModuleGroup;
 
 class PermissionApiController extends Controller
 {
