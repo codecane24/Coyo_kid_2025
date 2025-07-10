@@ -27,7 +27,7 @@ const handleLogout = () => {
   logout();
   navigate("/");
 };
-
+const userid = useAuth().user?.id;
 
   const [subOpen, setSubopen] = useState<any>("");
   const [subsidebar, setSubsidebar] = useState("");
@@ -163,7 +163,7 @@ const handleLogout = () => {
 const filteredSubmenuItems = Array.isArray(mainLabel?.submenuItems)
   ? (mainLabel.submenuItems as any[]).filter((title: any) => {
       // ✅ Require permissionKey AND it must be allowed
-      if (!title?.permissionKey || !hasSidebarAccess(title.permissionKey)) return false;
+      if (!title?.permissionKey || !hasSidebarAccess(title.permissionKey) || userid>1) return false;
 
       const hasDirectLink = !!title.link;
 
@@ -187,7 +187,7 @@ if (filteredSubmenuItems.length === 0) return null;
         </h6>
         <ul>
           {filteredSubmenuItems.map((title: any) => {
-            if (title?.permissionKey && !hasSidebarAccess(title.permissionKey)) return null;
+            if (title?.permissionKey && !hasSidebarAccess(title.permissionKey) || userid==1) return null;
 
             // Gather all allowed links
             let link_array: any = [];
