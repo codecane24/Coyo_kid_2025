@@ -12,17 +12,24 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
   const selectedBranch = localStorage.getItem("selectedBranch");
   const branches = user?.branches || [];
 
-  // ✅ Allow login page if user has multiple branches but hasn't selected one yet
+  const role = user?.role || user?.type || "";
+  console.log(role)
   const hasMultipleBranches = Array.isArray(branches) && branches.length > 1;
 
+  // ✅ If user is logged in
   if (token && user) {
-    if (!selectedBranch && hasMultipleBranches) {
-      // Allow login page to show dropdown
-      return <>{children}</>;
+    // ✅ Super admin: skip branch logic, redirect directly
+    
+    if (role === "superadmin") {
+      return <Navigate to="/index" replace />;
     }
 
-    // 🚀 Redirect to dashboard if branch is selected and user is valid
-    const role = user.role || user.type || "";
+    // ✅ Other roles: check if branch is selected (only when multiple exist)
+    if (!selectedBranch && hasMultipleBranches) {
+      return <>{children}</>; // allow branch dropdown
+    }
+
+    // ✅ Redirect other roles based on role
     switch (role) {
       case "admin":
         return <Navigate to="/index" replace />;
@@ -32,10 +39,11 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
       case "parent":
         return <Navigate to="/student-dashboard" replace />;
       default:
-        return <Navigate to="/unauthorized" replace />;
+        return <Navigate to="/" replace />;
     }
   }
 
+  // Not logged in → allow public route
   return <>{children}</>;
 };
 

@@ -18,8 +18,20 @@ import { usePermission } from "../../../hooks/usePermission";
 
 
 const Sidebar = () => {
+  const { user } = useAuth();
+useEffect(() => {
+  if (user) {
+    console.log("User ID:", user.id);
+  } else {
+    console.log("User is still loading or not logged in.");
+  }
+}, [user]);
+const isSuperAdmin = user?.user_id === 1; 
+
     const { hasSidebarAccess } = usePermission()
-    
+    console.log("User ID:", user?.user_id);
+
+    console.log(user)
   const Location = useLocation();
    const { logout } = useAuth();
 const navigate = useNavigate();
@@ -158,15 +170,16 @@ const userid = useAuth().user?.id;
 
               <ul>
                 
-              {SidebarData?.map((mainLabel, index) => {
+              { SidebarData?.map((mainLabel, index) => {
     // Filter the top-level submenuItems with access
 const filteredSubmenuItems = Array.isArray(mainLabel?.submenuItems)
   ? (mainLabel.submenuItems as any[]).filter((title: any) => {
-      // ✅ Require permissionKey AND it must be allowed
-      if (!title?.permissionKey || !hasSidebarAccess(title.permissionKey) || userid!=3) return false;
+      if (isSuperAdmin) return true; // Allow everything for super admin
+
+if (!isSuperAdmin && title?.permissionKey && !hasSidebarAccess(title.permissionKey)) return null;
+
 
       const hasDirectLink = !!title.link;
-
       const hasVisibleChildren =
         Array.isArray(title.submenuItems) &&
         title.submenuItems.some((link: any) =>
@@ -176,6 +189,7 @@ const filteredSubmenuItems = Array.isArray(mainLabel?.submenuItems)
       return hasDirectLink || hasVisibleChildren;
     })
   : [];
+
 
 if (filteredSubmenuItems.length === 0) return null;
 
@@ -187,19 +201,21 @@ if (filteredSubmenuItems.length === 0) return null;
         </h6>
         <ul>
           {filteredSubmenuItems.map((title: any) => {
-            if (title?.permissionKey && !hasSidebarAccess(title.permissionKey) || userid !=3) return null;
+    if (!isSuperAdmin && title?.permissionKey && !hasSidebarAccess(title.permissionKey)) return null;
+
 
             // Gather all allowed links
             let link_array: any = [];
-            const filteredSubItems = title.submenuItems?.filter((link: any) =>
-              hasSidebarAccess(link?.permissionKey || link?.label)
-            );
+          const filteredSubItems = title.submenuItems?.filter((link: any) =>
+  isSuperAdmin || hasSidebarAccess(link?.permissionKey || link?.label)
+);
+
 
             filteredSubItems?.forEach((link: any) => {
               link_array.push(link?.link);
               if (link?.submenu && Array.isArray(link.submenuItems)) {
                 link.submenuItems
-                  .filter((i: any) => hasSidebarAccess(i.permissionKey || i.label))
+                  .filter((i: any) => isSuperAdmin || hasSidebarAccess(i.permissionKey || i.label))
                   .forEach((item: any) => link_array.push(item?.link));
               }
             });
@@ -243,7 +259,7 @@ if (filteredSubmenuItems.length === 0) return null;
                     <ul style={{ display: "block" }}>
                       {filteredSubItems.map((item: any) => {
                         const filteredNested = item?.submenuItems?.filter((i: any) =>
-                          hasSidebarAccess(i.permissionKey || i.label)
+                          isSuperAdmin || hasSidebarAccess(i.permissionKey || i.label)
                         );
 
                         if (!item.link && (!filteredNested || filteredNested.length === 0))

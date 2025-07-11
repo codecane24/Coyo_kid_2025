@@ -169,6 +169,9 @@ const handleBranchSelect = async () => {
 
   const redirectToDashboard = (role: string) => {
     switch (role) {
+        case "superadmin":
+        navigate("/index");
+        break;
       case "admin":
         navigate("/index");
         break;
@@ -180,7 +183,7 @@ const handleBranchSelect = async () => {
         navigate("/student-dashboard");
         break;
       default:
-        navigate("/unauthorized");
+        navigate("/");
     }
   };
 
