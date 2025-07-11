@@ -81,7 +81,7 @@ class UserController extends ResponseController
             // Debug: Inspect branches
             \Log::info('Branches for user ' . $branches->count());
 
-            if ($branches->isEmpty()) {
+            if ($branches->count() === 0) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No branches found for this user.',
