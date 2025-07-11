@@ -150,24 +150,41 @@ const handleLogout = () => {
         <Scrollbars>
           <div className="sidebar-inner slimscroll">
             <div id="sidebar-menu" className="sidebar-menu">
-              <ul>
-                <li className="mb-4">
-                  <Link
-                    to="#"
-                    className="d-flex align-items-center border bg-white rounded p-2"
-                  >
-                    <ImageWithBasePath
-                      src="assets/img/icons/global-img.svg"
-                      className="avatar avatar-md img-fluid rounded"
-                      alt="Profile"
-                    />
-                    <span className="text-dark ms-2 fw-normal">
-                      Global International
-                    </span>
-                  </Link>
-                  <div className="text-center">Branch 001</div>
-                </li>
-              </ul>
+<ul>
+  <li className="mb-4">
+    <Link
+      to="#"
+      className="d-flex align-items-center border bg-white rounded p-3 shadow-sm"
+      style={{ textDecoration: "none" }}
+    >
+      <ImageWithBasePath
+        src="assets/img/icons/global-img.svg"
+        className="avatar avatar-md img-fluid rounded"
+        alt="Profile"
+      />
+      <div className="ms-3 d-flex flex-column">
+        <div className="fw-semibold text-dark" style={{ fontSize: "1rem" }}>
+          Global International
+        </div>
+        <div
+          className="mt-1 px-2 py-1"
+          style={{
+            fontSize: "0.75rem",
+            color: "#666",
+            backgroundColor: "#F2F2F2",
+            borderRadius: "6px",
+            width: "fit-content",
+            marginTop: "4px",
+          }}
+        >
+          Branch: {branchName}
+        </div>
+      </div>
+    </Link>
+  </li>
+</ul>
+
+
 
               <ul>
 {SidebarData?.map((mainLabel, index) => {
