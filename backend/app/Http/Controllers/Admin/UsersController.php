@@ -42,9 +42,9 @@ class UsersController extends WebController
         $userType = $request->get('user_type');
 
         if(Auth::user()->type=='superadmin'){
-            $main = User::whereIn('type', ['superadmin','admin','user','subadmin','customer', 'supplier']);
+            $main = User::whereIn('type', ['superadmin','admin','user','branch_admin','customer', 'supplier']);
         }else{
-            $main = User::whereIn('type', ['user','subadmin','customer', 'supplier']);
+            $main = User::whereIn('type', ['user','branch_admin','customer', 'supplier']);
         }
        
 

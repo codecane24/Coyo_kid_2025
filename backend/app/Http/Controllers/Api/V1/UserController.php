@@ -65,18 +65,32 @@ class UserController extends ResponseController
                 return $this->finalizeLogin($request, $user, null);
             }
 
-          
-            // Other users: check branches
+            
+            $user = User::where($findField, $loginInput)
+                ->with('permissions:name')
+                ->first();
+
+            if (!$user) {
+                return response()->json(['status' => 'error', 'message' => 'User not found'], 200);
+            }
+
             $branches = UserBranch::where('user_id', $user->id)
                 ->with('branch:id,name,code')
                 ->get();
 
-            // If no branches found, return error
-            if ($branches->isEmpty()) {
+            // Debug: Inspect branches
+            \Log::info('Branches for user ' . $branches->count());
+
+            if ($branches->count() === 0) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No branches found for this user.',
-                ], 404);
+                    'data' => [
+                        'user_id' => $user->id,
+                        'username' => $request->username,
+                        'branches' => [],
+                    ]
+                ], 200);
             }
 
             // If multiple branches found, return them for selection

@@ -15,41 +15,42 @@ class PermissionApiController extends Controller
     {
       
         try {
-           $search = $request->get('search', '');
-            $withChildren = $request->get('with_children', true);
+                $search = $request->get('search', '');
+                $withChildren = $request->get('with_children', true);
 
-            // Base query with eager loading
-            $query = ModuleGroup::with(['modules' => function($q) use ($withChildren) {
-                $q->whereNull('parent_id');
-                if ($withChildren) {
-                    $q->with('children');
-                }
-            }])->whereHas('modules');
+                // Base query with eager loading
+                $query = ModuleGroup::with(['modules' => function($q) use ($withChildren) {
+                    $q->whereNull('parent_id');
+                    if ($withChildren) {
+                        $q->with('children');
+                    }
+                }])->whereHas('modules');
 
-            // Apply search filter if provided
-            if (!empty($search)) {
-                $query->whereHas('modules', function ($q) use ($search) {
-                    $q->whereNull('parent_id')
-                    ->where(function($subQuery) use ($search) {
-                        $subQuery->where('name', 'LIKE', "%{$search}%")
-                                ->orWhereHas('children', function ($q) use ($search) {
-                                    $q->where('name', 'LIKE', "%{$search}%");
-                                });
+                // Apply search filter if provided
+                if (!empty($search))
+                {
+                    $query->whereHas('modules', function ($q) use ($search) {
+                        $q->whereNull('parent_id')
+                        ->where(function($subQuery) use ($search) {
+                            $subQuery->where('name', 'LIKE', "%{$search}%")
+                                    ->orWhereHas('children', function ($q) use ($search) {
+                                        $q->where('name', 'LIKE', "%{$search}%");
+                                    });
+                        });
                     });
-                });
+                }   
+
+                $permissions = $query->get();
+
+                return response()->json($permissions);
+
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Error fetching permissions',
+                    'error' => $e->getMessage()
+                ], 500);
             }
-
-            $permissions = $query->get();
-
-            return response()->json($permissions);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Error fetching permissions',
-                'error' => $e->getMessage()
-            ], 500);
-        }
     }
 
     public function store(Request $request)

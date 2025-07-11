@@ -33,8 +33,8 @@ class UserApiController extends Controller
         $userType = $request->query('user_type');
         $AurhUrerType = Auth::user()->type ?? 'admin';
         $query = $AurhUrerType == 'superadmin'
-            ? User::whereIn('type', ['superadmin', 'admin', 'user', 'subadmin', 'teacher', 'student', 'parent'])
-            : User::whereIn('type', ['user','admin','subadmin', 'teacher', 'student','parent']);
+            ? User::whereIn('type', ['superadmin', 'admin', 'user', 'branch_admin', 'teacher', 'student', 'parent'])
+            : User::whereIn('type', ['user','admin','branch_admin', 'teacher', 'student','parent']);
 
         if (!empty($userType) && $userType !== 'all') {
             $query->where('type', $userType);
@@ -116,7 +116,7 @@ class UserApiController extends Controller
             'login_end_time' => 'nullable|date_format:H:i',
         ]);
 
-        
+
         if ($request->hasFile('profile_image')) {
             $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
         }

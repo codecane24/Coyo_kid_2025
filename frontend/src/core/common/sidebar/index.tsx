@@ -27,7 +27,7 @@ useEffect(() => {
   }
 }, [user]);
 const isSuperAdmin = user?.user_id === 1; 
-
+const branchName = useAuth().user?.branch_name;
     const { hasSidebarAccess } = usePermission()
     console.log("User ID:", user?.user_id);
 
@@ -151,10 +151,10 @@ const handleLogout = () => {
           <div className="sidebar-inner slimscroll">
             <div id="sidebar-menu" className="sidebar-menu">
               <ul>
-                <li>
+                <li className="mb-4">
                   <Link
                     to="#"
-                    className="d-flex align-items-center border bg-white rounded p-2 mb-4"
+                    className="d-flex align-items-center border bg-white rounded p-2"
                   >
                     <ImageWithBasePath
                       src="assets/img/icons/global-img.svg"
@@ -165,6 +165,7 @@ const handleLogout = () => {
                       Global International
                     </span>
                   </Link>
+                  <div className="text-center">Branch 001</div>
                 </li>
               </ul>
 
