@@ -154,7 +154,7 @@ const handleLogout = () => {
   <li className="mb-4">
     <Link
       to="#"
-      className="d-flex align-items-center border bg-white rounded p-3 shadow-sm"
+      className="d-flex align-items-center border bg-white rounded p-2 shadow-sm"
       style={{ textDecoration: "none" }}
     >
       <ImageWithBasePath
