@@ -19,7 +19,7 @@ console.log("ProtectedRoute token:", token);
   const role = user.role || user.type || "";
 
   if (allowedRoles && !allowedRoles.includes(role)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to="/unauthorised" replace />;
   }
 
   return <>{children}</>;

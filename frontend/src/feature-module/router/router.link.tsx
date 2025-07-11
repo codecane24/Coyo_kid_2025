@@ -253,6 +253,7 @@ import AcadmicFees from "../management/feescollection/acadmicFees";
 import CollectFees from "../management/feescollection/collectFees";
 import AddUser from "../userManagement/AddUser";
 import LoaderTwo from "../../core/common/loader/loaderTwo";
+import Unauthorized from "../common/Unauthorized";
 
 
 const routes = all_routes;
@@ -269,6 +270,12 @@ export const authRoutes = [
     element: <AdminDashboard />,
     route: Route,
   },
+    {
+    path: routes.unauthorised,
+    element: <Unauthorized/>,
+    route: Route,
+  },
+ 
    {
     path: routes.loadertwo,
     element: <LoaderTwo/>,

@@ -39,7 +39,7 @@ const handleLogout = () => {
   logout();
   navigate("/");
 };
-const userid = useAuth().user?.id;
+
 
   const [subOpen, setSubopen] = useState<any>("");
   const [subsidebar, setSubsidebar] = useState("");
@@ -169,150 +169,155 @@ const userid = useAuth().user?.id;
               </ul>
 
               <ul>
-                
-              { SidebarData?.map((mainLabel, index) => {
-    // Filter the top-level submenuItems with access
-const filteredSubmenuItems = Array.isArray(mainLabel?.submenuItems)
-  ? (mainLabel.submenuItems as any[]).filter((title: any) => {
-      if (isSuperAdmin) return true; // Allow everything for super admin
+{SidebarData?.map((mainLabel, index) => {
+  const filteredSubmenuItems = Array.isArray(mainLabel?.submenuItems)
+    ? (mainLabel.submenuItems as any[]).map((title: any) => {
+        if (isSuperAdmin) return title;
 
-if (!isSuperAdmin && title?.permissionKey && !hasSidebarAccess(title.permissionKey)) return null;
+        const hasPermission = title?.permissionKey
+          ? hasSidebarAccess(title.permissionKey)
+          : true;
 
+        const filteredSubItems = Array.isArray(title.submenuItems)
+          ? title.submenuItems.filter((link: any) =>
+              hasSidebarAccess(link?.permissionKey || link?.label)
+            )
+          : [];
 
-      const hasDirectLink = !!title.link;
-      const hasVisibleChildren =
-        Array.isArray(title.submenuItems) &&
-        title.submenuItems.some((link: any) =>
-          hasSidebarAccess(link?.permissionKey || link?.label)
-        );
+        const hasDirectLink = !!title.link;
 
-      return hasDirectLink || hasVisibleChildren;
+        if (!hasPermission) return null;
+        if (!hasDirectLink && filteredSubItems.length === 0) return null;
+
+        return {
+          ...title,
+          submenuItems: filteredSubItems,
+        };
+      }).filter(Boolean)
+    : [];
+
+  // ✅ ACTUAL RENDERED LI COMPONENTS – pre-render
+  const renderedChildren = filteredSubmenuItems
+    .map((title: any) => {
+      const hasPermission =
+        isSuperAdmin || hasSidebarAccess(title.permissionKey || title.label);
+
+      if (!hasPermission) return null;
+
+      const filteredSubItems = title.submenuItems?.filter((link: any) =>
+        isSuperAdmin || hasSidebarAccess(link?.permissionKey || link?.label)
+      );
+
+      const hasVisible = !!title.link || (filteredSubItems && filteredSubItems.length > 0);
+      if (!hasVisible) return null;
+
+      // Optional: compute link_array if needed
+      const link_array: any[] = [];
+      filteredSubItems?.forEach((link: any) => {
+        link_array.push(link?.link);
+        if (link?.submenu && Array.isArray(link.submenuItems)) {
+          link.submenuItems
+            .filter((i: any) => isSuperAdmin || hasSidebarAccess(i.permissionKey || i.label))
+            .forEach((item: any) => link_array.push(item?.link));
+        }
+      });
+      title.links = link_array;
+
+      // ✅ Return <li> here — this is the rendered child
+      return (
+        <li className="submenu" key={title.label}>
+          <Link
+            to={title?.submenu ? "#" : title?.link}
+            onClick={() =>
+              handleClick(title?.label, title?.themeSetting, getLayoutClass(title?.label))
+            }
+            className={`${
+              subOpen === title?.label ? "subdrop" : ""
+            } ${title?.links?.includes(Location.pathname) ? "active" : ""}`}
+          >
+            <i className={title.icon}></i>
+            <span>{title?.label}</span>
+            {title?.version && (
+              <span className="badge badge-primary badge-xs text-white fs-10 ms-auto">
+                {title.version}
+              </span>
+            )}
+            {title?.submenu && <span className="menu-arrow" />}
+          </Link>
+
+          {title?.submenu !== false &&
+            subOpen === title?.label &&
+            filteredSubItems &&
+            filteredSubItems.length > 0 && (
+              <ul style={{ display: "block" }}>
+                {filteredSubItems.map((item: any) => {
+                  const filteredNested = item?.submenuItems?.filter((i: any) =>
+                    isSuperAdmin || hasSidebarAccess(i.permissionKey || i.label)
+                  );
+
+                  if (!item.link && (!filteredNested || filteredNested.length === 0))
+                    return null;
+
+                  return (
+                    <li
+                      className={item?.submenuItems ? "submenu submenu-two" : ""}
+                      key={item.label}
+                    >
+                      <Link
+                        to={item?.link}
+                        className={`${
+                          item?.link === Location.pathname ? "active" : ""
+                        } ${subsidebar === item?.label ? "subdrop" : ""}`}
+                        onClick={() => toggleSubsidebar(item?.label)}
+                      >
+                        {item?.label}
+                        {item?.submenu && <span className="menu-arrow" />}
+                      </Link>
+
+                      {item?.submenuItems &&
+                        subsidebar === item?.label &&
+                        filteredNested &&
+                        filteredNested.length > 0 && (
+                          <ul style={{ display: "block" }}>
+                            {filteredNested.map((i: any) => (
+                              <li key={i.label}>
+                                <Link
+                                  to={i?.link}
+                                  className={`${
+                                    i?.link === Location.pathname ? "active" : ""
+                                  }`}
+                                >
+                                  {i.label}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+        </li>
+      );
     })
-  : [];
+    .filter(Boolean); // 🔥 This ensures only valid <li>s remain
 
+  // ✅ Only show the parent if it has children
+  if (renderedChildren.length === 0) return null;
 
-if (filteredSubmenuItems.length === 0) return null;
+  // ✅ Safe to render
+  return (
+    <li key={index}>
+      <h6 className="submenu-hdr">
+        <span>{mainLabel?.label}</span>
+      </h6>
+      <ul>{renderedChildren}</ul>
+    </li>
+  );
+})}
 
-
-    return (
-      <li key={index}>
-        <h6 className="submenu-hdr">
-          <span>{mainLabel?.label}</span>
-        </h6>
-        <ul>
-          {filteredSubmenuItems.map((title: any) => {
-    if (!isSuperAdmin && title?.permissionKey && !hasSidebarAccess(title.permissionKey)) return null;
-
-
-            // Gather all allowed links
-            let link_array: any = [];
-          const filteredSubItems = title.submenuItems?.filter((link: any) =>
-  isSuperAdmin || hasSidebarAccess(link?.permissionKey || link?.label)
-);
-
-
-            filteredSubItems?.forEach((link: any) => {
-              link_array.push(link?.link);
-              if (link?.submenu && Array.isArray(link.submenuItems)) {
-                link.submenuItems
-                  .filter((i: any) => isSuperAdmin || hasSidebarAccess(i.permissionKey || i.label))
-                  .forEach((item: any) => link_array.push(item?.link));
-              }
-            });
-
-            // Skip if no children and no direct link
-            if (!title.link && (!filteredSubItems || filteredSubItems.length === 0)) return null;
-
-            title.links = link_array;
-
-            return (
-              <li className="submenu" key={title.label}>
-                <Link
-                  to={title?.submenu ? "#" : title?.link}
-                  onClick={() =>
-                    handleClick(
-                      title?.label,
-                      title?.themeSetting,
-                      getLayoutClass(title?.label)
-                    )
-                  }
-                  className={`${
-                    subOpen === title?.label ? "subdrop" : ""
-                  } ${
-                    title?.links?.includes(Location.pathname) ? "active" : ""
-                  }`}
-                >
-                  <i className={title.icon}></i>
-                  <span>{title?.label}</span>
-                  {title?.version && (
-                    <span className="badge badge-primary badge-xs text-white fs-10 ms-auto">
-                      {title.version}
-                    </span>
-                  )}
-                  {title?.submenu && <span className="menu-arrow" />}
-                </Link>
-
-                {title?.submenu !== false &&
-                  subOpen === title?.label &&
-                  filteredSubItems &&
-                  filteredSubItems.length > 0 && (
-                    <ul style={{ display: "block" }}>
-                      {filteredSubItems.map((item: any) => {
-                        const filteredNested = item?.submenuItems?.filter((i: any) =>
-                          isSuperAdmin || hasSidebarAccess(i.permissionKey || i.label)
-                        );
-
-                        if (!item.link && (!filteredNested || filteredNested.length === 0))
-                          return null;
-
-                        return (
-                          <li
-                            className={item?.submenuItems ? "submenu submenu-two" : ""}
-                            key={item.label}
-                          >
-                            <Link
-                              to={item?.link}
-                              className={`${
-                                item?.link === Location.pathname ? "active" : ""
-                              } ${subsidebar === item?.label ? "subdrop" : ""}`}
-                              onClick={() => toggleSubsidebar(item?.label)}
-                            >
-                              {item?.label}
-                              {item?.submenu && <span className="menu-arrow" />}
-                            </Link>
-
-                            {item?.submenuItems &&
-                              subsidebar === item?.label &&
-                              filteredNested &&
-                              filteredNested.length > 0 && (
-                                <ul style={{ display: "block" }}>
-                                  {filteredNested.map((i: any) => (
-                                    <li key={i.label}>
-                                      <Link
-                                        to={i?.link}
-                                        className={`${
-                                          i?.link === Location.pathname ? "active" : ""
-                                        }`}
-                                      >
-                                        {i.label}
-                                      </Link>
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-              </li>
-            );
-          })}
-        </ul>
-      </li>
-    );
-  })}
-                <ul className="mt-4 px-3">
+<ul className="mt-4 px-3">
 
 
 

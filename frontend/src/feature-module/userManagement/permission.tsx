@@ -12,18 +12,28 @@ import axiosInstance from "../../utils/axiosInstance";
 import { group } from "console";
 
 const DEFAULT_PERMISSIONS = ["Create", "Update", "Delete", "View"];
+type PermissionItem = {
+  id?: number;
+  name: string;
+};
+
 type Permission = {
   id: number;
   name: string;
   children?: {
     id: number;
     name: string;
+    children?: {
+      id: number;
+      name: string;
+    }[];
   }[];
 };
 
-type PermissionItem = { id?: number; name: string };
+
 const Permission = () => {
-  
+  const [individualPermissionName, setIndividualPermissionName] = useState<string>("");
+
    const fetchPermissions = async () => {
   const res = await axiosInstance.get("/permission");
 
@@ -55,6 +65,31 @@ const [newPermissionList, setNewPermissionList] = useState<PermissionItem[]>([])
   const [editNewPermission, setEditNewPermission] = useState<string>("");
 
   // Add new custom permission
+const handleAddPermissionGroup = async () => {
+  if (!newGroupName.trim()) return alert("Group name is required");
+  if (newPermissionList.length === 0) return alert("Please add permissions");
+
+  const payload = {
+    name: newGroupName.trim(),
+    permissions: newPermissionList.map((p) => ({
+      id: p.id, // might be undefined
+      name: p.name.trim(),
+    })),
+  };
+
+  console.log("Creating permission group with payload:", JSON.stringify(payload, null, 2));
+
+  try {
+    await createPermmisions(payload);
+    alert("Permission group added");
+    document.getElementById("add_role_close_btn")?.click();
+    // fetchPermissions(); // optional refresh
+  } catch (err: any) {
+    console.error("Failed to create group:", err.response?.data || err.message);
+    alert("Failed to add group");
+  }
+};
+// 🔧 Add this in your component (e.g. above return or JSX)
 const handleAddPermissionToList = () => {
   if (newPermissionInput.trim()) {
     setNewPermissionList([
@@ -67,24 +102,7 @@ const handleAddPermissionToList = () => {
 
 
 
-  // const handleAddPermissionGroup = () => {
-  //   const trimmedGroupName = newGroupName.trim();
-  //   if (!trimmedGroupName) return;
 
-  //   const finalPermissions = Array.from(
-  //     new Set([...DEFAULT_PERMISSIONS, ...newPermissionList])
-  //   );
-
-  //   setPermissionGroups([
-  //     ...permissionGroups,
-  //     { name: trimmedGroupName, permissions: finalPermissions },
-  //   ]);
-
-  //   setNewGroupName("");
-  //   setNewPermissionList([]);
-  //   setNewPermissionInput("");
-  //   setShowForm(false);
-  // };
 
   const handleDeleteGroup = (index: number) => {
     const updated = [...permissionGroups];
@@ -125,29 +143,6 @@ const handleAddPermissionToList = () => {
   const handleRemoveEditPermission = (perm: string) => {
     setEditPermissions(editPermissions.filter((p) => p !== perm));
   }
-const handleAddPermissionGroup = async () => {
-  if (!newGroupName.trim()) return alert("Group name is required");
-  if (newPermissionList.length === 0) return alert("Please add permissions");
-
-  // ✅ Define the payload and log it
-  const payload = {
-    
-    name: newGroupName.trim(),
-    permissions: newPermissionList, // array of { name: string, id?: number }
-  };
-
-  console.log("Creating permission group with payload:", JSON.stringify(payload, null, 2));
-console.log(payload)
-  try {
-    await createPermmisions(payload);
-    alert("Permission group added");
-    document.getElementById("add_role_close_btn")?.click(); // close modal
-    // fetchPermissions(); // reload data
-  } catch (err: any) {
-    console.error("Failed to create group:", err.response?.data || err.message);
-    alert("Failed to add group");
-  }
-};
 
 
 const handleUpdatePermissionGroup = async () => {
@@ -156,11 +151,12 @@ const handleUpdatePermissionGroup = async () => {
   if (newPermissionList.length === 0) return alert("Please add permissions");
 
   const payload = {
-  
-    name: newGroupName,
-    permissions: newPermissionList, // mix of old (with id) + new (without id)
+    name: newGroupName.trim(),
+    permissions: newPermissionList.map((p) => ({
+      id: p.id, // include only if exists
+      name: p.name.trim(),
+    })),
   };
-console.log(payload);
 
   console.log("PUT to /permission/" + editGroupId);
   console.log("Payload:", JSON.stringify(payload, null, 2));
@@ -179,21 +175,26 @@ console.log(payload);
 
 
 
+useEffect(() => {
+  const fetchPermissions = async () => {
+    try {
+      const data = await getPermissionsList();
 
-  useEffect(() => {
-    const fetchPermissions = async () => {
-      try {
-        const data = await getPermissionsList();
-        setPermissions(data);
-         console.log(data)
-      } catch (error) {
-        console.error("Error fetching permissions", error);
-      }
-     
-    };
+      const transformed = data.map((group: any) => ({
+        id: group.id,
+        name: group.name,
+        children: group.modules?.[0]?.children || [], // safe access
+      }));
 
-    fetchPermissions();
-  }, []);
+      setPermissions(transformed);
+      console.log("Transformed Permissions:", transformed);
+    } catch (error) {
+      console.error("Error fetching permissions", error);
+    }
+  };
+
+  fetchPermissions();
+}, []);
 
   return (
     <div>
@@ -382,121 +383,61 @@ console.log(payload);
               </div>
 
                <div>
-  {permissions.map((group, groupIndex) => (
-  <div key={groupIndex} className="mb-5 border-bottom pb-3">
+{permissions.map((group, groupIndex) => (
+  <div key={group.id} className="mb-5 border-bottom pb-3">
     <div className="d-flex justify-content-between align-items-center mb-2">
       <h5 className="fw-semibold mb-0">{group.name}</h5>
       <div>
-<button
-  className="btn btn-sm btn-outline-secondary"
-  data-bs-toggle="modal"
-  data-bs-target="#add_role"
-onClick={() => {
-  setFormMode("edit");
-  setEditGroupId(group.id);
-  setNewGroupName(group.name);
-  setNewPermissionInput("");
-
-  // Don't map just names — keep full objects
-  setNewPermissionList(group.children || []);
-}}
->
-  ✏️ Edit
-</button>
-
-
+        <button
+          className="btn btn-sm btn-outline-secondary"
+          data-bs-toggle="modal"
+          data-bs-target="#add_role"
+          onClick={() => {
+            setFormMode("edit");
+            setEditGroupId(group.id);
+            setNewGroupName(group.name);
+            setNewPermissionInput("");
+            setNewPermissionList(group.children || []);
+          }}
+        >
+          ✏️ Edit
+        </button>
       </div>
     </div>
 
-    {/* Show edit UI if it's selected */}
-    {editingGroupIndex === groupIndex + permissionGroups.length ? (
-      <>
-        <div className="mb-3">
-          <label className="form-label">Group Name</label>
-          <input
-            type="text"
-            className="form-control"
-            value={editGroupName}
-            onChange={(e) => setEditGroupName(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-2">
-          <label className="form-label">Edit Permissions</label>
+    {/* Nested permissions under group */}
+    {group.children && group.children.length > 0 ? (
+      group.children.map((permissionCategory, permIndex) => (
+        <div key={permissionCategory.id} className="mb-3">
+          <h6 className="fw-semibold">{permissionCategory.name}</h6>
           <div className="row">
-            {editPermissions.map((perm, idx) => (
-              <div className="col-md-3 col-sm-6 mb-2" key={idx}>
-                <div className="d-flex align-items-center">
-                  <input
-                    type="checkbox"
-                    className="form-check-input me-2"
-                    checked
-                    readOnly
-                  />
-                  <span>{perm}</span>
-                  <button
-                    className="btn btn-sm btn-danger ms-2"
-                    onClick={() => handleRemoveEditPermission(perm)}
-                  >
-                    ✖
-                  </button>
+            {permissionCategory.children &&
+              permissionCategory.children.map((perm) => (
+                <div className="col-md-3 col-sm-6 mb-2" key={perm.id}>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id={`perm-${perm.id}`}
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor={`perm-${perm.id}`}
+                    >
+                      {perm.name}
+                    </label>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
-
-        <div className="input-group mb-3">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="New permission"
-            value={editNewPermission}
-            onChange={(e) => setEditNewPermission(e.target.value)}
-          />
-          <button className="btn btn-outline-primary" onClick={handleAddEditPermission}>
-            + Add
-          </button>
-        </div>
-
-        <div className="d-flex gap-2">
-          <button className="btn btn-primary" onClick={handleSaveEditedGroup}>
-            Save
-          </button>
-          <button
-            className="btn btn-secondary"
-            onClick={() => setEditingGroupIndex(null)}
-          >
-            Cancel
-          </button>
-        </div>
-      </>
+      ))
     ) : (
-      <div className="row">
-        {group.children &&
-          group.children
-            .filter((perm) => !perm.name.toLowerCase().includes("delete"))
-            .map((perm, permIndex) => (
-              <div className="col-md-3 col-sm-6 mb-2" key={perm.id}>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id={`group${groupIndex}-perm${permIndex}`}
-                  />
-                  <label
-                    className="form-check-label"
-                    htmlFor={`group${groupIndex}-perm${permIndex}`}
-                  >
-                    {perm.name}
-                  </label>
-                </div>
-              </div>
-            ))}
-      </div>
+      <p className="text-muted">No permission categories found.</p>
     )}
   </div>
 ))}
+
 
     </div>
             </>
@@ -514,7 +455,7 @@ onClick={() => {
        
           </div>
         </div>
-        
+            {/* Add Group Form */}
         <div className="modal fade" id="add_role">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
@@ -530,7 +471,7 @@ onClick={() => {
                   <i className="ti ti-x" />
                 </button>
               </div>
-           {/* Add Group Form */}
+       
     
         <div className="mt-4 border rounded p-3 bg-light">
 
@@ -545,59 +486,74 @@ onClick={() => {
               onChange={(e) => setNewGroupName(e.target.value)}
             />
           </div>
-          <div className="mb-3">
-            <label className="form-label">Permission Name</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="e.g. Product Management"
-              value={newGroupName}
-              onChange={(e) => setNewGroupName(e.target.value)}
-            />
-          </div>
+ <div className="mb-3">
+  <label className="form-label">Permission Name</label>
+  <input
+    type="text"
+    className="form-control"
+    placeholder="e.g. View Orders"
+    value={individualPermissionName}
+    onChange={(e) => setIndividualPermissionName(e.target.value)}
+  />
+</div>
 
-          <div className="mb-3">
-            <label className="form-label">Add  Permissions</label>
-            <div className="input-group mb-2">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="e.g. Approve Product"
-                value={newPermissionInput}
-                onChange={(e) => setNewPermissionInput(e.target.value)}
-              />
-              <button
-                className="btn btn-outline-primary"
-                type="button"
-                onClick={handleAddPermissionToList}
-              >
-                + Add to List
-              </button>
-            </div>
 
-         {newPermissionList.length > 0 && (
-  <ul className="list-group">
-    {newPermissionList.map((perm, idx) => (
-      <li
-        className="list-group-item py-1"
-        key={perm.id ?? idx}
-      >
-        <input
-          type="text"
-          className="form-control"
-          value={perm.name}
-          onChange={(e) => {
-            const updatedList = [...newPermissionList];
-            updatedList[idx].name = e.target.value;
-            setNewPermissionList(updatedList);
-          }}
-        />
-      </li>
-    ))}
-  </ul>
-)}
+<div className="mb-3">
+  <label className="form-label">Add Permissions</label>
+  <div className="input-group mb-2">
+    <input
+      type="text"
+      className="form-control"
+      placeholder="e.g. Approve Product"
+      value={newPermissionInput}
+      onChange={(e) => setNewPermissionInput(e.target.value)}
+    />
 
-          </div>
+    <button
+      className="btn btn-outline-primary"
+      type="button"
+      onClick={handleAddPermissionToList}
+    >
+      + Add to List
+    </button>
+  </div>
+
+  {newPermissionList.length > 0 && (
+    <ul className="list-group">
+      {newPermissionList.map((perm, idx) => (
+        <li
+          key={perm.id ?? idx}
+          className="list-group-item py-1 d-flex gap-2 align-items-center"
+        >
+          <input
+            type="text"
+            className="form-control"
+            value={perm.name}
+            onChange={(e) => {
+              const updatedList = [...newPermissionList];
+              updatedList[idx] = {
+                ...updatedList[idx],
+                name: e.target.value,
+              };
+              setNewPermissionList(updatedList);
+            }}
+          />
+
+          <button
+            className="btn btn-sm btn-outline-danger"
+            type="button"
+            onClick={() => {
+              const filtered = newPermissionList.filter((_, i) => i !== idx);
+              setNewPermissionList(filtered);
+            }}
+          >
+            ❌
+          </button>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
 
           <div className="d-flex gap-2">
 <button

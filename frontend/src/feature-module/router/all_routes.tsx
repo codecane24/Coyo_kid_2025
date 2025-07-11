@@ -1,5 +1,6 @@
 export const all_routes = {
   // dashboard routes
+  unauthorised:"/unauthorised",
   adminDashboard: "index",
   parentDashboard: "/parent-dashboard",
   studentDashboard: "/student-dashboard",
