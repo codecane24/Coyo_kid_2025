@@ -27,7 +27,7 @@ class ClassController extends Controller
             'company_id',
             'branch_id'
         )->with('classmaster')
-        ->withCount('students')
+       // ->withCount('students')
         ->get()
         ->map(function ($class) {
         $class->name = empty($class->name) ? optional($class->classmaster)->name : $class->name;
