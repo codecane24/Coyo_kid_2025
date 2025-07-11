@@ -9,6 +9,7 @@ import TooltipOption from "../../core/common/tooltipOption";
 import { getPermissionsList } from "../../services/Permissions";
 import { createPermmisions } from "../../services/Permissions";
 import axiosInstance from "../../utils/axiosInstance";
+import { group } from "console";
 
 const DEFAULT_PERMISSIONS = ["Create", "Update", "Delete", "View"];
 type Permission = {
@@ -25,7 +26,9 @@ const Permission = () => {
   
    const fetchPermissions = async () => {
   const res = await axiosInstance.get("/permission");
+
   setPermissions(res.data);
+  console.log(res.data)
 };
 
     const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -128,6 +131,7 @@ const handleAddPermissionGroup = async () => {
 
   // ✅ Define the payload and log it
   const payload = {
+    
     name: newGroupName.trim(),
     permissions: newPermissionList, // array of { name: string, id?: number }
   };
@@ -152,6 +156,7 @@ const handleUpdatePermissionGroup = async () => {
   if (newPermissionList.length === 0) return alert("Please add permissions");
 
   const payload = {
+  
     name: newGroupName,
     permissions: newPermissionList, // mix of old (with id) + new (without id)
   };
@@ -180,9 +185,11 @@ console.log(payload);
       try {
         const data = await getPermissionsList();
         setPermissions(data);
+         console.log(data)
       } catch (error) {
         console.error("Error fetching permissions", error);
       }
+     
     };
 
     fetchPermissions();
@@ -526,11 +533,18 @@ onClick={() => {
            {/* Add Group Form */}
     
         <div className="mt-4 border rounded p-3 bg-light">
-       {/* <h4 className="modal-title">
-  {formMode === "add" ? "Add New Permission" : "Edit Permission Group"}
-</h4> */}
 
 
+   <div className="mb-3">
+            <label className="form-label">Permission Group Name</label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="e.g. Product Management"
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+            />
+          </div>
           <div className="mb-3">
             <label className="form-label">Permission Name</label>
             <input

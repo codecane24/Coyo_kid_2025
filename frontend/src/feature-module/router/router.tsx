@@ -15,7 +15,7 @@ const ALLRoutes: React.FC = () => {
       <Route path="/" element={ <PublicRoute>
             <Login />
           </PublicRoute>} />
-      <Route path="/unauthorized" element={<Unauthorized/>} />
+      <Route path="/" element={<Unauthorized/>} />
 
       {/* Public Layout Routes */}
       <Route element={<Feature />}>
@@ -27,7 +27,7 @@ const ALLRoutes: React.FC = () => {
       {/* Protected + Role-Based Routes */}
      <Route
   element={
-    <ProtectedRoute allowedRoles={["admin", "teacher", "student"]}>
+    <ProtectedRoute allowedRoles={[ "superadmin" ,"admin", "teacher", "student"]}>
       <Feature />
     </ProtectedRoute>
   }

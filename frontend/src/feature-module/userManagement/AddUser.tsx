@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 // import { feeGroup, feesTypes, paymentType } from '../../../core/common/selectoption/selectoption'
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
@@ -29,7 +30,8 @@ import CommonSelect from "../../core/common/commonSelect";
 import { useLocation } from "react-router-dom";
 import { getClassesList } from "../../services/ClassData";
 import { getPermissionsList } from "../../services/Permissions";
-
+import { createUser } from "../../services/UserData";
+import { getRolelist } from "../../services/Roles";
 type ClassItem = {
   id: string;
   name: string;
@@ -45,8 +47,25 @@ type Permission = {
 const AddUser = () => {
   const routes = all_routes;
 const [permissionsList, setPermissionsList] = useState<Permission[]>([]);
+const [roles, setRoles] = useState([]);
+useEffect(() => {
+  const fetchRoles = async () => {
+    try {
+      const response = await getRolelist(); // assuming this returns { data: [...] }
+      if (response && response.data) {
+        const formattedRoles = response.data.map((role: any) => ({
+          label: role.name,  // adjust this based on API response
+          value: role.id,    // adjust this based on API response
+        }));
+        setRoles(formattedRoles);
+      }
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+    }
+  };
 
-
+  fetchRoles();
+}, []);
 
 
 const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
@@ -59,7 +78,9 @@ useEffect(() => {
     const res = await getPermissionsList();
     console.log("Fetched permissions:", res);
     setPermissionsList(res); // ← if response is directly the array
-  } catch (err) {
+  } 
+  
+  catch (err) {
     console.error("Error fetching permissions:", err);
     setPermissionsList([]); // fallback in error case
   }
@@ -67,8 +88,9 @@ useEffect(() => {
 
 
   fetchPermissions();
+  console.log(fetchPermissions)
 }, []);
-
+console.log(getPermissionsList)
 
     const handlePermissionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const { value, checked } = e.target;
@@ -241,14 +263,15 @@ useEffect(() => {
                       </div>
                  
                       <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Role</label>
-                          <CommonSelect
-                            className="select"
-                            options={cast}
-                            defaultValue={isEdit?cast[0]:undefined}
-                          />
-                        </div>
+                       <div className="mb-3">
+  <label className="form-label">Role</label>
+  <CommonSelect
+    className="select"
+    options={roles}
+    defaultValue={isEdit ? roles[0] : undefined}
+  />
+</div>
+
                       </div>
                       <div className="col-xxl col-xl-3 col-md-6">
                         <div className="mb-3">
