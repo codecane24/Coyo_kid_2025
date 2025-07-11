@@ -90,7 +90,7 @@ class UserController extends ResponseController
                         'username' => $request->username,
                         'branches' => [],
                     ]
-                ], 404);
+                ], 200);
             }
 
             // If multiple branches found, return them for selection
