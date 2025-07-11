@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\DeviceToken;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Api\ResponseController;
+use App\Http\Controllers\Api\VResponseController;
 use Illuminate\Validation\Rule;
 use App\User;
 use App\Models\UserBranch;  
