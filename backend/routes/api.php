@@ -32,6 +32,8 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     Route::get('classesmaster', 'MasterController@classmasterList'); // Get all class masters
     Route::get('section', 'MasterController@sectionList'); // Get all sections (A-Z)
     Route::get('module-group', 'MasterController@ModuleGroupList'); // Get all permission groups
+    Route::get('house', 'MasterController@HouseList'); // Get all houses
+    
     // ecnrypted ID API
     Route::get('encrypt/{id}', 'MasterController@encryptId'); // Encrypt provided ID
     Route::get('serialNo/{type}', 'MasterController@getSerialNo'); // Decrypt provided ID
