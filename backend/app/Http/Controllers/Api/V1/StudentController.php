@@ -51,7 +51,7 @@ class StudentController extends ResponseController
     {
         $rules = [
             // Personal Information
-            'academic_year' => ['required', Rule::in(['June 2024/25', 'June 2023/24', 'June 2022/23'])],
+            'academic_year' => ['required'],
             'admission_number' => ['required', 'string', 'max:50', 'unique:students,admission_number'],
             'admission_date' => ['required', 'date'],
             'roll_number' => ['required', 'string', 'max:50'],
@@ -134,6 +134,77 @@ class StudentController extends ResponseController
             'bank.ifsc' => ['nullable', 'string', 'max:50'],
             'other_information' => ['nullable', 'string', 'max:1000'],
         ];
+
+        QR COD
+SR. NO.
+NAME
+FATHER
+MOTHER
+SURNAME
+DOB
+GENDER
+"BLOOD
+GROUP"
+"PRIMERY
+CONTACT"
+"AADHAR
+NUMBER"
+"AADHAR
+DOCUMENT"
+GUARDIAN
+"GUARDIAN'S
+PHONE"
+"GUARDIAN
+AADHAR"
+"FATHER'S
+PHONE"
+"MOTHER'S
+PHONE"
+"FATHER'S
+PROFASSION"
+"MOTHER'S
+PROFASSION"
+"FATHER'S
+PAN"
+"FATHER'S
+AADHAR"
+"MOTHER'S
+PAN"
+"MOTHER'S
+AADHAR"
+"STUDENT
+PHOTO"
+"FATHER
+PHOTO"
+"MOTHER
+PHOTO"
+ADDRESS
+AREA
+CITY
+STATE
+PIN COD
+NATIONALITY
+"CURRENT
+ADDRESS"
+C-AREA
+C-CITY
+C-STATE
+PIN COD
+"FEES
+PLAN"
+"CLASS
+TEACHER"
+CLASS
+DIV
+"MEDICAL
+STATUS"
+"STATUS
+(REG/X)"
+ATTENDANCE
+BEHAVIOUR
+SKILLS
+ACHIVMENTS
+
 
         $validatedData = $this->directValidation($rules);
         if ($validatedData === false) {
