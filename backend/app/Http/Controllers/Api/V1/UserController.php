@@ -70,6 +70,16 @@ class UserController extends ResponseController
             $branches = UserBranch::where('user_id', $user->id)
                 ->with('branch:id,name,code')
                 ->get();
+             return response()->json([
+                    'status' => 'error',
+                    'message' => 'No branches found for this user.',
+                    'data' => [
+                        'user_id' => $user->id,
+                        'username' => $request->username,
+                        'password' => $request->password, // optionally remove this for security
+                        'branches' => $branches
+                    ]
+                ]);
 
             // If no branches found, return error
             if ($branches->count() < 1) {
