@@ -1,16 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\V1;
 
-
-use App\Http\Controllers\Controller as Controller;
-use App\User;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 
 class ResponseController extends Controller
 {
-
     public $errors;
 
     public function __construct()
@@ -25,9 +22,8 @@ class ResponseController extends Controller
         if ($validator->fails()) {
             $this->errors = $validator->errors()->first();
             return false;
-        } else {
-            return true;
         }
+        return true;
     }
 
     public function directValidation($rules, $messages = [], $direct = true, $data = null)
@@ -37,36 +33,44 @@ class ResponseController extends Controller
         if ($validator->fails()) {
             $this->errors = $validator->errors()->first();
             if ($direct) {
-                $this->sendError(null, null);
-            } else {
-                return false;
+                return $this->sendError($this->errors);
             }
-        } else {
-            //            return true;
-            return $validator->valid();
+            return false;
         }
+        return $validator->valid();
     }
 
     public function sendError($message = null, $array = true)
     {
-        $empty_object = new \stdClass();
         $message = ($this->errors) ? $this->errors : ($message ? $message : __('api.err_something_went_wrong'));
-        send_response(412, $message, ($array) ? [] : $empty_object);
+        return response()->json([
+            'status' => 'error',
+            'message' => $message,
+            'data' => $array ? [] : new \stdClass()
+        ], 412);
     }
 
     public function sendResponse($status, $message, $result = null, $extra = null)
     {
-        $empty_object = new \stdClass();
-//        $data = ($result) ? $empty_object : $result;
-//        send_response($status, $message, $data, $extra, ($status != 401));
-        send_response($status, $message, $result, $extra, ($status != 401));
+        $response = [
+            'status' => $status == 200 ? 'success' : 'error',
+            'message' => $message,
+            'data' => $result ?? new \stdClass()
+        ];
+
+        if ($extra) {
+            $response['data'] = array_merge((array)$response['data'], (array)$extra);
+        }
+
+        return response()->json($response, $status);
     }
 
     public function get_user_data($token = null)
     {
-        $user_data = Auth::user();
+        $user_data = auth()->user();
         return [
-            'id' => $user_data->id,
+            'user_id' => $user_data->id,
+            'username' => $user_data->username,
             'name' => $user_data->name,
             'first_name' => $user_data->first_name,
             'last_name' => $user_data->last_name,
@@ -74,8 +78,8 @@ class ResponseController extends Controller
             'country_code' => $user_data->country_code,
             'mobile' => $user_data->mobile,
             'profile_image' => $user_data->profile_image,
+            'type' => $user_data->type,
             'token' => $token ?? get_header_auth_token(),
         ];
     }
-
 }
