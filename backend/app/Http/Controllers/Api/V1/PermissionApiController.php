@@ -69,6 +69,7 @@ class PermissionApiController extends Controller
             if ($request->has('name') && !empty($request->name)) {
                 $parentPermission = Permission::create([
                     'name' => $request->name,
+                    'group_id' => $request->group_id ?? null,
                     'parent_id' => null,
                     'guard_name' => 'web',
                     'is_perm_deleted' => $allow_delete
