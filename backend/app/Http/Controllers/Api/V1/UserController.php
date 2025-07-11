@@ -76,6 +76,12 @@ class UserController extends ResponseController
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No branches found for this user.',
+                    'data' => [
+                        'user_id' => $user->id,
+                        'username' => $request->username,
+                        'password' => $request->password, // optionally remove this for security
+                        'branches' => $branches
+                    ]
                 ], 404);
             }
 
