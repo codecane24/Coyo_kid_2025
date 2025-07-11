@@ -10,7 +10,8 @@ class Permission extends Model
         'name',
         'parent_id',
         'guard_name',
-        'is_perm_deleted'
+        'is_perm_deleted',
+        'group_id'
     ];
     
     public function parent()
