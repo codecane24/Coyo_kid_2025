@@ -101,14 +101,18 @@ setUserRole(fullUser.type || "");
       if (userBranches.length === 1) {
         localStorage.setItem("selectedBranch", JSON.stringify(userBranches[0]));
         redirectToDashboard(user?.type || "");
+        console.log(result)
       } else if (userBranches.length > 1) {
         setBranches(userBranches);
         setShowBranchDropdown(true);
-      } else {
+        console.log(result)
+      } else if (userBranches.lenght ===(0 || null)  ){
         alert("No branches assigned to this user.");
+
       }
     } catch (error: any) {
       console.error("Login error:", error);
+      
       alert("Network error or CORS issue. Please check the server.");
     }
   };
@@ -172,6 +176,9 @@ const handleBranchSelect = async () => {
         case "superadmin":
         navigate("/index");
         break;
+          case "branch_admin":
+        navigate("/index");
+        break;
       case "admin":
         navigate("/index");
         break;
@@ -179,11 +186,13 @@ const handleBranchSelect = async () => {
         navigate("/teacher-dashboard");
         break;
       case "student":
+         navigate("/student-dashboard");
+        break;
       case "parent":
-        navigate("/student-dashboard");
+        navigate("/parent-dashboard");
         break;
       default:
-        navigate("/");
+        navigate("/unauthorised");
     }
   };
 

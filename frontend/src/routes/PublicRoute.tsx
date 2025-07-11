@@ -31,15 +31,18 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
 
     // ✅ Redirect other roles based on role
     switch (role) {
+            case "branch_admin":
+        return <Navigate to="/index" replace />;
       case "admin":
         return <Navigate to="/index" replace />;
       case "teacher":
         return <Navigate to="/teacher-dashboard" replace />;
       case "student":
-      case "parent":
         return <Navigate to="/student-dashboard" replace />;
+      case "parent":
+        return <Navigate to="/parent-dashboard" replace />;
       default:
-        return <Navigate to="/" replace />;
+        return <Navigate to="/unauthorised" replace />;
     }
   }
 
