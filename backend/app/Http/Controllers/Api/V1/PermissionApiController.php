@@ -77,7 +77,7 @@ class PermissionApiController extends Controller
                 if ($request->has('permissions')) {
                     foreach ($request->permissions as $action) {
                         Permission::create([
-                            'name' => "{$action['name']}",
+                            'name' => "{$action}",
                             'parent_id' => $parentPermission->id,
                             'guard_name' => 'web',
                             'is_perm_deleted' => $allow_delete
