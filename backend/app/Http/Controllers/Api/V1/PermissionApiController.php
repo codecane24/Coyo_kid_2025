@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Permission;
+use App\Models\ModuleGroup;
 
 class PermissionApiController extends Controller
 {
@@ -14,17 +15,28 @@ class PermissionApiController extends Controller
     {
       
         try {
-            $search = $request->get('search', '');
-            $withChildren = $request->get('with_children', false);
+           $search = $request->get('search', '');
+            $withChildren = $request->get('with_children', true);
 
-            $query = Permission::with('children')->whereNull('parent_id')
-            ->orderBy('name');
+            // Base query with eager loading
+            $query = ModuleGroup::with(['modules' => function($q) use ($withChildren) {
+                $q->whereNull('parent_id');
+                if ($withChildren) {
+                    $q->with('children');
+                }
+            }])->whereHas('modules');
 
+            // Apply search filter if provided
             if (!empty($search)) {
-                $query->where('name', 'LIKE', "%{$search}%")
-                    ->orWhereHas('children', function ($q) use ($search) {
-                        $q->where('name', 'LIKE', "%{$search}%");
+                $query->whereHas('modules', function ($q) use ($search) {
+                    $q->whereNull('parent_id')
+                    ->where(function($subQuery) use ($search) {
+                        $subQuery->where('name', 'LIKE', "%{$search}%")
+                                ->orWhereHas('children', function ($q) use ($search) {
+                                    $q->where('name', 'LIKE', "%{$search}%");
+                                });
                     });
+                });
             }
 
             $permissions = $query->get();

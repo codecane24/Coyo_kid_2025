@@ -39,7 +39,7 @@ const handleLogout = () => {
   logout();
   navigate("/");
 };
-
+const userid = useAuth().user?.id;
 
   const [subOpen, setSubopen] = useState<any>("");
   const [subsidebar, setSubsidebar] = useState("");

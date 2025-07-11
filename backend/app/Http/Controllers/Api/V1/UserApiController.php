@@ -89,7 +89,7 @@ class UserApiController extends Controller
     public function store(Request $request)
     {
         if (!$this->hasPermission('user_create')) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        //    return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
         $companySettings = Company::first();
@@ -116,6 +116,7 @@ class UserApiController extends Controller
             'login_end_time' => 'nullable|date_format:H:i',
         ]);
 
+        
         if ($request->hasFile('profile_image')) {
             $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
         }
