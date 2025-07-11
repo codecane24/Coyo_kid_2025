@@ -71,7 +71,7 @@ class UserController extends ResponseController
                 ->first();
 
             if (!$user) {
-                return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
+                return response()->json(['status' => 'error', 'message' => 'User not found'], 200);
             }
 
             $branches = UserBranch::where('user_id', $user->id)
