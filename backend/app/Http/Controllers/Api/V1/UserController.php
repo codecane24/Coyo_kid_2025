@@ -79,7 +79,7 @@ class UserController extends ResponseController
                 ->get();
 
             // Debug: Inspect branches
-            \Log::info('Branches for user ' . $user->id, $branches->count());
+            \Log::info($branches->count());
 
             if ($branches->isEmpty()) {
                 return response()->json([
