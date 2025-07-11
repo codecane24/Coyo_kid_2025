@@ -69,12 +69,18 @@ class UserController extends ResponseController
             $user = User::where($findField, $loginInput)
                 ->with('permissions:name')
                 ->first();
-            // Other users: check branches
+
+            if (!$user) {
+                return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
+            }
+
             $branches = UserBranch::where('user_id', $user->id)
                 ->with('branch:id,name,code')
                 ->get();
 
-            // If no branches found, return error
+            // Debug: Inspect branches
+            \Log::info('Branches for user ' . $user->id, $branches->toArray());
+
             if ($branches->isEmpty()) {
                 return response()->json([
                     'status' => 'error',
@@ -82,14 +88,7 @@ class UserController extends ResponseController
                     'data' => [
                         'user_id' => $user->id,
                         'username' => $request->username,
-                        'password' => $request->password, // optionally remove this for security
-                        'branches' => $branches->map(function ($branch) {
-                            return [
-                                'id' => $branch->branch->id,
-                                'name' => $branch->branch->name,
-                                'code' => $branch->branch->code,
-                            ];
-                        }),
+                        'branches' => [],
                     ]
                 ], 404);
             }
