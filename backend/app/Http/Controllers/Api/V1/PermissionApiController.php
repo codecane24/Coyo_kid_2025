@@ -59,8 +59,7 @@ class PermissionApiController extends Controller
             $request->validate([
                 'name' => 'required|string|max:100',
                 'permissions' => 'array|nullable',
-                'child_name' => 'nullable|string|max:100',
-                'parent_id' => 'nullable|exists:permissions,id',
+                'group_id' => 'nullable|exists:module_group,id',
                 'allow_delete' => 'nullable|boolean'
             ]);
 
@@ -78,7 +77,7 @@ class PermissionApiController extends Controller
                 if ($request->has('permissions')) {
                     foreach ($request->permissions as $action) {
                         Permission::create([
-                            'name' => "{$request->name}_{$action['name']}",
+                            'name' => "{$action['name']}",
                             'parent_id' => $parentPermission->id,
                             'guard_name' => 'web',
                             'is_perm_deleted' => $allow_delete
