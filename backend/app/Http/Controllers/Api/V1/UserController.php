@@ -65,24 +65,17 @@ class UserController extends ResponseController
                 return $this->finalizeLogin($request, $user, null);
             }
 
-          
+            
+            $user = User::where($findField, $loginInput)
+                ->with('permissions:name')
+                ->first();
             // Other users: check branches
             $branches = UserBranch::where('user_id', $user->id)
                 ->with('branch:id,name,code')
                 ->get();
-             return response()->json([
-                    'status' => 'error',
-                    'message' => 'No branches found for this user.',
-                    'data' => [
-                        'user_id' => $user->id,
-                        'username' => $request->username,
-                        'password' => $request->password, // optionally remove this for security
-                        'branches' => $branches
-                    ]
-                ]);
 
             // If no branches found, return error
-            if ($branches->count() < 1) {
+            if ($branches->isEmpty()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No branches found for this user.',
@@ -90,11 +83,16 @@ class UserController extends ResponseController
                         'user_id' => $user->id,
                         'username' => $request->username,
                         'password' => $request->password, // optionally remove this for security
-                        'branches' => $branches
+                        'branches' => $branches->map(function ($branch) {
+                            return [
+                                'id' => $branch->branch->id,
+                                'name' => $branch->branch->name,
+                                'code' => $branch->branch->code,
+                            ];
+                        }),
                     ]
-                ]);
+                ], 404);
             }
-
 
             // If multiple branches found, return them for selection
             if ($branches->count() > 1) {
