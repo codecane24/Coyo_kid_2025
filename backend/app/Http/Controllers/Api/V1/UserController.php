@@ -72,7 +72,7 @@ class UserController extends ResponseController
                 ->get();
 
             // If no branches found, return error
-            if ($branches->count() == 0) {
+            if ($branches->count() < 1) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No branches found for this user.',
@@ -82,7 +82,7 @@ class UserController extends ResponseController
                         'password' => $request->password, // optionally remove this for security
                         'branches' => $branches
                     ]
-                ], 404);
+                ]);
             }
 
 
