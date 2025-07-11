@@ -84,6 +84,7 @@ class UserController extends ResponseController
                     ]
                 ], 404);
             }
+            
 
             // If multiple branches found, return them for selection
             if ($branches->count() > 1) {
