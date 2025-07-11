@@ -72,7 +72,7 @@ class UserController extends ResponseController
                 ->get();
 
             // If no branches found, return error
-            if ($branches->isEmpty()) {
+            if ($branches->count() == 0) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No branches found for this user.',
@@ -84,7 +84,7 @@ class UserController extends ResponseController
                     ]
                 ], 404);
             }
-            
+
 
             // If multiple branches found, return them for selection
             if ($branches->count() > 1) {
