@@ -95,8 +95,14 @@ class UserApiController extends Controller
         $companySettings = Company::first();
         $userCount = User::where('type', 'user')->count();
         if ($userCount >= $companySettings->max_employees) {
-            return response()->json(['status' => 'error', 'message' => 'Employee creation limit exceeded'], 400);
+           // return response()->json(['status' => 'error', 'message' => 'Employee creation limit exceeded'], 400);
         }
+
+         return response()->json([
+            'status' => 'success',
+            'message' => 'User checked successfully!',
+            'data' => $request,
+        ], 201);
 
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
@@ -119,7 +125,7 @@ class UserApiController extends Controller
 
 
         if ($request->hasFile('profile_image')) {
-            $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
+           // $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
         }
 
         $sNo = $this->getNewSerialNo('emp_code');
