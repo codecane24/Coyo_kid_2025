@@ -99,8 +99,9 @@ class UserApiController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'mobile' => 'required|string|unique:users,mobile|max:20',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'contact' => 'required|string|unique:users,contact|max:20',
             'email' => 'required|email|unique:users,email|max:255',
             'password' => 'required|string|min:8',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
@@ -110,10 +111,10 @@ class UserApiController extends Controller
             'permissions' => 'nullable|array',
             'permissions.*' => 'exists:permissions,name',
             'status' => 'required|in:active,inactive',
-            'department_id' => 'nullable|exists:departments,id',
-            'ipaddress' => 'nullable|ip',
-            'login_start_time' => 'nullable|date_format:H:i',
-            'login_end_time' => 'nullable|date_format:H:i',
+        // 'department_id' => 'nullable|exists:departments,id',
+        //  'ipaddress' => 'nullable|ip',
+        // 'login_start_time' => 'nullable|date_format:H:i',
+        // 'login_end_time' => 'nullable|date_format:H:i',
         ]);
 
 
@@ -124,19 +125,21 @@ class UserApiController extends Controller
         $sNo = $this->getNewSerialNo('emp_code');
         $this->increaseSerialNo('emp_code');
 
+        $role = Role::find($validated['role']);
         $user = User::create([
-            'name' => $validated['name'],
-            'mobile' => $validated['mobile'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'contact' => $validated['contact'],
             'password' => Hash::make($validated['password']),
             'email' => $validated['email'],
             'department_id' => $validated['department_id'] ?? null,
-            'profile_image' => $validated['profile_image'] ?? null,
+          //  'profile_image' => $validated['profile_image'] ?? null,
             'status' => $validated['status'],
-            'type' => 'user',
-            'code' => $sNo,
-            'assigned_ip_address' => $validated['ipaddress'] ?? null,
-            'login_start_time' => $validated['login_start_time'] ?? null,
-            'login_end_time' => $validated['login_end_time'] ?? null,
+            'type' => $role->name ?? 'user',
+           // 'code' => $sNo,
+          //  'assigned_ip_address' => $validated['ipaddress'] ?? null,
+           // 'login_start_time' => $validated['login_start_time'] ?? null,
+           // 'login_end_time' => $validated['login_end_time'] ?? null,
         ]);
 
         if (!empty($validated['branches'])) {
@@ -235,9 +238,9 @@ class UserApiController extends Controller
             'permissions.*' => 'exists:permissions,name',
             'status' => 'required|in:active,inactive',
             'mobile' => ['nullable', 'string', Rule::unique('users')->ignore($user->id), 'max:20'],
-            'ipaddress' => 'nullable|ip',
-            'login_start_time' => 'nullable|date_format:H:i',
-            'login_end_time' => 'nullable|date_format:H:i',
+        //    'ipaddress' => 'nullable|ip',
+        //    'login_start_time' => 'nullable|date_format:H:i',
+        //    'login_end_time' => 'nullable|date_format:H:i',
         ]);
 
         if ($request->hasFile('profile_image')) {
