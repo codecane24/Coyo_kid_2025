@@ -65,7 +65,7 @@ class UserApiController extends Controller
                 'profile_image' => $user->profile_image ? asset($user->profile_image) : null,
                 'name' => $user->first_name . ' ' . $user->last_name,
                 'email' => $user->email,
-                'mobile_number' => $user->country_code . ' ' . $user->contact,
+                'mobile_number' => $user->contact,
                 'status' => $user->status,
                 'actions' => $this->generateActionLinks($user),
             ];
@@ -98,8 +98,8 @@ class UserApiController extends Controller
            // return response()->json(['status' => 'error', 'message' => 'Employee creation limit exceeded'], 400);
         }
 
-        $validated=$request;
-      /*  $validated = $request->validate([
+
+        $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'contact' => 'required|string|unique:users,contact|max:20',
@@ -116,16 +116,15 @@ class UserApiController extends Controller
         //  'ipaddress' => 'nullable|ip',
         // 'login_start_time' => 'nullable|date_format:H:i',
         // 'login_end_time' => 'nullable|date_format:H:i',
-        ]); */
+        ]);
 
-       
 
         if ($request->hasFile('profile_image')) {
-           $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
+           // $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
         }
 
-      //  $sNo = $this->getNewSerialNo('emp_code');
-      //  $this->increaseSerialNo('emp_code');
+       // $sNo = $this->getNewSerialNo('emp_code');
+        $this->increaseSerialNo('emp_code');
 
         $role = Role::find($validated['role']);
         $user = User::create([
@@ -137,37 +136,25 @@ class UserApiController extends Controller
             'department_id' => $validated['department_id'] ?? null,
           //  'profile_image' => $validated['profile_image'] ?? null,
             'status' => $validated['status'],
-            'type' => $role->name ?? 'student',
+            'type' => $role->name ?? 'user',
            // 'code' => $sNo,
           //  'assigned_ip_address' => $validated['ipaddress'] ?? null,
            // 'login_start_time' => $validated['login_start_time'] ?? null,
            // 'login_end_time' => $validated['login_end_time'] ?? null,
         ]);
 
-        // Sync branches
         if (!empty($validated['branches'])) {
-            // Ensure branches are integers and valid
-            $branches = $validated['branches'];
-                $user->branches()->sync($branches);
-           
-        } 
-
-        // Assign role
-        if ($role) {
-            $user->assignRole($role);
-            Log::info('Assigned role to user: ' . $user->id, ['role' => $role->name]);
+            $user->branches()->sync($validated['branches']);
         }
 
-        // Sync permissions
+        if (!empty($validated['role'])) {
+            $user->assignRole(Role::findById($validated['role']));
+        }
+
         if (!empty($validated['permissions'])) {
-                $user->syncPermissions($permissions);
-           
+            $permissionIds = Permission::whereIn('name', $validated['permissions'])->pluck('id');
+            $user->syncPermissions($permissionIds);
         }
-
-        // Load relationships for response
-        $user->load('roles', 'permissions', 'branches');
-
-
 
         return response()->json([
             'status' => 'success',
