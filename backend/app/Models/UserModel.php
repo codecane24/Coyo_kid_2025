@@ -134,4 +134,9 @@ class UserModel extends Authenticatable
     public function company(){
         return $this->belongsTo(Company::class, 'company_id');
     }
+
+    public function branches()
+    {
+        return $this->belongsToMany(Branch::class, 'user_branches');
+    }
 }

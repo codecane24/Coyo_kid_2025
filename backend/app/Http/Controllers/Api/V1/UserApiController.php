@@ -137,7 +137,7 @@ class UserApiController extends Controller
             'department_id' => $validated['department_id'] ?? null,
           //  'profile_image' => $validated['profile_image'] ?? null,
             'status' => $validated['status'],
-            'type' => $role->name ?? 'user',
+            'type' => $role->name ?? 'student',
            // 'code' => $sNo,
           //  'assigned_ip_address' => $validated['ipaddress'] ?? null,
            // 'login_start_time' => $validated['login_start_time'] ?? null,
