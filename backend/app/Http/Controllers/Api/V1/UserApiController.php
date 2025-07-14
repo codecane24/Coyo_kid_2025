@@ -122,7 +122,7 @@ class UserApiController extends Controller
          return response()->json([
             'status' => 'success',
             'message' => 'User checked successfully!',
-            'data' => $request,
+            'data' => $validated,
         ], 201);
 
         if ($request->hasFile('profile_image')) {
