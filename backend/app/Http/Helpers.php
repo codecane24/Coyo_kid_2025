@@ -25,6 +25,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 function getNewSerialNo($type)
 {
+    
     $sqry = SerialNo::withoutGlobalScope('fyear_branch_filter')->where('name', '=', $type)->first();
 
     if ($sqry && $sqry->type == 'transaction') {
