@@ -155,12 +155,24 @@ class UserApiController extends Controller
             }
 
         if (!empty($validated['role'])) {
-            $user->assignRole(Role::findById($validated['role']));
+          //  $user->assignRole(Role::findById($validated['role']));
         }
 
         if (!empty($validated['permissions'])) {
-            $permissionIds = Permission::whereIn('name', $validated['permissions'])->pluck('id');
-            $user->syncPermissions($permissionIds);
+            // Ensure permissions is an array
+            $permissionNames = is_array($validated['permissions']) 
+                ? $validated['permissions']
+                : [$validated['permissions']];
+            
+            // Get only existing permissions to prevent errors
+            $permissionIds = Permission::whereIn('name', $permissionNames)
+                ->pluck('id')
+                ->toArray();
+            
+            // Sync only found permissions
+            if (!empty($permissionIds)) {
+                $user->syncPermissions($permissionIds);
+            }
         }
 
         return response()->json([
