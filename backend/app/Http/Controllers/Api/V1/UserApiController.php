@@ -118,19 +118,14 @@ class UserApiController extends Controller
         // 'login_end_time' => 'nullable|date_format:H:i',
         ]); */
 
-        
-         return response()->json([
-            'status' => 'success',
-            'message' => 'User checked successfully!',
-            'data' => $validated,
-        ], 201);
+       
 
         if ($request->hasFile('profile_image')) {
            // $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
         }
 
-        $sNo = $this->getNewSerialNo('emp_code');
-        $this->increaseSerialNo('emp_code');
+      //  $sNo = $this->getNewSerialNo('emp_code');
+      //  $this->increaseSerialNo('emp_code');
 
         $role = Role::find($validated['role']);
         $user = User::create([
