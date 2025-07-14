@@ -137,6 +137,11 @@ class UserModel extends Authenticatable
 
     public function branches()
     {
-        return $this->belongsToMany(Branch::class, 'user_branches','user_id', 'branch_id');
+        return $this->belongsToMany(
+            Branch::class,      // Related model
+            'user_branches',     // Pivot table name
+            'user_id',           // Foreign key for the current model (User)
+            'branch_id'          // Foreign key for the related model (Branch)
+        );
     }
 }
