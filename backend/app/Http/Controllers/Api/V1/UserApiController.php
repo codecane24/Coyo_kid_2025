@@ -145,9 +145,14 @@ class UserApiController extends Controller
         ]);
 
        if (!empty($validated['branches'])) {
-            $branches = array_map('intval', (array)$validated['branches']);
-            $user->branches()->sync($branches);
-        }
+        
+                $branches = is_array($validated['branches']) 
+                    ? $validated['branches']
+                    : explode(',', $validated['branches']);
+                
+                $branches = array_map('intval', $branches);
+                $user->branches()->sync($branches);
+            }
 
         if (!empty($validated['role'])) {
             $user->assignRole(Role::findById($validated['role']));
