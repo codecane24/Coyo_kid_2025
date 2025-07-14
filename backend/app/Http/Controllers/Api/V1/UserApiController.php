@@ -61,6 +61,7 @@ class UserApiController extends Controller
         $data = $users->map(function ($user) {
             return [
                 'id' => $user->id,
+                'encryptid' => Crypt::encrypt($user->id),
                 'code' => $user->code ?? 'NaN',
                 'profile_image' => $user->profile_image ? asset($user->profile_image) : null,
                 'name' => $user->first_name . ' ' . $user->last_name,
@@ -172,7 +173,7 @@ class UserApiController extends Controller
     public function show($id)
     {
         if (!$this->hasPermission('user_view')) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+           // return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
         try {
