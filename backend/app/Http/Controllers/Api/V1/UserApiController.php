@@ -63,9 +63,9 @@ class UserApiController extends Controller
                 'id' => $user->id,
                 'code' => $user->code ?? 'NaN',
                 'profile_image' => $user->profile_image ? asset($user->profile_image) : null,
-                'name' => $user->name,
+                'name' => $user->first_name . ' ' . $user->last_name,
                 'email' => $user->email,
-                'mobile_number' => $user->country_code . ' ' . $user->mobile,
+                'mobile_number' => $user->country_code . ' ' . $user->contact,
                 'status' => $user->status,
                 'actions' => $this->generateActionLinks($user),
             ];
