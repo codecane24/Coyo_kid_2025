@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Permission;
 use App\Models\Branch;
+use App\Models\Company;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -123,5 +124,9 @@ class User extends Authenticatable
         return $this->belongsToMany(Branch::class, 'user_branches');
     }
 
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
 
 }

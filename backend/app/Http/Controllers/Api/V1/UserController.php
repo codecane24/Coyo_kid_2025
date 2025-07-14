@@ -42,8 +42,8 @@ class UserController extends ResponseController
             }
          
             $user = User::where($findField, $loginInput)
-                ->with('permissions:name')
-                ->first();
+                    ->with('permissions:name','company')
+                    ->first();
               
 
             if (!$user || !Hash::check($request->password, $user->password)) {
@@ -118,6 +118,7 @@ class UserController extends ResponseController
             $request->merge([
                 'userId' => $user->id,
                 'branch_id' => $user->branch_id,
+                'branch_name' => $user?->branch->name,
             ]);
 
              return $this->finalizeLogin($request, $user, null);
@@ -210,7 +211,10 @@ class UserController extends ResponseController
             'branch_id' => $branch?->id,
             'branch_name' => $branch?->name,
             'fyear' => $fydata,
+            'company_id' => $user->company_id,
+            'company' => $user->company,
             'permissions' => $user->permissions->pluck('name')->toArray(),
+            
         ];
 
         if (Company::count() == 0) {

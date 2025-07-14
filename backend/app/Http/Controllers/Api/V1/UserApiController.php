@@ -61,11 +61,12 @@ class UserApiController extends Controller
         $data = $users->map(function ($user) {
             return [
                 'id' => $user->id,
+                'encryptid' => Crypt::encrypt($user->id),
                 'code' => $user->code ?? 'NaN',
                 'profile_image' => $user->profile_image ? asset($user->profile_image) : null,
-                'name' => $user->name,
+                'name' => $user->first_name . ' ' . $user->last_name,
                 'email' => $user->email,
-                'mobile_number' => $user->country_code . ' ' . $user->mobile,
+                'mobile_number' => $user->contact,
                 'status' => $user->status,
                 'actions' => $this->generateActionLinks($user),
             ];
@@ -95,12 +96,14 @@ class UserApiController extends Controller
         $companySettings = Company::first();
         $userCount = User::where('type', 'user')->count();
         if ($userCount >= $companySettings->max_employees) {
-            return response()->json(['status' => 'error', 'message' => 'Employee creation limit exceeded'], 400);
+           // return response()->json(['status' => 'error', 'message' => 'Employee creation limit exceeded'], 400);
         }
 
+
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'mobile' => 'required|string|unique:users,mobile|max:20',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'contact' => 'required|string|unique:users,contact|max:20',
             'email' => 'required|email|unique:users,email|max:255',
             'password' => 'required|string|min:8',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
@@ -110,33 +113,35 @@ class UserApiController extends Controller
             'permissions' => 'nullable|array',
             'permissions.*' => 'exists:permissions,name',
             'status' => 'required|in:active,inactive',
-            'department_id' => 'nullable|exists:departments,id',
-            'ipaddress' => 'nullable|ip',
-            'login_start_time' => 'nullable|date_format:H:i',
-            'login_end_time' => 'nullable|date_format:H:i',
+        // 'department_id' => 'nullable|exists:departments,id',
+        //  'ipaddress' => 'nullable|ip',
+        // 'login_start_time' => 'nullable|date_format:H:i',
+        // 'login_end_time' => 'nullable|date_format:H:i',
         ]);
 
 
         if ($request->hasFile('profile_image')) {
-            $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
+           // $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
         }
 
-        $sNo = $this->getNewSerialNo('emp_code');
+       // $sNo = $this->getNewSerialNo('emp_code');
         $this->increaseSerialNo('emp_code');
 
+        $role = Role::find($validated['role']);
         $user = User::create([
-            'name' => $validated['name'],
-            'mobile' => $validated['mobile'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'contact' => $validated['contact'],
             'password' => Hash::make($validated['password']),
             'email' => $validated['email'],
             'department_id' => $validated['department_id'] ?? null,
-            'profile_image' => $validated['profile_image'] ?? null,
+          //  'profile_image' => $validated['profile_image'] ?? null,
             'status' => $validated['status'],
-            'type' => 'user',
-            'code' => $sNo,
-            'assigned_ip_address' => $validated['ipaddress'] ?? null,
-            'login_start_time' => $validated['login_start_time'] ?? null,
-            'login_end_time' => $validated['login_end_time'] ?? null,
+            'type' => $role->name ?? 'user',
+           // 'code' => $sNo,
+          //  'assigned_ip_address' => $validated['ipaddress'] ?? null,
+           // 'login_start_time' => $validated['login_start_time'] ?? null,
+           // 'login_end_time' => $validated['login_end_time'] ?? null,
         ]);
 
         if (!empty($validated['branches'])) {
@@ -168,7 +173,7 @@ class UserApiController extends Controller
     public function show($id)
     {
         if (!$this->hasPermission('user_view')) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+           // return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
         try {
@@ -177,7 +182,7 @@ class UserApiController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Invalid account ID'], 400);
         }
 
-        $user = User::where(['type' => 'user', 'id' => $decryptedId])->first();
+        $user = User::where(['id' => $decryptedId])->first();
         if (!$user) {
             return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
         }
@@ -235,9 +240,9 @@ class UserApiController extends Controller
             'permissions.*' => 'exists:permissions,name',
             'status' => 'required|in:active,inactive',
             'mobile' => ['nullable', 'string', Rule::unique('users')->ignore($user->id), 'max:20'],
-            'ipaddress' => 'nullable|ip',
-            'login_start_time' => 'nullable|date_format:H:i',
-            'login_end_time' => 'nullable|date_format:H:i',
+        //    'ipaddress' => 'nullable|ip',
+        //    'login_start_time' => 'nullable|date_format:H:i',
+        //    'login_end_time' => 'nullable|date_format:H:i',
         ]);
 
         if ($request->hasFile('profile_image')) {

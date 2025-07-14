@@ -130,4 +130,18 @@ class UserModel extends Authenticatable
     public function account(){
         return $this->belongsTo(Account::class, 'account_id');
     }
+
+    public function company(){
+        return $this->belongsTo(Company::class, 'company_id');
+    }
+
+    public function branches()
+    {
+        return $this->belongsToMany(
+            Branch::class,      // Related model
+            'user_branches',     // Pivot table name
+            'user_id',           // Foreign key for the current model (User)
+            'branch_id'          // Foreign key for the related model (Branch)
+        );
+    }
 }
