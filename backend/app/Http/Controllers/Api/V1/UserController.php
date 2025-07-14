@@ -42,7 +42,7 @@ class UserController extends ResponseController
             }
          
             $user = User::where($findField, $loginInput)
-                ->with('permissions:name')
+                ->with('permissions:name','company')
                 ->first();
               
 
@@ -212,7 +212,9 @@ class UserController extends ResponseController
             'branch_name' => $branch?->name,
             'fyear' => $fydata,
             'company_id' => $user->company_id,
+            'company' => $user->company,
             'permissions' => $user->permissions->pluck('name')->toArray(),
+            
         ];
 
         if (Company::count() == 0) {

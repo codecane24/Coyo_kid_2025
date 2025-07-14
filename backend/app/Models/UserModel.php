@@ -130,4 +130,8 @@ class UserModel extends Authenticatable
     public function account(){
         return $this->belongsTo(Account::class, 'account_id');
     }
+
+    public function company(){
+        return $this->belongsTo(Company::class, 'company_id');
+    }
 }
