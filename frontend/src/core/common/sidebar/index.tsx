@@ -22,6 +22,11 @@ const Sidebar = () => {
 useEffect(() => {
   if (user) {
     console.log("User ID:", user.id);
+    if (user?.company_id && user?.branch_id) {
+      localStorage.setItem("companyId", user.company_id.toString());
+      localStorage.setItem("branchId", user.branch_id.toString());
+      console.log("✅ Stored companyId & branchId in localStorage");
+    }
   } else {
     console.log("User is still loading or not logged in.");
   }

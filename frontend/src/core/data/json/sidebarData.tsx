@@ -658,8 +658,8 @@ permissionKey: "class_view",
   permissionKey: "class_view",
 },
 {
-  label: "Permission",
-  link: routes.permissions,
+  label: "Permission Master",
+  link: routes.permissions ,
   icon: "ti ti-lock-access", // Represents access control or permissions
   showSubRoute: false,
   submenu: false,

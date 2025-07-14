@@ -1,45 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Select from "react-select";
 
-export type Option = {
-  value: string;
+// Make it generic and fallback to default Option type
+export type OptionType = {
+  value: any;
   label: string;
 };
 
-export interface SelectProps {
-  options: Option[];
-  defaultValue?: Option;
+export interface SelectProps<T = OptionType> {
+  options: T[];
+  defaultValue?: T;
+  value?: T;
   className?: string;
   styles?: any;
-  onChange?: (option: Option) => void; // ✅ added this
+  onChange?: (option: T) => void;
 }
 
-const CommonSelect: React.FC<SelectProps> = ({
+const CommonSelect = <T extends OptionType>({
   options,
   defaultValue,
+  value,
   className,
   onChange,
-}) => {
-  const [selectedOption, setSelectedOption] = useState<Option | undefined>(defaultValue);
-
-  const handleChange = (option: Option | null) => {
-    setSelectedOption(option || undefined);
+}: SelectProps<T>) => {
+  const handleChange = (option: T | null) => {
     if (option && onChange) {
-      onChange(option); // ✅ call parent onChange
+      onChange(option);
     }
   };
-
-  useEffect(() => {
-    setSelectedOption(defaultValue || undefined);
-  }, [defaultValue]);
 
   return (
     <Select
       classNamePrefix="react-select"
       className={className}
       options={options}
-      value={selectedOption}
+      value={value}
       onChange={handleChange}
+      defaultValue={defaultValue}
       placeholder="Select"
     />
   );

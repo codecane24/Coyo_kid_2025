@@ -184,6 +184,7 @@ export const all_routes = {
   rolesPermissions: "/user-management/roles-permissions",
   manageusers: "/user-management/manage-users",
     addusers: "/user-management/add-users",
+    editUser: "/add-user/:id", // ✅ this enables dynamic param
   permissions: "/user-management/permissions",
 
   //support routes

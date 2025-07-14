@@ -322,8 +322,17 @@ export const names = [
 ];
 export const gender = [
   { value: "Male", label: "Male" },
-  { value: "Female", label: "Female" },
+  { value: "", label: "Female" },
+    { value: "Other", label: "Other" },
+    
 ];
+export const department = [
+  { value: "it", label: "it" },
+  { value: "Medical", label: "Medical" },
+
+    
+];
+
 export const status = [
   { value: "Active", label: "Active" },
   { value: "Inactive", label: "Inactive" },
