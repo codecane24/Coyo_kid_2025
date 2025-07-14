@@ -144,8 +144,9 @@ class UserApiController extends Controller
            // 'login_end_time' => $validated['login_end_time'] ?? null,
         ]);
 
-        if (!empty($validated['branches'])) {
-            $user->branches()->sync($validated['branches']);
+       if (!empty($validated['branches'])) {
+            $branches = array_map('intval', (array)$validated['branches']);
+            $user->branches()->sync($branches);
         }
 
         if (!empty($validated['role'])) {
