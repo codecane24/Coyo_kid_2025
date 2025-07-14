@@ -42,8 +42,8 @@ class UserController extends ResponseController
             }
          
             $user = User::where($findField, $loginInput)
-                ->with('permissions:name','company')
-                ->first();
+                    ->with('permissions:name','company')
+                    ->first();
               
 
             if (!$user || !Hash::check($request->password, $user->password)) {
