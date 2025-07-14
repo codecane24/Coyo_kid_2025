@@ -121,7 +121,7 @@ class UserApiController extends Controller
        
 
         if ($request->hasFile('profile_image')) {
-           // $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
+           $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
         }
 
       //  $sNo = $this->getNewSerialNo('emp_code');
@@ -144,36 +144,44 @@ class UserApiController extends Controller
            // 'login_end_time' => $validated['login_end_time'] ?? null,
         ]);
 
-       if (!empty($validated['branches'])) {
-        
-                $branches = is_array($validated['branches']) 
-                    ? $validated['branches']
-                    : explode(',', $validated['branches']);
-                
-                $branches = array_map('intval', $branches);
-                $user->branches()->sync($branches);
+        // Sync branches
+        if (!empty($validated['branches'])) {
+            // Ensure branches are integers and valid
+            $branches = array_filter($validated['branches'], fn($id) => is_numeric($id) && (int)$id > 0);
+            Log::info('Filtered Branches:', $branches);
+            if (!empty($branches)) {
+                $user->branches()->sync(array_map('intval', $branches));
+            } else {
+                Log::warning('No valid branches to sync for user: ' . $user->id);
             }
-
-        if (!empty($validated['role'])) {
-          //  $user->assignRole(Role::findById($validated['role']));
+        } else {
+            Log::info('No branches provided for user: ' . $user->id);
         }
 
-        if (!empty($validated['permissions'])) {
-            // Ensure permissions is an array
-            $permissionNames = is_array($validated['permissions']) 
-                ? $validated['permissions']
-                : [$validated['permissions']];
-            
-            // Get only existing permissions to prevent errors
-            $permissionIds = Permission::whereIn('name', $permissionNames)
-                ->pluck('id')
-                ->toArray();
-            
-            // Sync only found permissions
-            if (!empty($permissionIds)) {
-                $user->syncPermissions($permissionIds);
-            }
+        // Assign role
+        if ($role) {
+            $user->assignRole($role);
+            Log::info('Assigned role to user: ' . $user->id, ['role' => $role->name]);
         }
+
+        // Sync permissions
+        if (!empty($validated['permissions']) && is_array($validated['permissions'])) {
+            // Verify permissions exist
+            $permissions = array_filter($validated['permissions'], fn($name) => Permission::where('name', $name)->exists());
+            Log::info('Filtered Permissions:', $permissions);
+            if (!empty($permissions)) {
+                $user->syncPermissions($permissions);
+            } else {
+                Log::warning('No valid permissions to sync for user: ' . $user->id);
+            }
+        } else {
+            Log::info('No permissions provided for user: ' . $user->id);
+        }
+
+        // Load relationships for response
+        $user->load('roles', 'permissions', 'branches');
+
+
 
         return response()->json([
             'status' => 'success',
