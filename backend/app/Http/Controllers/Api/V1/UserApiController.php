@@ -147,16 +147,10 @@ class UserApiController extends Controller
         // Sync branches
         if (!empty($validated['branches'])) {
             // Ensure branches are integers and valid
-            $branches = array_filter($validated['branches'], fn($id) => is_numeric($id) && (int)$id > 0);
-            Log::info('Filtered Branches:', $branches);
-            if (!empty($branches)) {
-                $user->branches()->sync(array_map('intval', $branches));
-            } else {
-                Log::warning('No valid branches to sync for user: ' . $user->id);
-            }
-        } else {
-            Log::info('No branches provided for user: ' . $user->id);
-        }
+            $branches = $validated['branches'];
+                $user->branches()->sync($branches);
+           
+        } 
 
         // Assign role
         if ($role) {
@@ -165,17 +159,9 @@ class UserApiController extends Controller
         }
 
         // Sync permissions
-        if (!empty($validated['permissions']) && is_array($validated['permissions'])) {
-            // Verify permissions exist
-            $permissions = array_filter($validated['permissions'], fn($name) => Permission::where('name', $name)->exists());
-            Log::info('Filtered Permissions:', $permissions);
-            if (!empty($permissions)) {
+        if (!empty($validated['permissions'])) {
                 $user->syncPermissions($permissions);
-            } else {
-                Log::warning('No valid permissions to sync for user: ' . $user->id);
-            }
-        } else {
-            Log::info('No permissions provided for user: ' . $user->id);
+           
         }
 
         // Load relationships for response
