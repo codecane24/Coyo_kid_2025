@@ -98,11 +98,6 @@ class UserApiController extends Controller
            // return response()->json(['status' => 'error', 'message' => 'Employee creation limit exceeded'], 400);
         }
 
-         return response()->json([
-            'status' => 'success',
-            'message' => 'User checked successfully!',
-            'data' => $request,
-        ], 201);
 
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
@@ -123,6 +118,12 @@ class UserApiController extends Controller
         // 'login_end_time' => 'nullable|date_format:H:i',
         ]);
 
+        
+         return response()->json([
+            'status' => 'success',
+            'message' => 'User checked successfully!',
+            'data' => $request,
+        ], 201);
 
         if ($request->hasFile('profile_image')) {
            // $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
