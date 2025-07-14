@@ -98,8 +98,8 @@ class UserApiController extends Controller
            // return response()->json(['status' => 'error', 'message' => 'Employee creation limit exceeded'], 400);
         }
 
-
-        $validated = $request->validate([
+        $validated=$request;
+      /*  $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'contact' => 'required|string|unique:users,contact|max:20',
@@ -116,7 +116,7 @@ class UserApiController extends Controller
         //  'ipaddress' => 'nullable|ip',
         // 'login_start_time' => 'nullable|date_format:H:i',
         // 'login_end_time' => 'nullable|date_format:H:i',
-        ]);
+        ]); */
 
         
          return response()->json([
