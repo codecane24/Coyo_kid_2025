@@ -28,6 +28,7 @@ import { TagsInput } from "react-tag-input-component";
 import CommonSelect from "../../../../core/common/commonSelect";
 import { useLocation } from "react-router-dom";
 import { getClassesList } from "../../../../services/ClassData";
+import FinancialDetailsForm from "./FinancialDetailsForm";
 
 type ClassItem = {
   id: string;
@@ -38,6 +39,8 @@ type ClassItem = {
 const AddStudent = () => {
   const routes = all_routes;
   const [classOptions, setClassOptions] = useState<{ label: string; value: string }[]>([]);
+const [showFinancialForm, setShowFinancialForm] = useState(false);
+const handleNextStep = () => setShowFinancialForm(true);
 
  const [allClass, setAllClass] = useState<{ label: string; value: string }[]>([]);
   const [loading, setLoading] = useState(false);
@@ -98,7 +101,12 @@ const AddStudent = () => {
     <>
       {/* Page Wrapper */}
       <div className="page-wrapper">
+
         <div className="content content-two">
+          {showFinancialForm ? (
+  <FinancialDetailsForm/>
+) : (
+  <>
           {/* Page Header */}
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
             <div className="my-auto mb-2">
@@ -546,141 +554,8 @@ const AddStudent = () => {
                       </div>
                     </div>
                     <div>
-                      {/* <h5 className="mb-3">Guardian Details</h5> */}
-                      <div className="row">
-                        {/* <div className="col-md-12">
-                          <div className="mb-2">
-                            <div className="d-flex align-items-center flex-wrap">
-                              <label className="form-label text-dark fw-normal me-2">
-                                If Guardian Is
-                              </label>
-                              <div className="form-check me-3 mb-2">
-                                <input
-                                  className="form-check-input"
-                                  type="radio"
-                                  name="guardian"
-                                  id="parents"
-                                  defaultChecked
-                                />
-                                <label
-                                  className="form-check-label"
-                                  htmlFor="parents"
-                                >
-                                  Parents
-                                </label>
-                              </div>
-                              <div className="form-check me-3 mb-2">
-                                <input
-                                  className="form-check-input"
-                                  type="radio"
-                                  name="guardian"
-                                  id="guardian"
-                                />
-                                <label
-                                  className="form-check-label"
-                                  htmlFor="guardian"
-                                >
-                                  Guardian
-                                </label>
-                              </div>
-                              <div className="form-check mb-2">
-                                <input
-                                  className="form-check-input"
-                                  type="radio"
-                                  name="guardian"
-                                  id="other"
-                                />
-                                <label
-                                  className="form-check-label"
-                                  htmlFor="other"
-                                >
-                                  Others
-                                </label>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
-                            <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
-                              <i className="ti ti-photo-plus fs-16" />
-                            </div>
-                            <div className="profile-upload">
-                              <div className="profile-uploader d-flex align-items-center">
-                                <div className="drag-upload-btn mb-3">
-                                  Upload
-                                  <input
-                                    type="file"
-                                    className="form-control image-sign"
-                                    multiple
-                                  />
-                                </div>
-                                <Link to="#" className="btn btn-primary mb-3">
-                                  Remove
-                                </Link>
-                              </div>
-                              <p className="fs-12">
-                                Upload image size 4MB, Format JPG, PNG, SVG
-                              </p>
-                            </div>
-                          </div>
-                        </div> */}
-                        {/* <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Guardian Name</label>
-                            <input type="text" className="form-control" defaultValue={isEdit? 'Jerald Vicinius': undefined}/>
-                          </div>
-                        </div> */}
-                        {/* <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Guardian Relation
-                            </label>
-                            <input type="text" className="form-control" defaultValue={isEdit? 'Uncle': undefined}/>
-                          </div>
-                        </div> */}
-                        {/* <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Phone Number</label>
-                            <input type="text" className="form-control" defaultValue={isEdit? '+1 45545 46464': undefined}/>
-                          </div>
-                        </div> */}
-                        {/* <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Adhar Number</label>
-                            <input type="email" className="form-control" defaultValue={isEdit? 'jera@example.com': undefined}/>
-                          </div>
-                        </div> */}
-                          {/* <div className="profile-upload">
-                              <div className="profile-uploader d-flex align-items-center">
-                                    <label className="form-label">Adhar Card Img</label>
-                                <div className="drag-upload-btn mb-3">
-                                  Upload
-                                  <input
-                                    type="file"
-                                    className="form-control image-sign"
-                                    multiple
-                                  />
-                                </div>
-                                <Link to="#" className="btn btn-primary mb-3">
-                                  Remove
-                                </Link>
-                              </div>
-                              <p className="fs-12">
-                           Upload image size 4MB, Format JPG, PNG, SVG
-                              </p>
-                            </div><br></br>
-                        <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Occupation</label>
-                            <input type="text" className="form-control" defaultValue={isEdit? 'Mechanic': undefined}/>
-                          </div>
-                        </div>
-                        <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Address</label>
-                            <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                          </div>
-                        </div> */}
-                      </div>
+   
+                     
                     </div>
                   </div>
                 </div>
@@ -980,40 +855,7 @@ const AddStudent = () => {
                       />
                     </div> */}
                   </div>
-                  {/* <div className="card-body pb-1">
-                    <div className="row">
-                      <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Route</label>
-                          <CommonSelect
-                            className="select"
-                            options={route}
-                            defaultValue={isEdit?route[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Vehicle Number</label>
-                          <CommonSelect
-                            className="select"
-                            options={VehicleNumber}
-                            defaultValue={isEdit?VehicleNumber[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Pickup Point</label>
-                          <CommonSelect
-                            className="select"
-                            options={PickupPoint}
-                            defaultValue={isEdit?PickupPoint[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div> */}
+              
                   <div className="mb-3 pl-3">
                               <label className="form-label">Avail Transport Service</label>
    
@@ -1046,50 +888,7 @@ const AddStudent = () => {
 </div>
 
                 </div>
-                {/* /Transport Information */}
-                {/* Hostel Information */}
-                {/* <div className="card">
-                  <div className="card-header bg-light d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-                        <i className="ti ti-building-fortress fs-16" />
-                      </span>
-                      <h4 className="text-dark">Hostel Information</h4>
-                    </div>
-                    <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        role="switch"
-                      />
-                    </div>
-                  </div>
-                  <div className="card-body pb-1">
-                    <div className="row">
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Hostel</label>
-                          <CommonSelect
-                            className="select"
-                            options={Hostel}
-                            defaultValue={isEdit?Hostel[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Room No</label>
-                          <CommonSelect
-                            className="select"
-                            options={roomNO}
-                            defaultValue={isEdit?roomNO[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
-                {/* /Medical Information */}
+               
                 {/* Documents */}
                 <div className="card">
                   <div className="card-header bg-light">
@@ -1284,52 +1083,7 @@ const AddStudent = () => {
                     </div>
                   </div>
                 </div>
-                {/* /Previous School details */}
-                {/* Other Details */}
-                {/* <div className="card">
-                  <div className="card-header bg-light">
-                    <div className="d-flex align-items-center">
-                      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-                        <i className="ti ti-building-bank fs-16" />
-                      </span>
-                      <h4 className="text-dark">Other Details</h4>
-                    </div>
-                  </div>
-                  <div className="card-body pb-1">
-                    <div className="row">
-                      <div className="col-md-5">
-                        <div className="mb-3">
-                          <label className="form-label">Bank Name</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'Bank of America': undefined}/>
-                        </div>
-                      </div>
-                      <div className="col-md-2">
-                        <div className="mb-3">
-                          <label className="form-label">Branch</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'Cincinnati': undefined}/>
-                        </div>
-                      </div>
-                      <div className="col-md-5">
-                        <div className="mb-3">
-                          <label className="form-label">IFSC Number</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'BOA83209832': undefined}/>
-                        </div>
-                      </div>
-                      <div className="col-md-12">
-                        <div className="mb-3">
-                          <label className="form-label">
-                            Other Information
-                          </label>
-                          <textarea
-                            className="form-control"
-                            rows={3}
-                            defaultValue={""}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
+              
                 {/* /Other Details */}
            <div className="form-check mt-3">
   <input
@@ -1344,18 +1098,21 @@ const AddStudent = () => {
   </label>
 </div>
 
-                <div className="text-end">
-                  <button type="button" className="btn btn-light me-3">
-                    Cancel
-                  </button>
-                  <Link to={routes.studentList} className="btn btn-primary">
-                    Add Student
-                  </Link>
-                </div>
+          <div className="flex justify-end mt-4">
+      <button
+        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+        onClick={handleNextStep}
+      >
+        Next Step
+      </button>
+    </div>
               </form>
             </div>
           </div>
+          </>
+)}
         </div>
+
       </div>
      
     </>

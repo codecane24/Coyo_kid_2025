@@ -602,14 +602,14 @@ const navigate = useNavigate();
             <Link className="dropdown-item" to={routes.profilesettings}>
               Settings
             </Link>
-            <Link className="dropdown-item" to={routes.login}>
+            <Link className="dropdown-item" to={""}   onClick={handleLogout}>
               Logout
             </Link>
           </div>
         </div>
         {/* /Mobile Menu */}
       </div>
-      {/* /Header */}
+  
     </>
   );
 };

@@ -340,9 +340,6 @@ console.log(getPermissionsList)
     ))}
   </div>
 </div>
-
-
-
                   </div>
                 </div>
             

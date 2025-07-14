@@ -648,15 +648,24 @@ permissionKey: "class_view",
         submenu: false,
         permissionKey: "class_view",
       },
-      {
-        label: "Roles & Permission",
-        link: routes.rolesPermissions,
-        icon: "ti ti-shield-plus",
-        showSubRoute: false,
-        submenu: false,
-        permissionKey: "class_view",
-      },
-      {
+   {
+  label: "Roles",
+  link: routes.rolesPermissions,
+  icon: "ti ti-user-cog",
+ // Represents multiple users or groups
+  showSubRoute: false,
+  submenu: false,
+  permissionKey: "class_view",
+},
+{
+  label: "Permission",
+  link: routes.permissions,
+  icon: "ti ti-lock-access", // Represents access control or permissions
+  showSubRoute: false,
+  submenu: false,
+  permissionKey: "class_view",
+},
+   {
         label: "Delete Account Request",
         link: routes.deleteRequest,
         icon: "ti ti-user-question",
