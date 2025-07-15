@@ -100,26 +100,26 @@ class UserApiController extends Controller
         }
         $validated = $request;
 
-/*
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'mobile' => 'required|string|unique:users,mobile|max:20',
-            'email' => 'required|email|unique:users,email|max:255',
-            'password' => 'required|string|min:8',
-            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
-            'role' => 'nullable|exists:roles,id',
-            'branches' => 'nullable|array',
-            'branches.*' => 'exists:branches,id',
-            'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,name',
-            'status' => 'required|in:active,inactive',
-        // 'department_id' => 'nullable|exists:departments,id',
-        //  'ipaddress' => 'nullable|ip',
-        // 'login_start_time' => 'nullable|date_format:H:i',
-        // 'login_end_time' => 'nullable|date_format:H:i',
-        ]);
-*/
+            /*
+                    $validated = $request->validate([
+                        'first_name' => 'required|string|max:255',
+                        'last_name' => 'required|string|max:255',
+                        'mobile' => 'required|string|unique:users,mobile|max:20',
+                        'email' => 'required|email|unique:users,email|max:255',
+                        'password' => 'required|string|min:8',
+                        'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+                        'role' => 'nullable|exists:roles,id',
+                        'branches' => 'nullable|array',
+                        'branches.*' => 'exists:branches,id',
+                        'permissions' => 'nullable|array',
+                        'permissions.*' => 'exists:permissions,name',
+                        'status' => 'required|in:active,inactive',
+                    // 'department_id' => 'nullable|exists:departments,id',
+                    //  'ipaddress' => 'nullable|ip',
+                    // 'login_start_time' => 'nullable|date_format:H:i',
+                    // 'login_end_time' => 'nullable|date_format:H:i',
+                    ]);
+            */
 
         if ($request->hasFile('profile_image')) {
            // $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
@@ -239,76 +239,73 @@ class UserApiController extends Controller
      * @param string $id
      * @return \Illuminate\Http\JsonResponse
      */
+
     public function update(Request $request, $id)
     {
+        $user = User::findOrFail($id);
+
         if (!$this->hasPermission('user_edit')) {
-          //  return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
-        try {
-            $decryptedId = Crypt::decrypt($id);
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            return response()->json(['status' => 'error', 'message' => 'Invalid account ID'], 400);
-        }
-
-        $user = User::find($decryptedId);
-        if (!$user) {
-            return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
-        }
-
+        $validated=$request;
+        /*
         $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'nullable|string|max:255',
-            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'password' => 'nullable|string|min:8|confirmed',
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'role' => 'required|exists:roles,id',
+            'first_name' => 'sometimes|required|string|max:255',
+            'last_name' => 'sometimes|required|string|max:255',
+            'mobile' => 'sometimes|required|string|max:20|unique:users,mobile,'.$user->id,
+            'email' => 'sometimes|required|email|max:255|unique:users,email,'.$user->id,
+            'password' => 'sometimes|string|min:8',
+            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'role' => 'nullable|exists:roles,id',
             'branches' => 'nullable|array',
             'branches.*' => 'exists:branches,id',
             'permissions' => 'nullable|array',
             'permissions.*' => 'exists:permissions,name',
-            'status' => 'required|in:active,inactive',
-            'mobile' => ['nullable', 'string', Rule::unique('users')->ignore($user->id), 'max:20'],
-        //    'ipaddress' => 'nullable|ip',
-        //    'login_start_time' => 'nullable|date_format:H:i',
-        //    'login_end_time' => 'nullable|date_format:H:i',
-        ]);
+            'status' => 'sometimes|required|in:active,inactive',
+            'gender' => 'nullable|string',
+            'department_id' => 'nullable|exists:departments,id',
+        ]); */
 
         if ($request->hasFile('profile_image')) {
-            $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
+            // Delete old image if exists
             if ($user->profile_image) {
-                $this->unlinkFile($user->profile_image);
+                Storage::delete($user->profile_image);
             }
+            $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
         }
 
-        $user->update([
-            'email' => $validated['email'],
-            'first_name' => $validated['first_name'] . ' ' . ($validated['last_name'] ?? ''),
-            'status' => $validated['status'],
-            'mobile' => $validated['mobile'] ?? $user->mobile,
-            'assigned_ip_address' => $validated['ipaddress'] ?? null,
-            'login_start_time' => $validated['login_start_time'] ?? null,
-            'login_end_time' => $validated['login_end_time'] ?? null,
-            'profile_image' => $validated['profile_image'] ?? $user->profile_image,
-            'password' => $validated['password'] ? Hash::make($validated['password']) : $user->password,
-        ]);
-
-        if (!empty($validated['branches'])) {
-            $user->branches()->sync($validated['branches']);
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
         } else {
-            $user->branches()->detach();
+            unset($validated['password']);
         }
 
+        $user->update($validated);
+
+        // Handle branches
+        if (isset($validated['branches'])) {
+            $user->branches()->sync(
+                is_array($validated['branches']) 
+                    ? $validated['branches'] 
+                    : explode(',', $validated['branches'])
+            );
+        }
+
+        // Handle role assignment
         if (!empty($validated['role'])) {
-            DB::table('model_has_roles')->where('model_id', $user->id)->delete();
-            $user->assignRole(Role::findById($validated['role']));
+            $role = Role::find($validated['role']);
+            $user->syncRoles([$role->name]);
+            $user->update(['type' => $role->name]);
         }
 
-        if (!empty($validated['permissions'])) {
-            $permissionIds = Permission::whereIn('name', $validated['permissions'])->pluck('id');
-            $user->syncPermissions($permissionIds);
-        } else {
-            $user->syncPermissions([]);
+        // Handle permissions
+        if (isset($validated['permissions'])) {
+            $user->permissions()->sync(
+                is_array($validated['permissions'])
+                    ? $validated['permissions']
+                    : explode(',', $validated['permissions'])
+            );
         }
 
         return response()->json([
@@ -317,7 +314,6 @@ class UserApiController extends Controller
             'data' => $user,
         ], 200);
     }
-
     /**
      * Remove the specified user from storage.
      *
