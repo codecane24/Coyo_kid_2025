@@ -161,11 +161,11 @@ class UserApiController extends Controller
 
             // Handle permissions
             if (!empty($validated['permissions'])) {
-                $permissionIds = is_array($validated['permissions'])
-                    ? Permission::whereIn('name', $validated['permissions'])->pluck('id')
-                    : Permission::whereIn('name', explode(',', $validated['permissions']))->pluck('id');
+                // $permissionIds = is_array($validated['permissions'])
+                //     ? Permission::whereIn('name', $validated['permissions'])->pluck('id')
+                //     : Permission::whereIn('name', explode(',', $validated['permissions']))->pluck('id');
                 
-                $user->syncPermissions($permissionIds);
+                // $user->syncPermissions($permissionIds);
             }
 
 
