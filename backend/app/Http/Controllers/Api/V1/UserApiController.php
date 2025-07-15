@@ -98,8 +98,9 @@ class UserApiController extends Controller
         if ($userCount >= $companySettings->max_employees) {
            // return response()->json(['status' => 'error', 'message' => 'Employee creation limit exceeded'], 400);
         }
+        $validated = $request;
 
-
+/*
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -118,7 +119,7 @@ class UserApiController extends Controller
         // 'login_start_time' => 'nullable|date_format:H:i',
         // 'login_end_time' => 'nullable|date_format:H:i',
         ]);
-
+*/
 
         if ($request->hasFile('profile_image')) {
            // $validated['profile_image'] = $this->uploadFile($request->file('profile_image'), 'user_profile_image');
@@ -149,7 +150,7 @@ class UserApiController extends Controller
         }
 
         if (!empty($validated['role'])) {
-            $user->assignRole(Role::findById($validated['role']));
+            //$user->assignRole(Role::findById($validated['role']));
         }
 
         if (!empty($validated['permissions'])) {
@@ -192,7 +193,6 @@ class UserApiController extends Controller
                 $userPermission =\App\Models\UserPermissions::where('user_id',$user->id)->with('permission')->get();
                 $user->permissions = $userPermission->isEmpty() ? [] : $userPermission
                                             ->pluck('permission.name')->toArray();
-                
             }
 
         if (!$user) {
@@ -215,7 +215,7 @@ class UserApiController extends Controller
     public function update(Request $request, $id)
     {
         if (!$this->hasPermission('user_edit')) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+          //  return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
         try {
@@ -256,7 +256,7 @@ class UserApiController extends Controller
 
         $user->update([
             'email' => $validated['email'],
-            'name' => $validated['first_name'] . ' ' . ($validated['last_name'] ?? ''),
+            'first_name' => $validated['first_name'] . ' ' . ($validated['last_name'] ?? ''),
             'status' => $validated['status'],
             'mobile' => $validated['mobile'] ?? $user->mobile,
             'assigned_ip_address' => $validated['ipaddress'] ?? null,
