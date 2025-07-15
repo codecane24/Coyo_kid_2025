@@ -182,14 +182,15 @@ class UserApiController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Invalid account ID'], 400);
         }
 
-        $user = User::with(['branches:id']) // Eager load only branch IDs
+        $user = User::with(['branches' => function($query) {
+            $query->select('id'); // Only select ID from branches table
+        }])
         ->select('id','first_name','last_name','email','mobile','gender','profile_image','status')
-        ->find($decryptedId); // Use find() for primary key lookup
+        ->find($decryptedId);
 
         if ($user) {
-            $user->branches = $user->branches->pluck('id')->toArray();
-            // If you want to hide the original branches relation from JSON output:
-            $user->makeHidden('branches'); 
+            $user->branches_array = $user->branches->pluck('id')->toArray();
+            $user->makeHidden('branches'); // Hide the full branches relation
         }
         
 
