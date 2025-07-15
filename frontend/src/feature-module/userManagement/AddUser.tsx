@@ -30,9 +30,9 @@ const AddUser = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [contact, setContact] = useState("");
+  const [mobile, setContact] = useState("");
   const [genderValue, setGenderValue] = useState<any>(null);
-    const [statusValue, setStatusValue] = useState<any>(null);
+  const [statusValue, setStatusValue] = useState<any>(null);
   const [roleId, setRoleId] = useState<any>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [permissionsList, setPermissionsList] = useState<Permission[]>([]);
@@ -61,7 +61,7 @@ useEffect(() => {
         setFirstName(user.first_name || "");
         setLastName(user.last_name || "");
         setEmail(user.email || "");
-        setContact(user.contact || "");
+        setContact(user.mobile || "");
         setGenderValue({ label: user.gender, value: user.gender });
         setRoleId({ label: user.role_name, value: user.role_id });
         setStatusValue({ label: user.status, value: user.status });
@@ -118,7 +118,7 @@ useEffect(() => {
   };
 
   const validateForm = () => {
-    if (!firstName || !lastName || !email || !contact || !genderValue || !roleId) {
+    if (!firstName || !lastName || !email || !mobile || !genderValue || !roleId) {
       alert("Please fill all required fields.");
       return false;
     }
@@ -170,7 +170,7 @@ const handleSubmit = async () => {
         first_name: firstName,
         last_name: lastName,
         email,
-        contact,
+        mobile,
         gender: genderValue?.value,
         department: departmentValue?.value,
         status: statusValue?.value,
@@ -190,7 +190,7 @@ const handleSubmit = async () => {
       payload.append("first_name", firstName);
       payload.append("last_name", lastName);
       payload.append("email", email);
-      payload.append("contact", contact);
+      payload.append("mobile", mobile);
       payload.append("gender", genderValue?.value);
       payload.append("department", departmentValue?.value);
       payload.append("status", statusValue?.value);
@@ -267,11 +267,11 @@ const handleSubmit = async () => {
 
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Contact Number</label>
+                    <label className="form-label">Mobile Number</label>
                     <input
-                      name="contact"
+                      name="mobile"
                       className="form-control"
-                      value={contact}
+                      value={mobile}
                       onChange={(e) => setContact(e.target.value)}
                     />
                   </div>
