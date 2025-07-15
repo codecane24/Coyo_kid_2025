@@ -189,7 +189,7 @@ class UserApiController extends Controller
                 $userBranch= \App\Models\UserBranch::where('user_id',$user->id)->pluck('branch_id')->toArray();
                 $user->branches = $userBranch;
                 
-                $userPermission =\App\Models\UserPermission::where('user_id',$user->id)->with('permission')->get();
+                $userPermission =\App\Models\UserPermissions::where('user_id',$user->id)->with('permission')->get();
                 $user->permissions = $userPermission->isEmpty() ? [] : $userPermission
                                             ->pluck('permission.name')->toArray();
                 
