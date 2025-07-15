@@ -182,11 +182,12 @@ class UserApiController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Invalid account ID'], 400);
         }
 
-        $user = User::where(['id' => $decryptedId])->first()->map(function ($user) {
-            $user->branches = $user->branches()->pluck('id');
-           // $user->permissions = $user->permissions()->pluck('name');
-            return $user;
-        });
+        $user = User::where(['id' => $decryptedId])->first();
+        if ($user) {
+                $user->branches = $user->branches->pluck('id');
+                //$user->permissions = $user->permissions->pluck('name');
+            }
+
         if (!$user) {
             return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
         }
