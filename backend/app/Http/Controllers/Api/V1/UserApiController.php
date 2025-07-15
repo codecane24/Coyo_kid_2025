@@ -182,17 +182,14 @@ class UserApiController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Invalid account ID'], 400);
         }
 
-        $user = User::with(['branches' => function($query) {
-            $query->select('id'); // Only select ID from branches table
-        }])
-        ->select('id','first_name','last_name','email','mobile','gender','profile_image','status')
-        ->find($decryptedId);
-
-        if ($user) {
-            $user->branches_array = $user->branches->pluck('id')->toArray();
-            $user->makeHidden('branches'); // Hide the full branches relation
-        }
-        
+        $user = User::where(['id' => $decryptedId])
+                ->select('id','first_name','last_name','email','mobile','gender','profile_image','status','type')
+                ->first();
+            if ($user) {
+                $userBranch= \App\Models\UserBranch::where('user_id',$user->id)->pluck('branch_id')->toArray();
+                $user->branches = $userBranch;
+                //$user->permissions = $user->permissions->pluck('name');
+            }
 
         if (!$user) {
             return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
