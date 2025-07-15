@@ -29,15 +29,75 @@ import CommonSelect from "../../../../core/common/commonSelect";
 import { useLocation } from "react-router-dom";
 import { getClassesList } from "../../../../services/ClassData";
 import FinancialDetailsForm from "./FinancialDetailsForm";
+import { useAdmissionForm } from "../../../../context/AdmissionFormContext";
 
 type ClassItem = {
   id: string;
   name: string; 
    
 };
+// at the top or in a separate types file
+export type PersonalInfoType = {
+  academicYear: string;
+  admissionNo: string;
+  admissionDate: string;
+  rollNo: string;
+  status: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  class: string;
+  section: string;
+  gender: string;
+  dob: string;
+  bloodGroup: string;
+  house: string;
+  religion: string;
+  category: string;
+  primaryContact: string;
+  email: string;
+  caste: string;
+  suitableBatch: string;
+  languagesKnown: string[];
+};
+
+export type FinancialInfoType = {
+  // You can leave it empty for now
+};
+
 
 const AddStudent = () => {
   const routes = all_routes;
+    const { formData, setFormData } = useAdmissionForm();
+      const [personalInfo, setPersonalInfo] = useState({
+  academicYear: "",
+  admissionNo: "",
+  admissionDate: "",
+  rollNo: "",
+  status: "",
+  firstName: "",
+  middleName: "",
+  lastName: "",
+  class: "",
+  section: "",
+  gender: "",
+  dob: "",
+  bloodGroup: "",
+  house: "",
+  religion: "",
+  category: "",
+  primaryContact: "",
+  email: "",
+  caste: "",
+  suitableBatch: "",
+  languages: [], // for TagsInput
+});
+type AdmissionFormData = {
+  personalInfo: PersonalInfoType;
+  financialInfo?: FinancialInfoType;
+  // ... any other steps
+};
+    const formatted = dayjs(personalInfo.admissionDate); // wrap before use
   const [classOptions, setClassOptions] = useState<{ label: string; value: string }[]>([]);
 const [showFinancialForm, setShowFinancialForm] = useState(false);
 const handleNextStep = () => setShowFinancialForm(true);
@@ -96,7 +156,56 @@ const handleNextStep = () => setShowFinancialForm(true);
       setDefaultDate(null)
     }
   }, [location.pathname])
-  
+
+
+const [files, setFiles] = useState<FileList | null>(null);
+const formatDate = (dateStr: string | undefined) => {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  return d.toISOString().split("T")[0]; // YYYY-MM-DD
+};
+
+
+
+const handleSubmitPersonalInfo = () => {
+  if (!personalInfo.firstName || !personalInfo.admissionNo) {
+    alert("First Name and Admission Number are required");
+    return;
+  }
+
+  const payload = {
+    ...personalInfo,
+    languagesKnown: owner,
+    admissionDate: formatDate(personalInfo.admissionDate),
+    dob: formatDate(personalInfo.dob),
+  };
+
+
+  // ✅ If you're sending to backend
+  const formData = new FormData();
+  formData.append("data", JSON.stringify(payload));
+
+  // ✅ Store in global form context
+ setFormData({
+  ...formData,
+  personalInfo: payload,
+});
+
+  if (files) {
+    Array.from(files).forEach((file: File) => {
+      formData.append("images", file);
+    });
+  }
+
+  // await axios.post("/api/admission", formData)
+
+  // ✅ Move to next step if needed
+  // goToNextStep(); // <- you control this
+  console.log(payload)
+};
+
+
+
   return (
     <>
       {/* Page Wrapper */}
@@ -131,262 +240,338 @@ const handleNextStep = () => setShowFinancialForm(true);
             <div className="col-md-12">
               <form>
                 {/* Personal Information */}
-                <div className="card">
-                  <div className="card-header bg-light">
-                    <div className="d-flex align-items-center">
-                      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-                        <i className="ti ti-info-square-rounded fs-16" />
-                      </span>
-                      <h4 className="text-dark">Personal Information</h4>
-                    </div>
-                  </div>
-                  <div className="card-body pb-1">
-                    <div className="row">
-                      <div className="col-md-12">
-                        <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
-                          <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
-                            <i className="ti ti-photo-plus fs-16" />
-                          </div>
-                          <div className="profile-upload">
-                            <div className="profile-uploader d-flex align-items-center">
-                              <div className="drag-upload-btn mb-3">
-                                Upload
-                                <input
-                                  type="file"
-                                  className="form-control image-sign"
-                                  multiple
-                                />
-                              </div>
-                              <Link to="#" className="btn btn-primary mb-3">
-                                Remove
-                              </Link>
-                            </div>
-                            <p className="fs-12">
-                              Upload image size 4MB, Format JPG, PNG, SVG
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="row row-cols-xxl-5 row-cols-md-6">
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Academic Year</label>
-                          <CommonSelect
-                          className="select"
-                          options={academicYear}
-                          defaultValue={isEdit? academicYear[0]: undefined}
-                        />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Admission Number</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'AD9892434': undefined} />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Admission Date</label>
-                          <div className="input-icon position-relative">
-                          {isEdit? <DatePicker
-                                className="form-control datetimepicker"
-                                format={{
-                                  format: "DD-MM-YYYY",
-                                  type: "mask",
-                                }}
-                                value={defaultDate}
-                                placeholder="Select Date"
-                              /> : <DatePicker
-                              className="form-control datetimepicker"
-                              format={{
-                                format: "DD-MM-YYYY",
-                                type: "mask",
-                              }}
-                              defaultValue=""
-                              placeholder="Select Date"
-                            />}
-                            <span className="input-icon-addon">
-                              <i className="ti ti-calendar" />
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Roll Number</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '35013': undefined} />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Status</label>
-                          <CommonSelect
-                            className="select"
-                            options={status}
-                            defaultValue={isEdit?status[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">First Name</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'Ralph': undefined}/>
-                        </div>
-                      </div>
-                             <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Middel Name</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'claudia': undefined}/>
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Last Name</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'claudia': undefined}/>
-                        </div>
-                      </div>
-                    <div className="col-xxl col-xl-3 col-md-6">
-  <div className="mb-3">
-    <label className="form-label">Class</label>
-    <CommonSelect
-      className="select"
-      options={classOptions}
-      defaultValue={isEdit ? classOptions[0] : undefined}
-    />
+            <div className="card">
+  <div className="card-header bg-light">
+    <div className="d-flex align-items-center">
+      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
+        <i className="ti ti-info-square-rounded fs-16" />
+      </span>
+      <h4 className="text-dark">Personal Information</h4>
+    </div>
+  </div>
+  <div className="card-body pb-1">
+    <div className="row">
+      <div className="col-md-12">
+        <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
+          <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
+            <i className="ti ti-photo-plus fs-16" />
+          </div>
+          <div className="profile-upload">
+            <div className="profile-uploader d-flex align-items-center">
+              <div className="drag-upload-btn mb-3">
+                Upload
+                <input
+                  type="file"
+                  className="form-control image-sign"
+                  multiple
+                  onChange={(e) => setFiles(e.target.files)}
+                />
+              </div>
+              <Link to="#" className="btn btn-primary mb-3" onClick={() => setFiles(null)}>
+                Remove
+              </Link>
+            </div>
+            <p className="fs-12">
+              Upload image size 4MB, Format JPG, PNG, SVG
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="row row-cols-xxl-5 row-cols-md-6">
+      {/** Academic Year */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Academic Year</label>
+          <CommonSelect
+            className="select"
+            options={academicYear}
+            value={academicYear.find(option => option.value === personalInfo.academicYear)}
+            onChange={(option) => setPersonalInfo({ ...personalInfo, academicYear: option?.value || "" })}
+          />
+        </div>
+      </div>
+
+      {/** Admission Number */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Admission Number</label>
+          <input
+            type="text"
+            className="form-control"
+            value={personalInfo.admissionNo}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, admissionNo: e.target.value })}
+          />
+        </div>
+      </div>
+
+      {/** Admission Date */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Admission Date</label>
+          <div className="input-icon position-relative">
+     <DatePicker
+  value={dayjs(personalInfo.admissionDate || new Date())}
+  onChange={(date) => {
+    setPersonalInfo((prev) => ({
+      ...prev,
+      admissionDate: dayjs(date).format("YYYY-MM-DD"),
+    }));
+  }}
+/>
+
+            <span className="input-icon-addon">
+              <i className="ti ti-calendar" />
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/** Roll Number */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Roll Number</label>
+          <input
+            type="text"
+            className="form-control"
+            value={personalInfo.rollNo}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, rollNo: e.target.value })}
+          />
+        </div>
+      </div>
+
+      {/** Status */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Status</label>
+          <CommonSelect
+            className="select"
+            options={status}
+            value={status.find(option => option.value === personalInfo.status)}
+            onChange={(option) => setPersonalInfo({ ...personalInfo, status: option?.value || "" })}
+          />
+        </div>
+      </div>
+
+      {/** First Name */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">First Name</label>
+          <input
+            type="text"
+            className="form-control"
+            value={personalInfo.firstName}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, firstName: e.target.value })}
+          />
+        </div>
+      </div>
+
+      {/** Middle Name */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Middle Name</label>
+          <input
+            type="text"
+            className="form-control"
+            value={personalInfo.middleName}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, middleName: e.target.value })}
+          />
+        </div>
+      </div>
+
+      {/** Last Name */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Last Name</label>
+          <input
+            type="text"
+            className="form-control"
+            value={personalInfo.lastName}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, lastName: e.target.value })}
+          />
+        </div>
+      </div>
+
+      {/** Class */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Class</label>
+          <CommonSelect
+            className="select"
+            options={classOptions}
+            value={classOptions.find(option => option.value === personalInfo.class)}
+            onChange={(option) => setPersonalInfo({ ...personalInfo, class: option?.value || "" })}
+          />
+        </div>
+      </div>
+
+      {/** Section */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Section</label>
+          <CommonSelect
+            className="select"
+            options={allSection}
+            value={allSection.find(option => option.value === personalInfo.section)}
+            onChange={(option) => setPersonalInfo({ ...personalInfo, section: option?.value || "" })}
+          />
+        </div>
+      </div>
+
+      {/** Gender */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Gender</label>
+          <CommonSelect
+            className="select"
+            options={gender}
+            value={gender.find(option => option.value === personalInfo.gender)}
+            onChange={(option) => setPersonalInfo({ ...personalInfo, gender: option?.value || "" })}
+          />
+        </div>
+      </div>
+
+      {/** Date of Birth */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Date of Birth</label>
+          <div className="input-icon position-relative">
+           
+                <DatePicker
+  value={dayjs(personalInfo.dob || new Date())}
+  onChange={(date) => {
+    setPersonalInfo((prev) => ({
+      ...prev,
+      dob: dayjs(date).format("YYYY-MM-DD"),
+    }));
+  }}
+/>
+            <span className="input-icon-addon">
+              <i className="ti ti-calendar" />
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/** Blood Group */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Blood Group</label>
+          <CommonSelect
+            className="select"
+            options={bloodGroup}
+            value={bloodGroup.find(option => option.value === personalInfo.bloodGroup)}
+            onChange={(option) => setPersonalInfo({ ...personalInfo, bloodGroup: option?.value || "" })}
+          />
+        </div>
+      </div>
+
+      {/** House */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">House</label>
+          <CommonSelect
+            className="select"
+            options={house}
+            value={house.find(option => option.value === personalInfo.house)}
+            onChange={(option) => setPersonalInfo({ ...personalInfo, house: option?.value || "" })}
+          />
+        </div>
+      </div>
+
+      {/** Religion */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Religion</label>
+          <CommonSelect
+            className="select"
+            options={religion}
+            value={religion.find(option => option.value === personalInfo.religion)}
+            onChange={(option) => setPersonalInfo({ ...personalInfo, religion: option?.value || "" })}
+          />
+        </div>
+      </div>
+
+      {/** Category */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Category</label>
+          <CommonSelect
+            className="select"
+            options={cast}
+            value={cast.find(option => option.value === personalInfo.category)}
+            onChange={(option) => setPersonalInfo({ ...personalInfo, category: option?.value || "" })}
+          />
+        </div>
+      </div>
+
+      {/** Contact Number */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Primary Contact Number</label>
+          <input
+            type="text"
+            className="form-control"
+            value={personalInfo.primaryContact}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, primaryContact: e.target.value })}
+          />
+        </div>
+      </div>
+
+      {/** Email */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Email Address</label>
+          <input
+            type="email"
+            className="form-control"
+            value={personalInfo.email}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
+          />
+        </div>
+      </div>
+
+      {/** Caste */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Caste</label>
+          <input
+            type="text"
+            className="form-control"
+            value={personalInfo.caste}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, caste: e.target.value })}
+          />
+        </div>
+      </div>
+
+      {/** Suitable Batch */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Suitable Batch</label>
+          <CommonSelect
+            className="select"
+            options={mothertongue}
+            value={mothertongue.find(option => option.value === personalInfo.suitableBatch)}
+            onChange={(option) => setPersonalInfo({ ...personalInfo, suitableBatch: option?.value || "" })}
+          />
+        </div>
+      </div>
+
+      {/** Languages Known */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Language Known</label>
+          <TagsInput
+            value={owner}
+            onChange={(val) => setOwner(val)}
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Section</label>
-                          <CommonSelect
-                            className="select"
-                            options={allSection}
-                            defaultValue={isEdit?allSection[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Gender</label>
-                          <CommonSelect
-                            className="select"
-                            options={gender}
-                            defaultValue={isEdit?gender[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Date of Birth</label>
-                          <div className="input-icon position-relative">
-                          {isEdit? <DatePicker
-                                className="form-control datetimepicker"
-                                format={{
-                                  format: "DD-MM-YYYY",
-                                  type: "mask",
-                                }}
-                                value={defaultDate}
-                                placeholder="Select Date"
-                              /> : <DatePicker
-                              className="form-control datetimepicker"
-                              format={{
-                                format: "DD-MM-YYYY",
-                                type: "mask",
-                              }}
-                              defaultValue=""
-                              placeholder="Select Date"
-                            />}
-                            <span className="input-icon-addon">
-                              <i className="ti ti-calendar" />
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Blood Group</label>
-                          <CommonSelect
-                            className="select"
-                            options={bloodGroup}
-                            defaultValue={isEdit? bloodGroup[0] : undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">House</label>
-                          <CommonSelect
-                            className="select"
-                            options={house}
-                            defaultValue={isEdit?house[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Religion</label>
-                          <CommonSelect
-                            className="select"
-                            options={religion}
-                            defaultValue={isEdit?religion[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Category</label>
-                          <CommonSelect
-                            className="select"
-                            options={cast}
-                            defaultValue={isEdit?cast[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                            Primary Contact Number
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '+1 46548 84498': undefined}/>
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Email Address</label>
-                          <input type="email" className="form-control" defaultValue={isEdit? 'jan@example.com': undefined}/>
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Caste</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'Catholic': undefined}/>
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Suitable Batch</label>
-                          <CommonSelect
-                            className="select"
-                            options={mothertongue}
-                            defaultValue={isEdit?mothertongue[0]:undefined}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-xxl col-xl-3 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Language Known</label>
-                          <TagsInput
-                            // className="input-tags form-control"
-                            value={owner}
-                            onChange={setOwner}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
                 
                 {/* Parents & Guardian Information */}
                 <div className="card">
@@ -1094,7 +1279,7 @@ const handleNextStep = () => setShowFinancialForm(true);
   <button
     className="btn btn-primary"
     style={{ backgroundColor: "#0d6efd", borderColor: "#0d6efd" }} // Light Bootstrap blue
-    onClick={handleNextStep}
+   onClick={handleSubmitPersonalInfo}
   >
     <i className="bi bi-arrow-right-circle me-2" />
     Next Step
