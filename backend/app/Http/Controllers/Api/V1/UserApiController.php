@@ -182,25 +182,18 @@ class UserApiController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Invalid account ID'], 400);
         }
 
-        $user = User::where(['id' => $decryptedId])->first();
+        $user = User::where(['id' => $decryptedId])->first()->map(function ($user) {
+            $user->branches = $user->branches()->pluck('id');
+           // $user->permissions = $user->permissions()->pluck('name');
+            return $user;
+        });
         if (!$user) {
             return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
         }
 
         return response()->json([
             'status' => 'success',
-            'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'mobile' => $user->country_code . ' ' . $user->mobile,
-                'status' => $user->status,
-                'profile_image' => $user->profile_image ? asset($user->profile_image) : null,
-                'roles' => $user->getRoleNames(),
-               // 'permissions' => $user->permissions->pluck('name'),
-             //   'permissions' => $user->userpermissions->pluck('name')->toArray(),
-                'branches' => $user->branches->pluck('id'),
-            ],
+            'data' =>$user,
         ], 200);
     }
 
