@@ -214,6 +214,7 @@ class UserController extends ResponseController
             'company_id' => $user->company_id,
             'company' => $user->company,
             'permissions' => $user->permissions->pluck('name')->toArray(),
+            
         ];
 
         if (Company::count() == 0) {

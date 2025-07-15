@@ -144,4 +144,9 @@ class UserModel extends Authenticatable
             'branch_id'          // Foreign key for the related model (Branch)
         );
     }
+
+    public function userpermissions()
+    {
+        return $this->hasMany(UserPermissions::class, 'user_id');
+    }
 }

@@ -83,9 +83,9 @@ const columns = [
   },
   {
     title: "Mobile",
-    dataIndex: "mobile_number",
+    dataIndex: "mobile",
     render: (text: string) => safeText(text),
-    sorter: (a: any, b: any) => a.mobile_number?.localeCompare(b.contact),
+    sorter: (a: any, b: any) => a.mobile?.localeCompare(b.mobile),
   },
   {
     title: "Code",
