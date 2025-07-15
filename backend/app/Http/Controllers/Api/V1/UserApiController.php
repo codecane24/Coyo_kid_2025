@@ -186,7 +186,7 @@ class UserApiController extends Controller
                 ->select('id','first_name','last_name','email','mobile','gender','profile_image','status')
                 ->first();
             if ($user) {
-                $user->branches = $user->branches->select('id')->pluck('id');
+                $user->branches = $user->branches->select('id')->pluck('id')->toArray();
                 //$user->permissions = $user->permissions->pluck('name');
             }
 
