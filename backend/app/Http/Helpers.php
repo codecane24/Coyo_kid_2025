@@ -1179,8 +1179,8 @@ function send_push($user_id = 0, $data = [], $notification_entry = false)
         'object_id' => $data['object_id'] ?? null,
     ];
     if ($push_data['user_id'] !== $push_data['from_user_id']) {
-        //        $to_user_data = User::find($user_id);
-//        if ($to_user_data) {
+        //    $to_user_data = User::find($user_id);
+        //  if ($to_user_data) {
         $get_user_tokens = DeviceToken::get_user_tokens($user_id);
         $fire_base_header = ["Authorization: key=" . config('constants.firebase_server_key'), "Content-Type: application/json"];
         if (count($get_user_tokens)) {
