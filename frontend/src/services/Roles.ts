@@ -6,6 +6,7 @@ export const getRolelist= async () => {
   return response.data;
 };
 
+
 export const createRole = async (RoleData: any) => {
   const response = await axiosInstance.post("/role", RoleData);
   return response.data;

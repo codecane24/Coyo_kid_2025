@@ -5,19 +5,19 @@ interface FormData {
   personalInfo: {
     name?: string;
     email?: string;
-    // add all personal fields
+    // Add all other personal fields
   };
   financialInfo: {
     income?: string;
     documents?: string[];
-    // add all financial fields
+    // Add all other financial fields
   };
 }
 
 // 2. Define the context type
 interface AdmissionFormContextType {
   formData: FormData;
-  setFormData: (data: Partial<FormData>) => void;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
 }
 
 // 3. Create context
@@ -25,18 +25,10 @@ const AdmissionFormContext = createContext<AdmissionFormContextType | undefined>
 
 // 4. Context provider
 export const AdmissionFormProvider = ({ children }: { children: ReactNode }) => {
-  const [formData, setFormDataState] = useState<FormData>({
+  const [formData, setFormData] = useState<FormData>({
     personalInfo: {},
     financialInfo: {},
   });
-
-  // This merges new data into existing state
-  const setFormData = (data: Partial<FormData>) => {
-    setFormDataState((prev) => ({
-      ...prev,
-      ...data,
-    }));
-  };
 
   return (
     <AdmissionFormContext.Provider value={{ formData, setFormData }}>
@@ -48,6 +40,8 @@ export const AdmissionFormProvider = ({ children }: { children: ReactNode }) => 
 // 5. Hook to use context
 export const useAdmissionForm = () => {
   const context = useContext(AdmissionFormContext);
-  if (!context) throw new Error("useAdmissionForm must be used within AdmissionFormProvider");
+  if (!context) {
+    throw new Error("useAdmissionForm must be used within an AdmissionFormProvider");
+  }
   return context;
 };
