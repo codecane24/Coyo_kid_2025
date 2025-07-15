@@ -36,7 +36,8 @@ const AddUser = () => {
   const [roleId, setRoleId] = useState<any>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [permissionsList, setPermissionsList] = useState<Permission[]>([]);
-  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
+
   const [selectedBranches, setSelectedBranches] = useState<number[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
 const[departmentValue, setdepartmentValue] =  useState<any>(null);
@@ -44,40 +45,56 @@ const [password, setPassword] = useState("");
 const [confirmPassword, setConfirmPassword] = useState("");
 const [showPassword, setShowPassword] = useState(false);
 const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
 const location = useLocation();
 const { id } = useParams();
-const userId = Number(id); // ✅ convert to number
+const userId = id; // ✅ convert to number
 const isEdit = !!userId;
-
+console.log("Route ID:", id, "Parsed UserID:", userId, "Is Edit:", isEdit);
 useEffect(() => {
   const fetchUserDetails = async () => {
     if (isEdit && userId) {
       try {
         const res = await getUserById(userId);
-        const user = res.data;
+        const user = res.data.data;
 
-        // fill fields
+        console.log("✅ it is user data for edit:", user);
+
+        // ✅ Set basic fields
         setFirstName(user.first_name || "");
         setLastName(user.last_name || "");
         setEmail(user.email || "");
         setContact(user.mobile || "");
-        setGenderValue({ label: user.gender, value: user.gender });
-        setRoleId({ label: user.role_name, value: user.role_id });
-        setStatusValue({ label: user.status, value: user.status });
-        setdepartmentValue({ label: user.department, value: user.department });
-        setSelectedBranches(user.branches || []);
-        setSelectedPermissions(user.permissions || []);
-        setPassword(""); // don't prefill
+
+        // ✅ Safely set dropdown fields only if values exist
+        setGenderValue(user.gender ? { label: user.gender, value: user.gender } : null);
+        setStatusValue(user.status ? { label: user.status, value: user.status } : null);
+        setdepartmentValue(user.department_id && user.department_id !== "0" ? { label: user.department_id, value: user.department_id } : null);
+        setRoleId(user.type ? { label: user.type || "Role", value: user.type } : null);
+
+        // ✅ Set arrays
+setSelectedBranches((user.branches || []).map((b: string) => Number(b)));
+setSelectedPermissions((user.permissions || []).map(Number));
+
+
+           // ✅ Set image URL
+        if (user.profile_image) {
+          setImagePreviewUrl(user.profile_image); // 👈 You need this state
+        }
+        // ✅ Don’t prefill passwords
+        setPassword("");
         setConfirmPassword("");
       } catch (err) {
-        console.error("Failed to fetch user", err);
+        console.error("❌ Failed to fetch user", err);
       }
     }
   };
 
   fetchUserDetails();
 }, [isEdit, userId]);
+
+
 
 
   useEffect(() => {
@@ -99,12 +116,12 @@ useEffect(() => {
     fetchPermissions();
   }, []);
 
-  const handlePermissionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = e.target;
-    setSelectedPermissions((prev) =>
-      checked ? [...prev, value] : prev.filter((p) => p !== value)
-    );
-  };
+  // const handlePermissionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const { value, checked } = e.target;
+  //   setSelectedPermissions((prev) =>
+  //     checked ? [...prev, value] : prev.filter((p) => p !== value)
+  //   );
+  // };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -116,22 +133,57 @@ useEffect(() => {
     }
     setImageFile(file || null);
   };
+const validateForm = () => {
+  if (!firstName || !email || !mobile) {
+    alert("Please fill all required fields.");
+    return false;
+  }
 
-  const validateForm = () => {
-    if (!firstName || !lastName || !email || !mobile || !genderValue || !roleId) {
-      alert("Please fill all required fields.");
+  if (!isEdit) {
+    if (!lastName || !genderValue || !roleId) {
+      alert("Please fill all dropdowns and last name.");
       return false;
     }
-    if (selectedPermissions.length < 1) {
-      alert("Please select at least one permission.");
-      return false;
-    }
+
     if (!imageFile) {
       alert("Please upload an image.");
       return false;
     }
-    return true;
-  };
+
+    if (password.length < 6) {
+      alert("Password must be at least 6 characters.");
+      return false;
+    }
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match.");
+      return false;
+    }
+
+    if (selectedPermissions.length < 1) {
+      alert("Please select at least one permission.");
+      return false;
+    }
+  } else {
+    // ✅ For EDIT mode — only validate password if user typed something
+    if (password || confirmPassword) {
+      if (password.length < 6) {
+        alert("Password must be at least 6 characters.");
+        return false;
+      }
+      if (password !== confirmPassword) {
+        alert("Passwords do not match.");
+        return false;
+      }
+    }
+  }
+
+  return true;
+};
+
+
+
+
 const resetForm = () => {
   setFirstName("");
   setLastName("");
@@ -153,33 +205,36 @@ const resetForm = () => {
 const handleSubmit = async () => {
   if (!validateForm()) return;
 
-  if (password.length < 6) {
-    alert("Password must be at least 6 characters.");
-    return;
-  }
+  // if (password.length < 6) {
+  //   alert("Password must be at least 6 characters.");
+  //   return;
+  // }
 
-  if (password !== confirmPassword) {
-    alert("Passwords do not match.");
-    return;
-  }
+  // if (password !== confirmPassword) {
+  //   alert("Passwords do not match.");
+  //   return;
+  // }
 
   try {
     if (isEdit && userId) {
       // ✅ EDIT: Use JSON format
-      const updatePayload = {
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        mobile,
-        gender: genderValue?.value,
-        department: departmentValue?.value,
-        status: statusValue?.value,
-        role_id: roleId?.value,
-        branches: selectedBranches,
-        permissions: selectedPermissions,
-        password,
-        profile_image: null, // optional: handle if backend allows updating image separately
-      };
+   const updatePayload = new FormData();
+updatePayload.append("first_name", firstName);
+updatePayload.append("last_name", lastName);
+updatePayload.append("email", email);
+updatePayload.append("mobile", mobile);
+updatePayload.append("gender", genderValue?.value);
+updatePayload.append("department", departmentValue?.value);
+updatePayload.append("status", statusValue?.value);
+updatePayload.append("type", "teacher"); // or whatever type
+updatePayload.append("branches", JSON.stringify(selectedBranches));
+updatePayload.append("permissions", JSON.stringify(selectedPermissions));
+updatePayload.append("password", password);
+
+if (imageFile) {
+  updatePayload.append("profile_image", imageFile);
+}
+
 
       const res = await updateUser(userId, updatePayload);
       alert("User updated successfully");
@@ -194,9 +249,14 @@ const handleSubmit = async () => {
       payload.append("gender", genderValue?.value);
       payload.append("department", departmentValue?.value);
       payload.append("status", statusValue?.value);
-      payload.append("role_id", roleId?.value);
-      payload.append("branches", JSON.stringify(selectedBranches));
-      payload.append("permissions", JSON.stringify(selectedPermissions));
+      payload.append("type", roleId?.value);
+   selectedBranches.forEach((branchId) => {
+  payload.append("branches[]", branchId.toString());
+});
+
+selectedPermissions.forEach((permId) => {
+  payload.append("permissions[]", permId.toString());
+});
       payload.append("password", password);
 
       if (imageFile) payload.append("profile_image", imageFile);
@@ -323,15 +383,40 @@ const handleSubmit = async () => {
                   onChange={setSelectedBranches}
                 />
 
-                <div className="col-xxl col-xl-3 col-md-6">
-                  <label className="form-label">Upload Image</label>
-                  <input
-                    type="file"
-                    className="form-control"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                </div>
+             <div className="col-xxl col-xl-3 col-md-6">
+  <label className="form-label">Profile Image</label>
+  {imagePreviewUrl && (
+    <div style={{ marginBottom: "10px" }}>
+      <img
+        src={imagePreviewUrl}
+        alt="Profile Preview"
+        width={120}
+        style={{ borderRadius: "8px" }}
+      />
+    </div>
+  )}
+  <input
+    type="file"
+    accept="image/*"
+    className="form-control"
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+      if (file && file.size > 4194304) {
+        alert("Image must be less than 4MB");
+        return;
+      }
+      setImageFile(file || null);
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviewUrl(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+    }}
+  />
+</div>
+
  {/* Password */}
 <div className="col-xxl col-xl-3 col-md-6">
   <div className="mb-3 position-relative">
@@ -391,18 +476,25 @@ const handleSubmit = async () => {
                             {mod.children?.map((perm) => (
                               <div key={perm.id} className="col-6 col-lg-4 col-xl-3">
                                 <div className="form-check">
-                                  <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    id={`perm-${perm.id}`}
-                                    name="permissions[]"
-                                    value={perm.name}
-                                    checked={selectedPermissions.includes(perm.name)}
-                                    onChange={handlePermissionChange}
-                                  />
-                                  <label className="form-check-label" htmlFor={`perm-${perm.id}`}>
-                                    {perm.name}
-                                  </label>
+                                 <input
+  className="form-check-input"
+  type="checkbox"
+  id={`perm-${perm.id}`}
+  name="permissions[]"
+  value={perm.id} // ✅ use ID instead of name
+  checked={selectedPermissions.includes(perm.id)}
+  onChange={(e) => {
+    const id = Number(e.target.value);
+    const checked = e.target.checked;
+    setSelectedPermissions((prev) =>
+      checked ? [...prev, id] : prev.filter((p) => p !== id)
+    );
+  }}
+/>
+<label className="form-check-label" htmlFor={`perm-${perm.id}`}>
+  {perm.name}
+</label>
+
                                 </div>
                               </div>
                             ))}

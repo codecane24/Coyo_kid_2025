@@ -199,7 +199,7 @@ const handleSubmitPersonalInfo = (e: React.FormEvent) => {
     // Optional: await axios.post(...)
   }
 
-  console.log("Payload:", payload);
+  console.log("Payload:Add Student-PersionalInfo", payload);
   setShowFinancialForm(true);
 };
 
