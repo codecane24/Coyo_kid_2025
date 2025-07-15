@@ -66,7 +66,7 @@ class UserApiController extends Controller
                 'profile_image' => $user->profile_image ? asset($user->profile_image) : null,
                 'name' => $user->first_name . ' ' . $user->last_name,
                 'email' => $user->email,
-                'mobile_number' => $user->contact,
+                'mobile' => $user->mobile,
                 'status' => $user->status,
                 'actions' => $this->generateActionLinks($user),
             ];
@@ -103,7 +103,7 @@ class UserApiController extends Controller
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'contact' => 'required|string|unique:users,contact|max:20',
+            'mobile' => 'required|string|unique:users,mobile|max:20',
             'email' => 'required|email|unique:users,email|max:255',
             'password' => 'required|string|min:8',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
@@ -131,7 +131,7 @@ class UserApiController extends Controller
         $user = User::create([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
-            'contact' => $validated['contact'],
+            'mobile' => $validated['mobile'],
             'password' => Hash::make($validated['password']),
             'email' => $validated['email'],
             'department_id' => $validated['department_id'] ?? null,
