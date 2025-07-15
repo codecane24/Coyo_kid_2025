@@ -219,7 +219,7 @@ class UserApiController extends Controller
                 
                 $userPermission =\App\Models\UserPermissions::where('user_id',$user->id)->with('permission')->get();
                 $user->permissions = $userPermission->isEmpty() ? [] : $userPermission
-                                            ->pluck('permission.name')->toArray();
+                                            ->pluck('permission.id')->toArray();
             }
 
         if (!$user) {
