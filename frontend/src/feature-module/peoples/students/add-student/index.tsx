@@ -387,7 +387,7 @@ const handleNextStep = () => setShowFinancialForm(true);
                     </div>
                   </div>
                 </div>
-                {/* /Personal Information */}
+                
                 {/* Parents & Guardian Information */}
                 <div className="card">
                   <div className="card-header bg-light">
@@ -559,7 +559,7 @@ const handleNextStep = () => setShowFinancialForm(true);
                     </div>
                   </div>
                 </div>
-                {/* /Parents & Guardian Information */}
+                
                 {/* Sibilings */}
                 <div className="card">
                   <div className="card-header bg-light">
@@ -846,14 +846,7 @@ const handleNextStep = () => setShowFinancialForm(true);
                       </span>
                       <h4 className="text-dark">Transport Information</h4>
                     </div>
-                    
-                    {/* <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        role="switch"
-                      />
-                    </div> */}
+                
                   </div>
               
                   <div className="mb-3 pl-3">
@@ -971,7 +964,7 @@ const handleNextStep = () => setShowFinancialForm(true);
                     </div>
                   </div>
                 </div>
-                {/* /Documents */}
+            
                 {/* Medical History */}
                 <div className="card">
                   <div className="card-header bg-light">
@@ -1055,7 +1048,7 @@ const handleNextStep = () => setShowFinancialForm(true);
                     </div>
                   </div>
                 </div>
-                {/* /Medical History */}
+              
                 {/* Previous School details */}
                 <div className="card">
                   <div className="card-header bg-light">
@@ -1097,15 +1090,17 @@ const handleNextStep = () => setShowFinancialForm(true);
     </p>
   </label>
 </div>
+<div className="d-flex justify-content-end mt-4">
+  <button
+    className="btn btn-primary"
+    style={{ backgroundColor: "#0d6efd", borderColor: "#0d6efd" }} // Light Bootstrap blue
+    onClick={handleNextStep}
+  >
+    <i className="bi bi-arrow-right-circle me-2" />
+    Next Step
+  </button>
+</div>
 
-          <div className="flex justify-end mt-4">
-      <button
-        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-        onClick={handleNextStep}
-      >
-        Next Step
-      </button>
-    </div>
               </form>
             </div>
           </div>

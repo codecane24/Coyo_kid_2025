@@ -1263,6 +1263,10 @@ export const authRoutes = [
     path: routes.addusers,
     element: <AddUser/>,
   },
+     {
+    path: routes.editUser,
+    element: <AddUser/>,
+  },
   {
     path: routes.allBlogs,
     element: <AllBlogs />,

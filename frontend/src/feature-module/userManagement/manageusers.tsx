@@ -49,6 +49,7 @@ useEffect(() => {
   };
 
   fetchUsers();
+  console.log(fetchUsers())
 }, []);
 
 
@@ -84,7 +85,7 @@ const columns = [
     title: "Mobile",
     dataIndex: "mobile_number",
     render: (text: string) => safeText(text),
-    sorter: (a: any, b: any) => a.mobile_number?.localeCompare(b.mobile_number),
+    sorter: (a: any, b: any) => a.mobile_number?.localeCompare(b.contact),
   },
   {
     title: "Code",
@@ -111,32 +112,43 @@ const columns = [
     },
     sorter: (a: any, b: any) => a.status?.localeCompare(b.status),
   },
-  {
-    title: "Action",
-    dataIndex: "action",
-    render: () => (
-      <div className="d-flex align-items-center">
-        <div className="dropdown">
-          <Link
-            to="#"
-            className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            <i className="ti ti-dots-vertical fs-14" />
-          </Link>
-          <ul className="dropdown-menu dropdown-menu-right p-3">
-            <li>
-              <Link className="dropdown-item rounded-1" to="#">
-                <i className="ti ti-trash-x me-2" />
-                Delete
-              </Link>
-            </li>
-          </ul>
-        </div>
+ {
+  title: "Action",
+  dataIndex: "action",
+  render: (_: any, record: any) => (
+    <div className="d-flex align-items-center">
+      <div className="dropdown">
+        <Link
+          to="#"
+          className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <i className="ti ti-dots-vertical fs-14" />
+        </Link>
+        <ul className="dropdown-menu dropdown-menu-right p-3">
+          <li>
+            <Link className="dropdown-item rounded-1" to="#">
+              <i className="ti ti-trash-x me-2" />
+              Delete
+            </Link>
+          </li>
+          <li>
+        <Link
+  className="dropdown-item rounded-1"
+  to={`/add-user/${record.encryptid}`} // ✅ id goes in URL
+>
+  <i className="ti ti-edit me-2" />
+  Edit
+</Link>
+
+          </li>
+        </ul>
       </div>
-    ),
-  },
+    </div>
+  ),
+},
+
   {
   title: "Profile",
   dataIndex: "profile_image",

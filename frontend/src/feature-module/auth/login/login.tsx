@@ -8,6 +8,7 @@ import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("authToken");
+    
     if (
       token &&
       config.url !== "/backend/api/v1/login" &&
@@ -77,13 +78,33 @@ console.log("✅ branches:", result?.data?.branches);
         alert(result.message || "Login failed.");
         return;
       }
+const { token, user, branches: userBranches = [] } = result.data || {};
 
-      const { token, user, branches: userBranches = [] } = result.data || {};
+// Save token
+if (token) {
+  setToken(token);
+  localStorage.setItem("authToken", token);
+}
 
-      if (token) {
-        setToken(token);
-        localStorage.setItem("authToken", token);
-      }
+// ✅ Save schoolId
+if (user?.school_id) {
+  localStorage.setItem("schoolId", user.school_id.toString());
+  console.log("✅ Stored schoolId:", user.school_id);
+} else {
+  console.warn("⚠️ No school_id found in user object.");
+}
+
+// ✅ Save branchId if only one
+if (userBranches.length === 1) {
+  const branchId = userBranches[0]?.id;
+  if (branchId) {
+    localStorage.setItem("branchId", branchId.toString());
+    console.log("✅ Stored branchId:", branchId);
+  } else {
+    console.warn("⚠️ Branch ID not found in branch object.");
+  }
+}
+
 // ✅ SAFELY store user
 const safeUser = user || { type: "", permissions: [] };
 const fullUser = {
