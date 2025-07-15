@@ -19,6 +19,8 @@ import "../src/style/icon/tabler-icons/webfont/tabler-icons.css";
 import ALLRoutes from "./feature-module/router/router";
 import "../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 import { AuthProvider } from "./context/AuthContext";
+import { AdmissionFormProvider } from "./context/AdmissionFormContext";
+import { AppProviders } from "./context/AppProviders";
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
@@ -26,9 +28,9 @@ root.render(
   <React.StrictMode>
     <Provider store={store}>
       <BrowserRouter basename={base_path}>
-      <AuthProvider>
-          <ALLRoutes />
-        </AuthProvider>
+ <AppProviders>
+             <ALLRoutes />
+ </AppProviders>
       </BrowserRouter>
     </Provider>
   </React.StrictMode>
