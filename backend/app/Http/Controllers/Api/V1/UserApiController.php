@@ -145,18 +145,29 @@ class UserApiController extends Controller
            // 'login_end_time' => $validated['login_end_time'] ?? null,
         ]);
 
-        if (!empty($validated['branches'])) {
-            $user->branches()->sync($validated['branches']);
-        }
+             // Handle branches - ensure branches are passed as array of IDs
+            if (!empty($validated['branches'])) {
+                $user->branches()->sync(
+                    is_array($validated['branches']) 
+                        ? $validated['branches'] 
+                        : explode(',', $validated['branches'])
+                );
+            }
 
-        if (!empty($validated['role'])) {
-            //$user->assignRole(Role::findById($validated['role']));
-        }
+            // Handle role assignment
+            if (!empty($validated['role'])) {
+                $user->assignRole($role); // More efficient than findById again
+            }
 
-        if (!empty($validated['permissions'])) {
-            $permissionIds = Permission::whereIn('name', $validated['permissions'])->pluck('id');
-            $user->syncPermissions($permissionIds);
-        }
+            // Handle permissions
+            if (!empty($validated['permissions'])) {
+                $permissionIds = is_array($validated['permissions'])
+                    ? Permission::whereIn('name', $validated['permissions'])->pluck('id')
+                    : Permission::whereIn('name', explode(',', $validated['permissions']))->pluck('id');
+                
+                $user->syncPermissions($permissionIds);
+            }
+
 
         return response()->json([
             'status' => 'success',
