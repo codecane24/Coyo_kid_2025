@@ -135,6 +135,7 @@ class UserApiController extends Controller
             'mobile' => $validated['mobile'],
             'password' => Hash::make($validated['password']),
             'email' => $validated['email'],
+            'gender' => $validated['gender'] ?? null,    
             'department_id' => $validated['department_id'] ?? null,
           //  'profile_image' => $validated['profile_image'] ?? null,
             'status' => $validated['status'],
@@ -159,13 +160,28 @@ class UserApiController extends Controller
                 $user->assignRole($role); // More efficient than findById again
             }
 
-            // Handle permissions
+            // Handle permissions by IDs - raw DB approach
             if (!empty($validated['permissions'])) {
-                // $permissionIds = is_array($validated['permissions'])
-                //     ? Permission::whereIn('name', $validated['permissions'])->pluck('id')
-                //     : Permission::whereIn('name', explode(',', $validated['permissions']))->pluck('id');
+                // Normalize input to array of integers
+                $permissionIds = is_array($validated['permissions'])
+                    ? array_map('intval', $validated['permissions'])
+                    : array_map('intval', explode(',', $validated['permissions']));
                 
-                // $user->syncPermissions($permissionIds);
+                // Delete existing permissions
+                DB::table('user_permissions')->where('user_id', $user->id)->delete();
+                
+                // Prepare insert data
+                $insertData = array_map(function($permissionId) use ($user) {
+                    return [
+                        'user_id' => $user->id,
+                        'permission_id' => $permissionId,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+                }, $permissionIds);
+                
+                // Batch insert new permissions
+                DB::table('user_permissions')->insert($insertData);
             }
 
 
