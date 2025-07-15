@@ -183,12 +183,13 @@ class UserApiController extends Controller
         }
 
         $user = User::where(['id' => $decryptedId])
-                ->select('id','first_name')
+                ->select('id','first_name','last_name','email','mobile','gender','profile_image','status')
                 ->first();
             if ($user) {
                 //$user->branches = $user->branches->select('id')->pluck('id')->toArray();
                 //$user->permissions = $user->permissions->pluck('name');
             }
+        
 
         if (!$user) {
             return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
