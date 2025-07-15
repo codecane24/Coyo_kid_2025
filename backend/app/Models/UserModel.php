@@ -147,7 +147,9 @@ class UserModel extends Authenticatable
 
     public function userpermissions()
     {
-        return $this->belongsToMany(UserPermissions::class, 'permission_user');
+        return $this->belongsToMany (UserPermissions::class, 'user_id')
+            ->join('permissions', 'user_permissions.permission_id', '=', 'permissions.id')
+            ->select('permissions.name');
     }
     
 }
