@@ -168,7 +168,7 @@ class UserApiController extends Controller
                     : array_map('intval', explode(',', $validated['permissions']));
                 
                 // Delete existing permissions
-                DB::table('user_permissions')->where('user_id', $user->id)->delete();
+                DB::table('permission_user')->where('user_id', $user->id)->delete();
                 
                 // Prepare insert data
                 $insertData = array_map(function($permissionId) use ($user) {
@@ -181,7 +181,7 @@ class UserApiController extends Controller
                 }, $permissionIds);
                 
                 // Batch insert new permissions
-                DB::table('user_permissions')->insert($insertData);
+                DB::table('permission_user')->insert($insertData);
             }
 
 
