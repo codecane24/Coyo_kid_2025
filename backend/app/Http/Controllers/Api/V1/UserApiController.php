@@ -197,7 +197,8 @@ class UserApiController extends Controller
                 'status' => $user->status,
                 'profile_image' => $user->profile_image ? asset($user->profile_image) : null,
                 'roles' => $user->getRoleNames(),
-                'permissions' => $user->permissions->pluck('name'),
+               // 'permissions' => $user->permissions->pluck('name'),
+                'permissions' => $user->permissions->pluck('name')->toArray(),
                 'branches' => $user->branches->pluck('id'),
             ],
         ], 200);
