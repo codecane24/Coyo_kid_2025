@@ -69,6 +69,7 @@ export type FinancialInfoType = {
 const AddStudent = () => {
   const routes = all_routes;
     const { formData, setFormData } = useAdmissionForm();
+    
       const [personalInfo, setPersonalInfo] = useState({
   academicYear: "",
   admissionNo: "",
@@ -167,7 +168,11 @@ const formatDate = (dateStr: string | undefined) => {
 
 
 
-const handleSubmitPersonalInfo = () => {
+
+
+const handleSubmitPersonalInfo = (e: React.FormEvent) => {
+  e.preventDefault(); // 🔥 This prevents page refresh
+
   if (!personalInfo.firstName || !personalInfo.admissionNo) {
     alert("First Name and Admission Number are required");
     return;
@@ -175,34 +180,29 @@ const handleSubmitPersonalInfo = () => {
 
   const payload = {
     ...personalInfo,
-    languagesKnown: owner,
     admissionDate: formatDate(personalInfo.admissionDate),
     dob: formatDate(personalInfo.dob),
+    languages: owner,
   };
 
+  setFormData((prev) => ({
+    ...prev,
+    personalInfo: payload,
+  }));
 
-  // ✅ If you're sending to backend
-  const formData = new FormData();
-  formData.append("data", JSON.stringify(payload));
-
-  // ✅ Store in global form context
- setFormData({
-  ...formData,
-  personalInfo: payload,
-});
-
-  if (files) {
-    Array.from(files).forEach((file: File) => {
+  if (files?.length) {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(payload));
+    Array.from(files).forEach((file) => {
       formData.append("images", file);
     });
+    // Optional: await axios.post(...)
   }
 
-  // await axios.post("/api/admission", formData)
-
-  // ✅ Move to next step if needed
-  // goToNextStep(); // <- you control this
-  console.log(payload)
+  console.log("Payload:", payload);
+  setShowFinancialForm(true);
 };
+
 
 
 
@@ -238,7 +238,7 @@ const handleSubmitPersonalInfo = () => {
           {/* /Page Header */}
           <div className="row">
             <div className="col-md-12">
-              <form>
+              <form onSubmit={(e) => e.preventDefault()}>
                 {/* Personal Information */}
             <div className="card">
   <div className="card-header bg-light">
@@ -1276,14 +1276,15 @@ const handleSubmitPersonalInfo = () => {
   </label>
 </div>
 <div className="d-flex justify-content-end mt-4">
-  <button
-    className="btn btn-primary"
-    style={{ backgroundColor: "#0d6efd", borderColor: "#0d6efd" }} // Light Bootstrap blue
-   onClick={handleSubmitPersonalInfo}
-  >
-    <i className="bi bi-arrow-right-circle me-2" />
-    Next Step
-  </button>
+<button
+  type="button" // ✅ Important: prevents form submit behavior
+  className="btn btn-primary"
+  onClick={handleSubmitPersonalInfo}
+>
+  <i className="bi bi-arrow-right-circle me-2" />
+  Next Step
+</button>
+
 </div>
 
               </form>
