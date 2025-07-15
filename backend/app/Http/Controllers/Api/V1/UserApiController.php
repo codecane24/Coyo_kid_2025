@@ -55,7 +55,7 @@ class UserApiController extends Controller
 
         $users = $query->orderBy('id')
                        ->offset($offset)
-                       ->limit($datatable_filter['limit'])
+                      // ->limit($datatable_filter['limit'])
                        ->get();
 
         $data = $users->map(function ($user) {
