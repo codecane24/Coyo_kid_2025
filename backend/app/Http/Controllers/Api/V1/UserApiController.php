@@ -185,9 +185,8 @@ class UserApiController extends Controller
         $user = User::where(['id' => $decryptedId])
                 ->select('id','first_name','last_name','email','mobile','gender','profile_image','status')
                 ->first();
-
             if ($user) {
-                $user->branches = $user->branches->pluck('id');
+                $user->branches = $user->branches->select('id')->pluck('id');
                 //$user->permissions = $user->permissions->pluck('name');
             }
 
