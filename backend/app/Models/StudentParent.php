@@ -2,9 +2,9 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
-class Student extends Model
+class StudentParent extends Model
 {
-	protected $table = 'students';
+	protected $table = 'student_parents';
 
 	protected $hidden = [
 		'created_at',

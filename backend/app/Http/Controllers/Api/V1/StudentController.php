@@ -49,6 +49,13 @@ class StudentController extends ResponseController
 
     public function create(Request $request)
     {
+        if ($request->has('step1')){
+            validate , create, returnse response with student data with student encripted id 
+        }
+        if ($request->has('step1')){
+            validate , create, returnse response with student data with student encripted id 
+        }
+
         $rules = [
             // Personal Information
             'academic_year' => ['required'],
@@ -134,76 +141,6 @@ class StudentController extends ResponseController
             'bank.ifsc' => ['nullable', 'string', 'max:50'],
             'other_information' => ['nullable', 'string', 'max:1000'],
         ];
-
-        QR COD
-SR. NO.
-NAME
-FATHER
-MOTHER
-SURNAME
-DOB
-GENDER
-"   
-GROUP"
-"PRIMERY
-CONTACT"
-"AADHAR
-NUMBER"
-"AADHAR
-DOCUMENT"
-GUARDIAN
-"GUARDIAN'S
-PHONE"
-"GUARDIAN
-AADHAR"
-"FATHER'S
-PHONE"
-"MOTHER'S
-PHONE"
-"FATHER'S
-PROFASSION"
-"MOTHER'S
-PROFASSION"
-"FATHER'S
-PAN"
-"FATHER'S
-AADHAR"
-"MOTHER'S
-PAN"
-"MOTHER'S
-AADHAR"
-"STUDENT
-PHOTO"
-"FATHER
-PHOTO"
-"MOTHER
-PHOTO"
-ADDRESS
-AREA
-CITY
-STATE
-PIN COD
-NATIONALITY
-"CURRENT
-ADDRESS"
-C-AREA
-C-CITY
-C-STATE
-PIN COD
-"FEES
-PLAN"
-"CLASS
-TEACHER"
-CLASS
-DIV
-"MEDICAL
-STATUS"
-"STATUS
-(REG/X)"
-ATTENDANCE
-BEHAVIOUR
-SKILLS
-ACHIVMENTS
 
 
         $validatedData = $this->directValidation($rules);

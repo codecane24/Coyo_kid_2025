@@ -128,7 +128,12 @@ class UserApiController extends Controller
        // $sNo = $this->getNewSerialNo('emp_code');
         $this->increaseSerialNo('emp_code');
 
-        $role = Role::find($validated['role']);
+        if(!empty($validated['branches'])) {
+            $userDefaultBranch=$validated['branches'][0];
+        }else{
+            $userDefaultBranch='';
+        }
+        $role = Role::where('name',$validated['type'])->first();
         $user = User::create([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
@@ -139,7 +144,8 @@ class UserApiController extends Controller
             'department_id' => $validated['department_id'] ?? null,
           //  'profile_image' => $validated['profile_image'] ?? null,
             'status' => $validated['status'],
-            'type' => $role->name ?? 'user',
+            'type' => $role->name ?? '',
+            'branch_id' =>$userDefaultBranch
            // 'code' => $sNo,
           //  'assigned_ip_address' => $validated['ipaddress'] ?? null,
            // 'login_start_time' => $validated['login_start_time'] ?? null,
@@ -153,11 +159,12 @@ class UserApiController extends Controller
                         ? $validated['branches'] 
                         : explode(',', $validated['branches'])
                 );
+                
             }
 
             // Handle role assignment
             if (!empty($validated['role'])) {
-                $user->assignRole($role); // More efficient than findById again
+               // $user->assignRole($role); // More efficient than findById again
             }
 
             // Handle permissions by IDs - raw DB approach
@@ -291,8 +298,11 @@ class UserApiController extends Controller
             unset($validated['password']);
         }
 
+         if(!empty($validated['branches'])) {
+            $userDefaultBranch=$validated['branches'][0];
+        }
         //$user->update($validated);
-
+        $role = Role::where('name',$validated['type'])->first();
         $user->first_name = $validated['first_name'] ?? $user->first_name;
         $user->last_name = $validated['last_name'] ?? $user->last_name;
         $user->mobile = $validated['mobile'] ?? $user->mobile;
@@ -300,7 +310,8 @@ class UserApiController extends Controller
         $user->department_id = $validated['department_id'] ?? $user->department_id;
         $user->status = $validated['status'] ?? $user->status;
         $user->gender = $validated['gender'] ?? $user->gender;
-        
+        $user->type = $role->name ?? $user->type;
+        $user->branch_id = $userDefaultBranch ?? $user->branch_id;
         if (isset($validated['profile_image'])) {
             $user->profile_image = $validated['profile_image'];
         }
