@@ -128,6 +128,11 @@ class UserApiController extends Controller
        // $sNo = $this->getNewSerialNo('emp_code');
         $this->increaseSerialNo('emp_code');
 
+        if(!empty($validated['branches'])) {
+            $userDefaultBranch=$validated['branches'][0];
+        }else{
+            $userDefaultBranch='';
+        }
         $role = Role::where('name',$validated['type'])->first();
         $user = User::create([
             'first_name' => $validated['first_name'],
@@ -140,6 +145,7 @@ class UserApiController extends Controller
           //  'profile_image' => $validated['profile_image'] ?? null,
             'status' => $validated['status'],
             'type' => $role->name ?? '',
+            'branch_id' =>$userDefaultBranch
            // 'code' => $sNo,
           //  'assigned_ip_address' => $validated['ipaddress'] ?? null,
            // 'login_start_time' => $validated['login_start_time'] ?? null,
@@ -153,6 +159,7 @@ class UserApiController extends Controller
                         ? $validated['branches'] 
                         : explode(',', $validated['branches'])
                 );
+                
             }
 
             // Handle role assignment
@@ -291,6 +298,9 @@ class UserApiController extends Controller
             unset($validated['password']);
         }
 
+         if(!empty($validated['branches'])) {
+            $userDefaultBranch=$validated['branches'][0];
+        }
         //$user->update($validated);
         $role = Role::where('name',$validated['type'])->first();
         $user->first_name = $validated['first_name'] ?? $user->first_name;
@@ -301,7 +311,7 @@ class UserApiController extends Controller
         $user->status = $validated['status'] ?? $user->status;
         $user->gender = $validated['gender'] ?? $user->gender;
         $user->type = $role->name ?? $user->type;
-        
+        $user->branch_id = $userDefaultBranch ?? $user->branch_id;
         if (isset($validated['profile_image'])) {
             $user->profile_image = $validated['profile_image'];
         }
