@@ -18,7 +18,7 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
 
     //  Country Selection apis here
     Route::group(['middleware' => 'ApiTokenChecker'], function () {
-
+        Route::resource('mytest','MytestController');
         Route::resource('user1', 'UserApiController');
         Route::group(['prefix' => 'user'], function () {
             Route::get('getProfile', 'UserController@getProfile');

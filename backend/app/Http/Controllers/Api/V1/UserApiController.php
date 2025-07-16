@@ -128,7 +128,7 @@ class UserApiController extends Controller
        // $sNo = $this->getNewSerialNo('emp_code');
         $this->increaseSerialNo('emp_code');
 
-        $role = Role::find($validated['role']);
+        return $role = Role::find($validated['role']);
         $user = User::create([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
@@ -292,7 +292,7 @@ class UserApiController extends Controller
         }
 
         //$user->update($validated);
-
+         return $role = Role::find($validated['role']);
         $user->first_name = $validated['first_name'] ?? $user->first_name;
         $user->last_name = $validated['last_name'] ?? $user->last_name;
         $user->mobile = $validated['mobile'] ?? $user->mobile;
@@ -300,6 +300,7 @@ class UserApiController extends Controller
         $user->department_id = $validated['department_id'] ?? $user->department_id;
         $user->status = $validated['status'] ?? $user->status;
         $user->gender = $validated['gender'] ?? $user->gender;
+        $user->type = $validated['role'] ?? $user->gender;
         
         if (isset($validated['profile_image'])) {
             $user->profile_image = $validated['profile_image'];
