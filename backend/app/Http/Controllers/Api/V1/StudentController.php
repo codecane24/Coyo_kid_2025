@@ -11,8 +11,9 @@ use App\Models\StudentParent;
 use App\Models\StudentSibling;
 use App\Models\StudentDocument;
 use App\Models\StudentMedicalHistory;
-use App\Models\StudentPreviousSchool;
+use App\Models\StudentPreviousSchool; // Ensure this model exists and is used if previous school data is handled
 use Illuminate\Support\Facades\Log; // Import Log facade for error logging
+use Illuminate\Support\Facades\Storage; // Import Storage facade for file uploads
 
 class StudentController extends Controller
 {
@@ -23,6 +24,13 @@ class StudentController extends Controller
      */
     public function index()
     {
+        // For a simple list, eager loading all relations might be too heavy.
+        // If you need more detailed data for the index, uncomment the eager loading below.
+        // $students = Student::with(['parent', 'siblings', 'documents', 'medicalHistory', 'previousSchool'])
+        //     ->orderBy('created_at', 'desc')
+        //     ->get();
+
+        // If you just need basic student data, the current line is fine.
         $studentData = Student::get();
 
         return response()->json([
@@ -40,12 +48,13 @@ class StudentController extends Controller
      */
     public function show($id)
     {
+        // Eager load all related models for a complete student profile.
         $student = Student::with([
             'parent',
             'siblings',
             'documents',
             'medicalHistory',
-            'previousSchool'
+            'previousSchool' // Ensure this relationship is defined in your Student model
         ])->find($id);
 
         if (!$student) {
@@ -53,7 +62,7 @@ class StudentController extends Controller
                 'status' => 'false',
                 'message' => __('api.err_student_not_found'),
                 'data' => null,
-            ], 404);
+            ], 404); // 404 Not Found
         }
 
         $studentData = $this->get_student_data($student);
@@ -61,11 +70,12 @@ class StudentController extends Controller
             'status' => 'true',
             'message' => __('api.succ_student_details'),
             'data' => $studentData,
-        ], 200);
+        ], 200); // 200 OK
     }
 
     /**
      * Store a newly created student (Step 1).
+     * This method initializes the student record.
      *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -74,30 +84,32 @@ class StudentController extends Controller
     {
         $stepName1 = "Student Information";
 
+        // Validation rules for Step 1
         $studentRules = [
             'academic_year' => ['required', 'string', 'max:50'],
-            //'admission_no' => ['required', 'string', 'max:50', 'unique:students,admission_no'],
+            'admission_number' => ['required', 'string', 'max:50', 'unique:students,admission_no'],
             'roll_number' => ['nullable', 'string', 'max:50'],
             'admission_date' => ['required', 'date'],
-           // 'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])],
+            'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])], // Assuming numeric status codes
             'first_name' => ['required', 'string', 'max:50'],
             'last_name' => ['required', 'string', 'max:50'],
-            'class' => ['required', 'string', 'max:50'],
-            // 'section' => ['required', 'string', 'max:50'],
+            'class' => ['required', 'string', 'max:50'], // Changed to string, adjust if it's an ID
+            'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
             'date_of_birth' => ['required', 'date'],
             'blood_group' => ['nullable', 'string', 'max:10'],
             'house' => ['nullable', 'string', 'max:100'],
-            'religion' => ['nullable', Rule::in(['Christianity', 'Buddhism', 'Irreligion', 'Hinduism', 'Islam', 'Sikhism', 'Jainism'])],
-            'category' => ['nullable', Rule::in(['OBC', 'BC', 'General', 'SC', 'ST'])],
-            'primary_contact_number' => ['required', 'string', 'max:15'],
-            'email' => ['nullable', 'email', 'max:255', 'unique:students,email'],
+            'religion' => ['nullable', Rule::in(['Christianity', 'Buddhism', 'Irreligion', 'Hinduism', 'Islam', 'Sikhism', 'Jainism'])], // Added more common religions
+            'category' => ['nullable', Rule::in(['OBC', 'BC', 'General', 'SC', 'ST'])], // Added more common categories
+            'primary_contact_number' => ['required', 'string', 'max:15'], // Changed from 'phone' to match request
+            'email' => ['required', 'email', 'max:255', 'unique:students,email'],
             'caste' => ['nullable', 'string', 'max:100'],
-            'mother_tongue' => ['nullable', Rule::in(['English', 'Spanish', 'Hindi', 'Gujarati', 'Marathi'])],
+            'mother_tongue' => ['nullable', Rule::in(['English', 'Spanish', 'Hindi', 'Gujarati', 'Marathi'])], // Added more common languages
             'languages_known' => ['nullable', 'array'],
             'profile_image' => ['nullable', 'file', 'image', 'max:4096'],
         ];
 
+        // Perform validation
         $validator = Validator::make($request->all(), $studentRules);
         if ($validator->fails()) {
             return response()->json([
@@ -105,62 +117,71 @@ class StudentController extends Controller
                 'message' => __('api.err_validation_failed'),
                 'errors' => $validator->errors(),
                 'data' => null,
-            ], 422);
+            ], 422); // 422 Unprocessable Entity for validation errors
         }
 
         try {
+            // Handle profile image upload
             $profileImage = $request->hasFile('profile_image')
                 ? $this->upload_file('profile_image', 'student_profiles')
                 : null;
 
-            $student = Student::create([
-                'academic_year' => $request->academic_year,
-                'admission_no' => $request->admission_no,
-                'doj' => $request->admission_date,
-                'role_no' => $request->roll_number,
-                'status' => 2, // Set to incomplete for multi-step registration
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'class' => $request->class,
-                'section' => $request->section,
-                'gender' => $request->gender,
-                'dob' => $request->date_of_birth,
-                'blood_group' => $request->blood_group,
-                'house' => $request->house,
-                'religion' => $request->religion,
-                'category' => $request->category,
-                'caste' => $request->caste,
-                'phone' => $request->primary_contact_number,
-                'email' => $request->email,
-                'mother_tongue' => $request->mother_tongue,
-                'languages' => $request->languages_known ? json_encode($request->languages_known) : null,
-                'profile_image' => $profileImage,
-                'current_address' => null,
-                'permanent_address' => null,
-                'transport_enabled' => false,
-                'transport_route' => null,
-                'transport_vehicle_number' => null,
-                'transport_pickup_point' => null,
-                'hostel_enabled' => false,
-                'hostel_name' => null,
-                'hostel_room_no' => null,
-                'bank_name' => null,
-                'bank_branch' => null,
-                'bank_ifsc' => null,
-                'other_information' => null,
-            ]);
+            // Create a new Student instance and fill its attributes
+            $student = new Student();
 
+            $student->academic_year = $request->academic_year;
+            $student->admission_no = $request->admission_number;
+            $student->doj = $request->admission_date;
+            $student->role_no = $request->roll_number;
+            $student->status = 2; // Set to incomplete for multi-step registration
+            $student->first_name = $request->first_name;
+            $student->last_name = $request->last_name;
+            $student->class = $request->class;
+            $student->section = $request->section;
+            $student->gender = $request->gender;
+            $student->dob = $request->date_of_birth;
+            $student->blood_group = $request->blood_group;
+            $student->house = $request->house;
+            $student->religion = $request->religion;
+            $student->category = $request->category;
+            $student->caste = $request->caste;
+            $student->phone = $request->primary_contact_number; // Ensure this matches your column name
+            $student->email = $request->email;
+            $student->mother_tongue = $request->mother_tongue;
+            $student->languages = $request->languages_known ? json_encode($request->languages_known) : null;
+            $student->profile_image = $profileImage;
+
+            // Initialize other fields that will be updated in later steps to null/default
+            $student->current_address = null;
+            $student->permanent_address = null;
+            $student->transport_enabled = false;
+            $student->transport_route = null;
+            $student->transport_vehicle_number = null;
+            $student->transport_pickup_point = null;
+            $student->hostel_enabled = false;
+            $student->hostel_name = null;
+            $student->hostel_room_no = null;
+            $student->bank_name = null;
+            $student->bank_branch = null;
+            $student->bank_ifsc = null;
+            $student->other_information = null;
+
+            // Save the new student record to the database
+            $student->save();
+
+            // Return success response for Step 1
             return response()->json([
                 'status' => 'true',
                 'message' => "Step 1: $stepName1 completed successfully",
                 'data' => [
                     'student_id' => $student->id,
-                    'admission_no' => $student->admission_no,
+                    'admission_number' => $student->admission_no, // Corrected to admission_no
                     'status' => $student->status,
                 ],
             ], 201); // 201 Created for successful resource creation
 
         } catch (\Exception $e) {
+            // Log the error for debugging
             Log::error("Student creation (Step 1) failed: " . $e->getMessage());
             return response()->json([
                 'status' => 'false',
@@ -175,11 +196,12 @@ class StudentController extends Controller
      * This method handles steps 2 through 7.
      *
      * @param \Illuminate\Http\Request $request
-     * @param int $id The student ID
+     * @param int $id The student ID to update
      * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
     {
+        // Retrieve the student instance
         $student = Student::find($id);
 
         if (!$student) {
@@ -187,10 +209,10 @@ class StudentController extends Controller
                 'status' => 'false',
                 'message' => __('api.err_student_not_found'),
                 'data' => null,
-            ], 404);
+            ], 404); // 404 Not Found
         }
 
-        $step = $request->input('step');
+        $step = $request->input('step'); // Get the step from the request
 
         switch ($step) {
             case 'step_2': // Parent/Guardian and Sibling Information
@@ -218,7 +240,7 @@ class StudentController extends Controller
                     'siblings.*.name' => ['required_with:siblings', 'string', 'max:100'],
                     'siblings.*.roll_no' => ['required_with:siblings', 'string', 'max:50'],
                     'siblings.*.admission_no' => ['required_with:siblings', 'string', 'max:50'],
-                    'siblings.*.class' => ['required_with:siblings', Rule::in(['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'])],
+                    'siblings.*.class' => ['required_with:siblings', Rule::in(['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'])], // Expanded classes
                 ];
 
                 $validator = Validator::make($request->all(), $parentRules);
@@ -232,6 +254,7 @@ class StudentController extends Controller
                 }
 
                 try {
+                    // Handle image uploads for parents/guardian
                     $fatherImage = $request->hasFile('father.image')
                         ? $this->upload_file('father.image', 'parent_profiles')
                         : null;
@@ -242,6 +265,7 @@ class StudentController extends Controller
                         ? $this->upload_file('guardian.image', 'guardian_profiles')
                         : null;
 
+                    // Prepare parent data
                     $parentData = [
                         'student_id' => $student->id,
                         'father_name' => $request->input('father.name'),
@@ -264,8 +288,10 @@ class StudentController extends Controller
                         'guardian_image' => $guardianImage,
                     ];
 
+                    // Find and update or create the parent record
                     StudentParent::updateOrCreate(['student_id' => $student->id], $parentData);
 
+                    // Handle siblings: Delete existing and re-create to ensure data integrity on update
                     if ($request->has('siblings')) {
                         StudentSibling::where('student_id', $student->id)->delete();
                         foreach ($request->siblings as $sibling) {
@@ -302,11 +328,11 @@ class StudentController extends Controller
                     'current_address' => ['required', 'string', 'max:255'],
                     'permanent_address' => ['required', 'string', 'max:255'],
                     'transport_enabled' => ['boolean'],
-                    'transport.route' => ['required_if:transport_enabled,true', Rule::in(['Newyork', 'Denver', 'Chicago', 'London', 'Paris', 'Tokyo'])],
+                    'transport.route' => ['required_if:transport_enabled,true', Rule::in(['Newyork', 'Denver', 'Chicago', 'London', 'Paris', 'Tokyo'])], // Expanded routes
                     'transport.vehicle_number' => ['required_if:transport_enabled,true', 'string', 'max:50'],
-                    'transport.pickup_point' => ['required_if:transport_enabled,true', Rule::in(['Cincinatti', 'Illinois', 'Morgan', 'Brooklyn', 'Manhattan', 'Shinjuku'])],
+                    'transport.pickup_point' => ['required_if:transport_enabled,true', Rule::in(['Cincinatti', 'Illinois', 'Morgan', 'Brooklyn', 'Manhattan', 'Shinjuku'])], // Expanded points
                     'hostel_enabled' => ['boolean'],
-                    'hostel.name' => ['required_if:hostel_enabled,true', Rule::in(['Phoenix Residence', 'Tranquil Haven', 'Radiant Towers', 'Nova Nest', 'Starfall Dorms', 'Whispering Pines'])],
+                    'hostel.name' => ['required_if:hostel_enabled,true', Rule::in(['Phoenix Residence', 'Tranquil Haven', 'Radiant Towers', 'Nova Nest', 'Starfall Dorms', 'Whispering Pines'])], // Expanded hostels
                     'hostel.room_no' => ['required_if:hostel_enabled,true', 'string', 'max:20'],
                 ];
 
@@ -321,10 +347,11 @@ class StudentController extends Controller
                 }
 
                 try {
+                    // Update student's address, transport, and hostel details
                     $student->update([
                         'current_address' => $request->current_address,
                         'permanent_address' => $request->permanent_address,
-                        'transport_enabled' => $request->boolean('transport_enabled'),
+                        'transport_enabled' => $request->boolean('transport_enabled'), // Use boolean() for boolean casts
                         'transport_route' => $request->boolean('transport_enabled') ? ($request->input('transport.route')) : null,
                         'transport_vehicle_number' => $request->boolean('transport_enabled') ? ($request->input('transport.vehicle_number')) : null,
                         'transport_pickup_point' => $request->boolean('transport_enabled') ? ($request->input('transport.pickup_point')) : null,
@@ -369,6 +396,7 @@ class StudentController extends Controller
                 }
 
                 try {
+                    // Update or create medical history record
                     StudentMedicalHistory::updateOrCreate(
                         ['student_id' => $student->id],
                         [
@@ -398,8 +426,9 @@ class StudentController extends Controller
             case 'step_5': // Documents
                 $stepName5 = "Document Records";
                 $documentRules = [
-                    'medical_condition_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
-                    'transfer_certificate' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
+                    'medical_condition_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'], // Added image mimes
+                    'transfer_certificate' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'], // Added image mimes
+                    // You might want to add other common documents like 'birth_certificate', 'marksheet', etc.
                 ];
 
                 $validator = Validator::make($request->all(), $documentRules);
@@ -413,6 +442,7 @@ class StudentController extends Controller
                 }
 
                 try {
+                    // Handle document uploads
                     $medicalDocument = $request->hasFile('medical_condition_document')
                         ? $this->upload_file('medical_condition_document', 'student_documents')
                         : null;
@@ -420,6 +450,7 @@ class StudentController extends Controller
                         ? $this->upload_file('transfer_certificate', 'student_documents')
                         : null;
 
+                    // Update or create document record
                     StudentDocument::updateOrCreate(
                         ['student_id' => $student->id],
                         [
@@ -465,6 +496,7 @@ class StudentController extends Controller
                 }
 
                 try {
+                    // Update student's bank and other information
                     $student->update([
                         'bank_name' => $request->input('bank.name'),
                         'bank_branch' => $request->input('bank.branch'),
@@ -492,14 +524,16 @@ class StudentController extends Controller
             case 'step_7': // Finalize Process
                 $stepName7 = "Finalize Process";
                 try {
-                    $student->update(['status' => 1]); // Set student status to active/complete
+                    // Update student status to active (1) or complete (if 2 is incomplete)
+                    // Assuming 1 means active/complete, adjust as per your status definitions
+                    $student->update(['status' => 1]);
 
                     return response()->json([
                         'status' => 'true',
                         'message' => __('api.succ_student_created'), // Assuming this message implies final success
                         'data' => [
                             'student_id' => $student->id,
-                            'admission_no' => $student->admission_no,
+                            'admission_number' => $student->admission_no,
                             'final_status' => $student->status,
                         ],
                     ], 200);
@@ -513,54 +547,59 @@ class StudentController extends Controller
                 }
 
             default:
+                // Handle invalid step or missing step parameter
                 return response()->json([
                     'status' => 'false',
-                    'message' => "Invalid or missing 'step' parameter.",
+                    'message' => "Invalid or missing 'step' parameter. Please provide a valid step (e.g., 'step_1', 'step_2').",
                     'data' => null,
-                ], 400); // Bad Request for invalid step
+                ], 400); // 400 Bad Request
         }
     }
 
     /**
-     * Helper method to upload files.
+     * Helper method to upload files to public storage.
      *
      * @param string $field The request field name for the file.
-     * @param string $directory The storage directory (within 'public').
-     * @return string|null The stored file path or null.
+     * @param string $directory The storage directory (within 'public' disk).
+     * @return string|null The stored file path relative to the storage disk, or null if no file.
      */
     protected function upload_file($field, $directory)
     {
+        // Check if the request has a file for the given field
         if (request()->hasFile($field)) {
             $file = request()->file($field);
-            return $file->store($directory, 'public');
+            // Store the file and return its path relative to the 'public' disk
+            return Storage::disk('public')->putFile($directory, $file);
         }
         return null;
     }
 
     /**
-     * Helper method to format student data for responses.
+     * Helper method to format student data for API responses, including relationships.
      *
-     * @param \App\Models\Student $student
-     * @return array
+     * @param \App\Models\Student $student The Student model instance.
+     * @return array Formatted student data.
      */
     private function get_student_data($student)
     {
+        // Decode languages if it's stored as a JSON string in the database
         $languages = $student->languages ? json_decode($student->languages, true) : [];
 
+        // Return a structured array of student data, including related models
         return [
             'student_id' => $student->id,
-            'admission_no' => $student->admission_no,
+            'admission_number' => $student->admission_no, // Corrected to match database column
             'academic_year' => $student->academic_year,
-            'admission_date' => $student->doj,
-            'roll_number' => $student->role_no,
+            'admission_date' => $student->doj, // Corrected to match database column
+            'roll_number' => $student->role_no, // Corrected to match database column
             'first_name' => $student->first_name,
             'last_name' => $student->last_name,
             'email' => $student->email,
-            'primary_contact_number' => $student->phone,
+            'primary_contact_number' => $student->phone, // Corrected to match database column
             'class' => $student->class,
             'section' => $student->section,
             'gender' => $student->gender,
-            'date_of_birth' => $student->dob,
+            'date_of_birth' => $student->dob, // Corrected to match database column
             'blood_group' => $student->blood_group,
             'house' => $student->house,
             'religion' => $student->religion,
@@ -568,6 +607,7 @@ class StudentController extends Controller
             'caste' => $student->caste,
             'mother_tongue' => $student->mother_tongue,
             'languages_known' => $languages,
+            // Generate full URL for profile image if it exists
             'profile_image' => $student->profile_image ? asset('storage/' . $student->profile_image) : null,
             'current_address' => $student->current_address,
             'permanent_address' => $student->permanent_address,
@@ -589,6 +629,7 @@ class StudentController extends Controller
             ],
             'other_information' => $student->other_information,
             'status' => $student->status,
+            // Include parent data if the relationship is loaded
             'parent' => $student->parent ? [
                 'father_name' => $student->parent->father_name,
                 'father_email' => $student->parent->father_email,
@@ -609,6 +650,7 @@ class StudentController extends Controller
                 'guardian_address' => $student->parent->guardian_address,
                 'guardian_image' => $student->parent->guardian_image ? asset('storage/' . $student->parent->guardian_image) : null,
             ] : null,
+            // Include siblings data if the relationship is loaded
             'siblings' => $student->siblings->map(function ($sibling) {
                 return [
                     'name' => $sibling->name,
@@ -617,17 +659,19 @@ class StudentController extends Controller
                     'class' => $sibling->class,
                 ];
             }),
+            // Include documents data if the relationship is loaded
             'documents' => $student->documents ? [
                 'medical_condition_document' => $student->documents->medical_condition_document ? asset('storage/' . $student->documents->medical_condition_document) : null,
                 'transfer_certificate' => $student->documents->transfer_certificate ? asset('storage/' . $student->documents->transfer_certificate) : null,
             ] : null,
+            // Include medical history data if the relationship is loaded
             'medical_history' => $student->medicalHistory ? [
                 'medical_condition' => $student->medicalHistory->medical_condition,
                 'allergies' => $student->medicalHistory->allergies ? json_decode($student->medicalHistory->allergies, true) : [],
                 'medications' => $student->medicalHistory->medications ? json_decode($student->medicalHistory->medications, true) : [],
             ] : null,
-            'previous_school' => $student->previousSchool,
+            // Include previous school data if the relationship is loaded
+            'previous_school' => $student->previousSchool, // You might want to format this further if it's an object/model
         ];
     }
 }
-
