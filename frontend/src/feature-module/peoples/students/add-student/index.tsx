@@ -37,7 +37,7 @@ import AddressForm from "./AddressForm";
 import SchoolTransportMedicalForm from "./SchoolTransportMedicalForm";
 import DocumentsForm from "./DocumentsForm";
 import { FinancialInfoType } from "./FinancialDetailsForm";
-
+import { createStudent } from "../../../../services/StudentData";
 
 type ClassItem = {
   id: string;
@@ -76,6 +76,18 @@ const AddStudent = () => {
   const routes = all_routes;
     const { formData, setFormData } = useAdmissionForm();
     const personalInfoRef = useRef<any>(null);
+const toSnakeCase = (obj: any): any => {
+  if (Array.isArray(obj)) {
+    return obj.map(toSnakeCase);
+  } else if (obj !== null && typeof obj === "object") {
+    return Object.keys(obj).reduce((acc: any, key: string) => {
+      const snakeKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
+      acc[snakeKey] = toSnakeCase(obj[key]);
+      return acc;
+    }, {});
+  }
+  return obj;
+};
 
       const [personalInfo, setPersonalInfo] = useState({
   academicYear: "",
@@ -160,6 +172,7 @@ const [showFinancialForm, setShowFinancialForm] = useState(false);
   const [owner1, setOwner1] = useState<string[]>([]);
   const [owner2, setOwner2] = useState<string[]>([]);
   const [defaultDate, setDefaultDate] = useState<dayjs.Dayjs | null>(null);
+const [studentId, setStudentId] = useState("");
 
   const location = useLocation();
 const [newContents, setNewContents] = useState([{ name: "", class: "", section: "", rollNo: "", admissionNo: "" }]);
@@ -281,51 +294,131 @@ const steps = [
 ];
 
 const [currentStep, setCurrentStep] = useState(1); // use index (0-based)
-const handleNextStep = () => {
+const handleNextStep = async () => {
   if (currentStep === 1) {
     const payload = {
       ...personalInfo,
       languages: owner,
     };
-    console.log("✅ Step 1 Payload: Personal Info", payload);
-    setFormData((prev) => ({ ...prev, personalInfo: payload }));
+
+    const snakePayload = toSnakeCase(payload);
+
+    const finalPayload = {
+      step: "step_1",
+      student_id: "", // empty in step 1
+      ...snakePayload,
+    };
+
+    console.log("✅ Step 1 Payload (Snake Case):", finalPayload);
+
+    try {
+      const res = await createStudent(finalPayload);
+      if (res?.data?.student_id) {
+        setStudentId(res.data.student_id); // Save for next steps
+      }
+    } catch (error) {
+      console.error("❌ Step 1 Submit Error:", error);
+    }
+
+    setFormData((prev) => ({ ...prev, personalInfo: snakePayload }));
     setCurrentStep(2);
-  } else if (currentStep === 2) {
+  }
+
+  else if (currentStep === 2) {
     const payload = {
       ...parentInfo,
       siblings: newContents,
     };
+
+    const finalPayload = {
+      step: "step_2",
+      student_id: studentId,
+      ...toSnakeCase(payload),
+    };
+
+    try {
+      await createStudent(finalPayload);
+    } catch (error) {
+      console.error("❌ Step 2 Submit Error:", error);
+    }
+
     console.log("✅ Step 2 Payload: Parent & Guardian Info", payload);
     setFormData((prev) => ({ ...prev, parentGuardianInfo: payload }));
     setCurrentStep(3);
-  } else if (currentStep === 3) {
+  }
+
+  else if (currentStep === 3) {
     const payload = {
       permanentAddress: addressInfo.permanent,
       currentAddress: addressInfo.current,
     };
+
+    const finalPayload = {
+      step: "step_3",
+      student_id: studentId,
+      ...toSnakeCase(payload),
+    };
+
+    try {
+      await createStudent(finalPayload);
+    } catch (error) {
+      console.error("❌ Step 3 Submit Error:", error);
+    }
+
     console.log("✅ Step 3 Payload: Address Info", payload);
     setFormData((prev) => ({ ...prev, addressInfo: payload }));
     setCurrentStep(4);
-  } else if (currentStep === 4) {
-    // Already logged inside SchoolTransportMedicalForm
+  }
+
+  else if (currentStep === 4) {
+    // If needed, add backend call here too.
     setCurrentStep(5);
-  } else if (currentStep === 5) {
-    const payload = {
-      ...documents,
+  }
+
+  else if (currentStep === 5) {
+    const payload = { ...documents };
+
+    const finalPayload = {
+      step: "step_5",
+      student_id: studentId,
+      ...toSnakeCase(payload),
     };
+
+    try {
+      await createStudent(finalPayload);
+    } catch (error) {
+      console.error("❌ Step 5 Submit Error:", error);
+    }
+
     console.log("✅ Step 5 Payload: Documents", payload);
     setFormData((prev) => ({ ...prev, documents: payload }));
     setCurrentStep(6);
-  } else if (currentStep === 6) {
-  const payload = financialData; // already an array of Entry
-  console.log("✅ Step 6 Payload: Financial Info", payload);
-  setFormData((prev) => ({
-    ...prev,
-    financialInfo: payload,
-  }));
-}
+  }
 
+  else if (currentStep === 6) {
+    const payload = financialData;
+
+    const finalPayload = {
+      step: "step_6",
+      student_id: studentId,
+      ...toSnakeCase({ financial_entries: payload }), // backend expects key wrapping
+    };
+
+    try {
+      await createStudent(finalPayload);
+    } catch (error) {
+      console.error("❌ Step 6 Submit Error:", error);
+    }
+
+    console.log("✅ Step 6 Payload: Financial Info", payload);
+    setFormData((prev) => ({
+      ...prev,
+      financialInfo: payload,
+    }));
+  }
 };
+
+
 
 
 
