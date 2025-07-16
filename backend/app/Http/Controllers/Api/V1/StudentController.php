@@ -20,7 +20,7 @@ class StudentController extends Controller
         // $students = Student::with(['parent', 'siblings', 'documents', 'medicalhistory', 'previousschool'])
         //     ->orderBy('created_at', 'desc')
         //     ->get();
-        $students = Student::get();
+        $studentData = Student::get();
         // $studentData = $students->map(function ($student) {
         //     return $this->get_student_data($student);
         // });
