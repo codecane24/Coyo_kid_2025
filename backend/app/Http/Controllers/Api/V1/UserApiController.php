@@ -128,7 +128,7 @@ class UserApiController extends Controller
        // $sNo = $this->getNewSerialNo('emp_code');
         $this->increaseSerialNo('emp_code');
 
-        $role = Role::find($validated['type']);
+        $role = Role::where('name',$validated['type'])->first();
         $user = User::create([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
@@ -139,7 +139,7 @@ class UserApiController extends Controller
             'department_id' => $validated['department_id'] ?? null,
           //  'profile_image' => $validated['profile_image'] ?? null,
             'status' => $validated['status'],
-            'type' => $role->name ?? 'user',
+            'type' => $role->name ?? '',
            // 'code' => $sNo,
           //  'assigned_ip_address' => $validated['ipaddress'] ?? null,
            // 'login_start_time' => $validated['login_start_time'] ?? null,
@@ -157,7 +157,7 @@ class UserApiController extends Controller
 
             // Handle role assignment
             if (!empty($validated['role'])) {
-                $user->assignRole($role); // More efficient than findById again
+               // $user->assignRole($role); // More efficient than findById again
             }
 
             // Handle permissions by IDs - raw DB approach
@@ -292,7 +292,7 @@ class UserApiController extends Controller
         }
 
         //$user->update($validated);
-        $role = Role::find($validated['type']);
+        $role = Role::where('name',$validated['type'])->first();
         $user->first_name = $validated['first_name'] ?? $user->first_name;
         $user->last_name = $validated['last_name'] ?? $user->last_name;
         $user->mobile = $validated['mobile'] ?? $user->mobile;
