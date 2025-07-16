@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-
+import { Entry } from "../feature-module/peoples/students/add-student/FinancialDetailsForm";
 // 1. Define the shape of your form data
 interface FormData {
   personalInfo: {
@@ -7,11 +7,7 @@ interface FormData {
     email?: string;
     // Add all other personal fields
   };
-  financialInfo: {
-    income?: string;
-    documents?: string[];
-    // Add all other financial fields
-  };
+  financialInfo: Entry[]; 
 }
 
 // 2. Define the context type
@@ -27,7 +23,7 @@ const AdmissionFormContext = createContext<AdmissionFormContextType | undefined>
 export const AdmissionFormProvider = ({ children }: { children: ReactNode }) => {
   const [formData, setFormData] = useState<FormData>({
     personalInfo: {},
-    financialInfo: {},
+ financialInfo: [],
   });
 
   return (

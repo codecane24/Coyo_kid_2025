@@ -36,6 +36,7 @@ import ParentsGuardianForm from "./ParentsGuardianForm";
 import AddressForm from "./AddressForm";
 import SchoolTransportMedicalForm from "./SchoolTransportMedicalForm";
 import DocumentsForm from "./DocumentsForm";
+import { FinancialInfoType } from "./FinancialDetailsForm";
 
 
 type ClassItem = {
@@ -68,9 +69,7 @@ export type PersonalInfoType = {
   languagesKnown: string[];
 };
 
-export type FinancialInfoType = {
-  // You can leave it empty for now
-};
+
 
 
 const AddStudent = () => {
@@ -139,6 +138,9 @@ const [documents, setDocuments] = useState<{
   aadharCard: null,
   transferCertificate: null,
 });
+const [financialData, setFinancialData] = useState<FinancialInfoType>([]);
+
+
 
 
 type AdmissionFormData = {
@@ -279,53 +281,52 @@ const steps = [
 ];
 
 const [currentStep, setCurrentStep] = useState(1); // use index (0-based)
-
 const handleNextStep = () => {
   if (currentStep === 1) {
     const payload = {
       ...personalInfo,
       languages: owner,
     };
-
     console.log("✅ Step 1 Payload: Personal Info", payload);
     setFormData((prev) => ({ ...prev, personalInfo: payload }));
     setCurrentStep(2);
-  }
-
-  else if (currentStep === 2) {
+  } else if (currentStep === 2) {
     const payload = {
       ...parentInfo,
       siblings: newContents,
     };
-
     console.log("✅ Step 2 Payload: Parent & Guardian Info", payload);
     setFormData((prev) => ({ ...prev, parentGuardianInfo: payload }));
     setCurrentStep(3);
-  }
-
-  else if (currentStep === 3) {
+  } else if (currentStep === 3) {
     const payload = {
       permanentAddress: addressInfo.permanent,
       currentAddress: addressInfo.current,
     };
-
     console.log("✅ Step 3 Payload: Address Info", payload);
     setFormData((prev) => ({ ...prev, addressInfo: payload }));
     setCurrentStep(4);
-  }
-
-  else if (currentStep === 4) {
-    // No need to console here, already done inside SchoolTransportMedicalForm
+  } else if (currentStep === 4) {
+    // Already logged inside SchoolTransportMedicalForm
     setCurrentStep(5);
-  }
+  } else if (currentStep === 5) {
+    const payload = {
+      ...documents,
+    };
+    console.log("✅ Step 5 Payload: Documents", payload);
+    setFormData((prev) => ({ ...prev, documents: payload }));
+    setCurrentStep(6);
+  } else if (currentStep === 6) {
+  const payload = financialData; // already an array of Entry
+  console.log("✅ Step 6 Payload: Financial Info", payload);
+  setFormData((prev) => ({
+    ...prev,
+    financialInfo: payload,
+  }));
+}
 
-  // Final step: preview or submit
-  else if (currentStep === 5) {
-    console.log("✅ Final Form Data:", formData);
-    // You can make API call here
-    // await submitForm(formData)
-  }
 };
+
 
 
   return (
@@ -335,9 +336,7 @@ const handleNextStep = () => {
 
 
         <div className="content content-two">
-          {showFinancialForm ? (
-  <FinancialDetailsForm/>
-) : (
+
   <>
           {/* Page Header */}
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
@@ -432,7 +431,19 @@ const handleNextStep = () => {
   />
 )}
 
-            
+{currentStep === 6 && (
+<FinancialDetailsForm
+  financialData={financialData}
+  setFinancialData={setFinancialData}
+  setFormData={setFormData}
+  currentStep={currentStep}
+  setCurrentStep={setCurrentStep}
+  isEdit={isEdit}
+/>
+
+)}
+
+
           
               
                 {/* /Other Details */}
@@ -455,17 +466,17 @@ const handleNextStep = () => {
       Back
     </button>
   )}
-  <button className="btn btn-primary" onClick={handleNextStep}>
-    <i className="bi bi-arrow-right-circle me-2" />
-    Next Step
-  </button>
+<button className="btn btn-success" onClick={handleNextStep}>
+  <i className="bi bi-check-circle me-2" />
+  {currentStep === 6 ? "Submit" : "Next Step"}
+</button>
+
 </div>
 
               </form>
             </div>
           </div>
           </>
-)}
         </div>
 
       </div>
