@@ -118,7 +118,7 @@ class UserController extends ResponseController
             $request->merge([
                 'userId' => $user->id,
                 'branch_id' => $user->branch_id,
-                'branch_name' => $user?->branch->name,
+                'branch_name' => $user?->branch?->name,
             ]);
 
              return $this->finalizeLogin($request, $user, null);
