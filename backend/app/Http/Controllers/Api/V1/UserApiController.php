@@ -291,8 +291,23 @@ class UserApiController extends Controller
             unset($validated['password']);
         }
 
-        $user->update($validated);
+        //$user->update($validated);
 
+        $user->first_name = $validated['first_name'] ?? $user->first_name;
+        $user->last_name = $validated['last_name'] ?? $user->last_name;
+        $user->mobile = $validated['mobile'] ?? $user->mobile;
+        $user->email = $validated['email'] ?? $user->email;
+        $user->gender = $validated['gender'] ??;
+        $user->department_id = $validated['department_id'] ?? $user->department_id;
+        $user->status = $validated['status'] ?? $user->status;
+        if (isset($validated['profile_image'])) {
+            $user->profile_image = $validated['profile_image'];
+        }
+        if (isset($validated['password'])) {
+            $user->password = $validated['password'];
+        }
+        $user->save();
+        
         // Handle branches
         if (isset($validated['branches'])) {
             $user->branches()->sync(
