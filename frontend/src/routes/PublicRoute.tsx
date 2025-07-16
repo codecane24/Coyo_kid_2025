@@ -1,14 +1,19 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
+import { useNavigate } from "react-router-dom";
 interface PublicRouteProps {
   children: React.ReactNode;
 }
 
 const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
   const { user, token } = useAuth();
-
+   const { logout } = useAuth();
+const navigate = useNavigate();
+  const handleLogout = () => {
+  logout();
+  navigate("/");
+};
   const selectedBranch = localStorage.getItem("selectedBranch");
   const branches = user?.branches || [];
 
@@ -41,8 +46,13 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
         return <Navigate to="/student-dashboard" replace />;
       case "parent":
         return <Navigate to="/parent-dashboard" replace />;
-      default:
-        return <Navigate to="/unauthorised" replace />;
+default: {
+ // custom logout function
+ handleLogout()
+  alert("You are unauthorized because role not defined / role not exist");
+ 
+}
+
     }
   }
 

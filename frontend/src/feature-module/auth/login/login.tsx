@@ -213,7 +213,7 @@ const handleBranchSelect = async () => {
         navigate("/parent-dashboard");
         break;
       default:
-        navigate("/unauthorised");
+        navigate("/");
     }
   };
 

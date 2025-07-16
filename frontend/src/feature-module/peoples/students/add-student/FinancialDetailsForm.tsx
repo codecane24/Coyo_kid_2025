@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 type PaymentMethod = "cash" | "online" | "cheque";
 
-interface Entry {
+export interface Entry {
   method: PaymentMethod;
   date: string;
   receiverBank: string;
@@ -13,8 +13,26 @@ interface Entry {
   bankName?: string;
   chequeNo?: string;
 }
+export type FinancialInfoType = Entry[];
+// ✅ Add props interface
+interface Props {
+  financialData: any;
+  setFinancialData: React.Dispatch<React.SetStateAction<any>>;
+  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  currentStep: number;
+  setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
+  isEdit: boolean;
+}
 
-const FinancialDetailsForm: React.FC = () => {
+// ✅ Accept props
+const FinancialDetailsForm: React.FC<Props> = ({
+  financialData,
+  setFinancialData,
+  setFormData,
+  currentStep,
+  setCurrentStep,
+  isEdit,
+}) => {
   const [entries, setEntries] = useState<Entry[]>([
     {
       method: "cash",
