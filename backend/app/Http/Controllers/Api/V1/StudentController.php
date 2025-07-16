@@ -25,7 +25,13 @@ class StudentController extends Controller
             return $this->get_student_data($student);
         });
 
-        return $this->sendResponse(200, __('api.succ_students_list'), $studentData);
+        return response()->json([
+            'status' => 'true',
+            'data' => $studentData,
+           // 'recordsTotal' => $totalRecords,
+            //'recordsFiltered' => $filteredRecords,
+           // 'mytoken' => request()->headers->get('MyToken'),
+        ], 200);
     }
     
     /**
