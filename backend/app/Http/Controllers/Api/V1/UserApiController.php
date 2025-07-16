@@ -240,15 +240,25 @@ class UserApiController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $encriptid)
     {
+        // if (!$this->hasPermission('user_edit')) {
+        //   //  return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        // }
+
+        try {
+            $id = Crypt::decrypt($encriptid);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid account ID'], 400);
+        }
+   
         $user = User::findOrFail($id);
 
-        if (!$this->hasPermission('user_edit')) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
-        }
+        // if (!$this->hasPermission('user_edit')) {
+        //     return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        // }
 
-        $validated=$request;
+        $validated=$request->all();
         /*
         $validated = $request->validate([
             'first_name' => 'sometimes|required|string|max:255',
@@ -281,8 +291,24 @@ class UserApiController extends Controller
             unset($validated['password']);
         }
 
-        $user->update($validated);
+        //$user->update($validated);
 
+        $user->first_name = $validated['first_name'] ?? $user->first_name;
+        $user->last_name = $validated['last_name'] ?? $user->last_name;
+        $user->mobile = $validated['mobile'] ?? $user->mobile;
+        $user->email = $validated['email'] ?? $user->email;
+        $user->department_id = $validated['department_id'] ?? $user->department_id;
+        $user->status = $validated['status'] ?? $user->status;
+        $user->gender = $validated['gender'] ?? $user->gender;
+        
+        if (isset($validated['profile_image'])) {
+            $user->profile_image = $validated['profile_image'];
+        }
+        if (isset($validated['password'])) {
+            $user->password = $validated['password'];
+        }
+        $user->save();
+        
         // Handle branches
         if (isset($validated['branches'])) {
             $user->branches()->sync(
@@ -300,13 +326,28 @@ class UserApiController extends Controller
         }
 
         // Handle permissions
-        if (isset($validated['permissions'])) {
-            $user->permissions()->sync(
-                is_array($validated['permissions'])
-                    ? $validated['permissions']
-                    : explode(',', $validated['permissions'])
-            );
-        }
+        if (!empty($validated['permissions'])) {
+                // Normalize input to array of integers
+                $permissionIds = is_array($validated['permissions'])
+                    ? array_map('intval', $validated['permissions'])
+                    : array_map('intval', explode(',', $validated['permissions']));
+                
+                // Delete existing permissions
+                DB::table('permission_user')->where('user_id', $user->id)->delete();
+                
+                // Prepare insert data
+                $insertData = array_map(function($permissionId) use ($user) {
+                    return [
+                        'user_id' => $user->id,
+                        'permission_id' => $permissionId,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+                }, $permissionIds);
+                
+                // Batch insert new permissions
+                DB::table('permission_user')->insert($insertData);
+            }
 
         return response()->json([
             'status' => 'success',
