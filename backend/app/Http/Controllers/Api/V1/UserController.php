@@ -203,7 +203,7 @@ class UserController extends ResponseController
         $userData = [
             'user_id' => $user->id,
             'username' => $user->username,
-            'name' => $user->name,
+            'name' => $user->first_name . ' ' . $user->last_name,
             'code' => $user->code,
             'mobile' => $user->mobile,
             'email' => $user->email,
