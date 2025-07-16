@@ -136,7 +136,7 @@ class StudentController extends Controller
             $student->status = 2; // Set to incomplete for multi-step registration
             $student->first_name = $request->first_name;
             $student->last_name = $request->last_name;
-            $student->class = $request->class;
+            $student->class = $request->class_id;
             $student->section = $request->section;
             $student->gender = $request->gender;
             $student->dob = $request->date_of_birth;
