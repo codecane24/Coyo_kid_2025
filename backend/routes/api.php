@@ -12,9 +12,9 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     Route::post('version_checker', 'GuestController@version_checker');
 
      //Route::put('user/{token}', 'UserApiController@update');  
-     Route::resource('user', 'UserApiController')->parameters([
-            'user' => 'token'
-        ]);
+    Route::resource('user', 'UserApiController')->except(['update', 'show']);
+    Route::get('user/{encryptedID}', 'UserApiController@show');    // encryptedID for show
+    Route::put('user/{encryptedID}', 'UserApiController@update');  
 
     //  Country Selection apis here
     Route::group(['middleware' => 'ApiTokenChecker'], function () {
