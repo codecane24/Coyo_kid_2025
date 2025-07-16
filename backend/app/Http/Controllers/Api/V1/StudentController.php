@@ -13,7 +13,7 @@ use App\Models\StudentDocument;
 use App\Models\StudentMedicalHistory;
 use App\Models\StudentPreviousSchool;
 
-class StudentController extends ResponseController
+class StudentController extends Controller
 {
 
     public function index(){
