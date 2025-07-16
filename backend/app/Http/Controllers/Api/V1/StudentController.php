@@ -21,9 +21,9 @@ class StudentController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $studentData = $students->map(function ($student) {
-            return $this->get_student_data($student);
-        });
+        // $studentData = $students->map(function ($student) {
+        //     return $this->get_student_data($student);
+        // });
 
         return response()->json([
             'status' => 'true',
