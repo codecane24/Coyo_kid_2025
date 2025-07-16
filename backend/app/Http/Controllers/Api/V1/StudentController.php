@@ -76,14 +76,14 @@ class StudentController extends Controller
 
         $studentRules = [
             'academic_year' => ['required', 'string', 'max:50'],
-            'admission_number' => ['required', 'string', 'max:50', 'unique:students,admission_no'],
+            //'admission_no' => ['required', 'string', 'max:50', 'unique:students,admission_no'],
             'roll_number' => ['nullable', 'string', 'max:50'],
             'admission_date' => ['required', 'date'],
-            'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])],
+           // 'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])],
             'first_name' => ['required', 'string', 'max:50'],
             'last_name' => ['required', 'string', 'max:50'],
             'class' => ['required', 'string', 'max:50'],
-            'section' => ['required', 'string', 'max:50'],
+            // 'section' => ['required', 'string', 'max:50'],
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
             'date_of_birth' => ['required', 'date'],
             'blood_group' => ['nullable', 'string', 'max:10'],
@@ -91,7 +91,7 @@ class StudentController extends Controller
             'religion' => ['nullable', Rule::in(['Christianity', 'Buddhism', 'Irreligion', 'Hinduism', 'Islam', 'Sikhism', 'Jainism'])],
             'category' => ['nullable', Rule::in(['OBC', 'BC', 'General', 'SC', 'ST'])],
             'primary_contact_number' => ['required', 'string', 'max:15'],
-            'email' => ['required', 'email', 'max:255', 'unique:students,email'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:students,email'],
             'caste' => ['nullable', 'string', 'max:100'],
             'mother_tongue' => ['nullable', Rule::in(['English', 'Spanish', 'Hindi', 'Gujarati', 'Marathi'])],
             'languages_known' => ['nullable', 'array'],
@@ -115,7 +115,7 @@ class StudentController extends Controller
 
             $student = Student::create([
                 'academic_year' => $request->academic_year,
-                'admission_no' => $request->admission_number,
+                'admission_no' => $request->admission_no,
                 'doj' => $request->admission_date,
                 'role_no' => $request->roll_number,
                 'status' => 2, // Set to incomplete for multi-step registration
@@ -155,7 +155,7 @@ class StudentController extends Controller
                 'message' => "Step 1: $stepName1 completed successfully",
                 'data' => [
                     'student_id' => $student->id,
-                    'admission_number' => $student->admission_no,
+                    'admission_no' => $student->admission_no,
                     'status' => $student->status,
                 ],
             ], 201); // 201 Created for successful resource creation
@@ -499,7 +499,7 @@ class StudentController extends Controller
                         'message' => __('api.succ_student_created'), // Assuming this message implies final success
                         'data' => [
                             'student_id' => $student->id,
-                            'admission_number' => $student->admission_no,
+                            'admission_no' => $student->admission_no,
                             'final_status' => $student->status,
                         ],
                     ], 200);
@@ -549,7 +549,7 @@ class StudentController extends Controller
 
         return [
             'student_id' => $student->id,
-            'admission_number' => $student->admission_no,
+            'admission_no' => $student->admission_no,
             'academic_year' => $student->academic_year,
             'admission_date' => $student->doj,
             'roll_number' => $student->role_no,
