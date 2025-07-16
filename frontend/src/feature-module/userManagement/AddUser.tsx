@@ -230,6 +230,7 @@ updatePayload.append("type", "teacher"); // or whatever type
 // ✅ Append branches one by one
 selectedBranches.forEach((branchId) => {
   updatePayload.append("branches[]", String(branchId));
+
 });
 
 // ✅ Append permissions one by one
@@ -276,7 +277,7 @@ selectedPermissions.forEach((permId) => {
       payload.forEach((value, key) => {
         console.log(`${key}:`, value);
       });
-
+      
       const res = await createUser(payload);
       alert("User created successfully");
       console.log(res);
