@@ -240,8 +240,18 @@ class UserApiController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $encriptid)
     {
+        if (!$this->hasPermission('user_edit')) {
+          //  return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $id = Crypt::decrypt($encriptid);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid account ID'], 400);
+        }
+   
         $user = User::findOrFail($id);
 
         if (!$this->hasPermission('user_edit')) {
