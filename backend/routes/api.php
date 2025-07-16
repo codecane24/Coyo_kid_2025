@@ -55,6 +55,10 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     // branch API
     Route::resource('branch', 'BranchApiController');
 
+
+    // Students API
+    Route::resource('student','StudentController');
+
 });
 
 
