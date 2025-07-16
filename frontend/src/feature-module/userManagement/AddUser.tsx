@@ -8,12 +8,13 @@ import { department, gender, status } from "../../core/common/selectoption/selec
 import { getPermissionsList } from "../../services/Permissions";
 import { getRolelist } from "../../services/Roles";
 import { createUser } from "../../services/UserData";
-import { all_routes } from "../router/all_routes";
+
 import axiosInstance from "../../utils/axiosInstance";
 import { Eye, EyeOff } from "lucide-react"; 
 import { updateUser } from "../../services/UserData";
 import { getUserById } from "../../services/UserData";
 import { useParams } from "react-router-dom";
+import { all_routes } from "../router/all_routes";
 type Permission = {
   id: number;
   name: string;
@@ -26,14 +27,14 @@ type Permission = {
 
 const AddUser = () => {
   const navigate = useNavigate();
-
+  const routes = all_routes;
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setContact] = useState("");
   const [genderValue, setGenderValue] = useState<any>(null);
   const [statusValue, setStatusValue] = useState<any>(null);
-  const [roleId, setRoleId] = useState<any>(null);
+  const [roleName, setRoleName] = useState<any>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [permissionsList, setPermissionsList] = useState<Permission[]>([]);
 const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
@@ -71,7 +72,7 @@ useEffect(() => {
         setGenderValue(user.gender ? { label: user.gender, value: user.gender } : null);
         setStatusValue(user.status ? { label: user.status, value: user.status } : null);
         setdepartmentValue(user.department_id && user.department_id !== "0" ? { label: user.department_id, value: user.department_id } : null);
-        setRoleId(user.type ? { label: user.type || "Role", value: user.type } : null);
+        setRoleName(user.type ? { label: user.type , value: user.type } : null);
 
         // ✅ Set arrays
 setSelectedBranches((user.branches || []).map((b: string) => Number(b)));
@@ -102,7 +103,7 @@ setSelectedPermissions((user.permissions || []).map(Number));
       const res = await getRolelist();
       const formatted = res.data.map((r: any) => ({
         label: r.name,
-        value: r.id,
+        value: r.name,
       }));
       setRoles(formatted);
     };
@@ -140,7 +141,7 @@ const validateForm = () => {
   }
 
   if (!isEdit) {
-    if (!lastName || !genderValue || !roleId) {
+    if (!lastName || !genderValue || !roleName) {
       alert("Please fill all dropdowns and last name.");
       return false;
     }
@@ -191,7 +192,7 @@ const resetForm = () => {
   setContact("");
   setGenderValue(null);
   setStatusValue(null);
-  setRoleId(null);
+  setRoleName(null);
   setdepartmentValue(null);
   setPassword("");
   setConfirmPassword("");
@@ -226,7 +227,7 @@ updatePayload.append("mobile", mobile);
 updatePayload.append("gender", genderValue?.value);
 updatePayload.append("department", departmentValue?.value);
 updatePayload.append("status", statusValue?.value);
-updatePayload.append("type", "teacher"); // or whatever type
+updatePayload.append("type", roleName?.value); // or whatever type
 // ✅ Append branches one by one
 selectedBranches.forEach((branchId) => {
   updatePayload.append("branches[]", String(branchId));
@@ -260,7 +261,8 @@ if (imageFile) {
       payload.append("gender", genderValue?.value);
       payload.append("department", departmentValue?.value);
       payload.append("status", statusValue?.value);
-      payload.append("type", roleId?.value);
+      payload.append("type", roleName?.value);
+
    selectedBranches.forEach((branchId) => {
   payload.append("branches[]", branchId.toString());
 });
@@ -291,7 +293,12 @@ selectedPermissions.forEach((permId) => {
   }
 };
 
-
+const handleCancel = () => {
+  if (!isEdit) {
+    resetForm(); // Clear only if it's ADD mode
+  }
+  navigate(routes.manageusers);  // Navigate in both cases
+};
   return (
     <div className="page-wrapper">
       <div className="content content-two">
@@ -383,8 +390,8 @@ selectedPermissions.forEach((permId) => {
                   <label className="form-label">Role</label>
                   <CommonSelect
                     options={roles}
-                    value={roleId}
-                    onChange={setRoleId}
+                    value={roleName}
+                    onChange={setRoleName}
                     className="select"
                   />
                 </div>
@@ -518,9 +525,15 @@ selectedPermissions.forEach((permId) => {
               </div>
 
               <div className="text-end mt-3">
-                <button type="button" className="btn btn-light me-3">
-                  Cancel
-                </button>
+      <button
+  type="button"
+  className="btn btn-light me-3"
+  onClick={handleCancel}
+>
+  Cancel
+</button>
+
+
                 <button type="button" className="btn btn-primary" onClick={handleSubmit}>
                   Add User
                 </button>

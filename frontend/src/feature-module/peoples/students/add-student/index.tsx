@@ -247,7 +247,7 @@ const steps = [
   "Financial Details"
 ];
 
-const [currentStep, setCurrentStep] = useState(0); // use index (0-based)
+const [currentStep, setCurrentStep] = useState(1); // use index (0-based)
 
 
 const handleNextStep = () => {
