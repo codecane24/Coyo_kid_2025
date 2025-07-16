@@ -57,7 +57,7 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
 
 
     // Students API
-    Route::resource('student','StudentController');
+    Route::apiResource('student', 'StudentController');
 
 });
 
