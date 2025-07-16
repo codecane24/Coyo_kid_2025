@@ -11,7 +11,7 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     Route::post('check_ability', 'GuestController@check_ability');
     Route::post('version_checker', 'GuestController@version_checker');
 
-
+     Route::put('user/{token}', 'UserApiController@update');  
      Route::resource('user', 'UserApiController');
 
     //  Country Selection apis here
