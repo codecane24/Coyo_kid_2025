@@ -321,9 +321,9 @@ export const names = [
   { value: "Marilyn", label: "Marilyn" },
 ];
 export const gender = [
-  { value: "Male", label: "Male" },
-  { value: "", label: "Female" },
-    { value: "Other", label: "Other" },
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+    { value: "other", label: "Other" },
     
 ];
 export const department = [

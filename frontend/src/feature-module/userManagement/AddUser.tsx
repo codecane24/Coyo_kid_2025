@@ -227,18 +227,29 @@ updatePayload.append("gender", genderValue?.value);
 updatePayload.append("department", departmentValue?.value);
 updatePayload.append("status", statusValue?.value);
 updatePayload.append("type", "teacher"); // or whatever type
-updatePayload.append("branches", JSON.stringify(selectedBranches));
-updatePayload.append("permissions", JSON.stringify(selectedPermissions));
+// ✅ Append branches one by one
+selectedBranches.forEach((branchId) => {
+  updatePayload.append("branches[]", String(branchId));
+});
+
+// ✅ Append permissions one by one
+selectedPermissions.forEach((permId) => {
+  updatePayload.append("permissions[]", String(permId));
+});
 updatePayload.append("password", password);
 
 if (imageFile) {
   updatePayload.append("profile_image", imageFile);
 }
 
-
+ // Debug payload
+      updatePayload.forEach((value, key) => {
+        console.log(`${key}:`, value);
+      });
       const res = await updateUser(userId, updatePayload);
       alert("User updated successfully");
       console.log(res);
+      
     } else {
       // ✅ ADD: Use FormData for file upload
       const payload = new FormData();
