@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 // import { feeGroup, feesTypes, paymentType } from '../../../core/common/selectoption/selectoption'
 import { DatePicker } from "antd";
@@ -30,6 +30,10 @@ import { useLocation } from "react-router-dom";
 import { getClassesList } from "../../../../services/ClassData";
 import FinancialDetailsForm from "./FinancialDetailsForm";
 import { useAdmissionForm } from "../../../../context/AdmissionFormContext";
+import MultiStepProgressBar from "../../../../core/common/MultiStepProgressBar";
+import PersonalInfoForm from "./PersonalInfoForm";
+import ParentsGuardianForm from "./ParentsGuardianForm";
+
 
 type ClassItem = {
   id: string;
@@ -69,7 +73,8 @@ export type FinancialInfoType = {
 const AddStudent = () => {
   const routes = all_routes;
     const { formData, setFormData } = useAdmissionForm();
-    
+    const personalInfoRef = useRef<any>(null);
+
       const [personalInfo, setPersonalInfo] = useState({
   academicYear: "",
   admissionNo: "",
@@ -93,6 +98,18 @@ const AddStudent = () => {
   suitableBatch: "",
   languages: [], // for TagsInput
 });
+const [parentInfo, setParentInfo] = useState({
+  fatherName: "",
+  fatherPhone: "",
+  fatherAdhar: "",
+  fatherOccupation: "",
+  motherName: "",
+  motherPhone: "",
+  motherAdhar: "",
+  motherOccupation: "",
+  siblingSameSchool: "", // "yes" or "no"
+});
+
 type AdmissionFormData = {
   personalInfo: PersonalInfoType;
   financialInfo?: FinancialInfoType;
@@ -101,7 +118,7 @@ type AdmissionFormData = {
     const formatted = dayjs(personalInfo.admissionDate); // wrap before use
   const [classOptions, setClassOptions] = useState<{ label: string; value: string }[]>([]);
 const [showFinancialForm, setShowFinancialForm] = useState(false);
-const handleNextStep = () => setShowFinancialForm(true);
+
 
  const [allClass, setAllClass] = useState<{ label: string; value: string }[]>([]);
   const [loading, setLoading] = useState(false);
@@ -110,14 +127,22 @@ const handleNextStep = () => setShowFinancialForm(true);
   const [owner1, setOwner1] = useState<string[]>([]);
   const [owner2, setOwner2] = useState<string[]>([]);
   const [defaultDate, setDefaultDate] = useState<dayjs.Dayjs | null>(null);
-  const [newContents, setNewContents] = useState<number[]>([0]);
+
   const location = useLocation();
+const [newContents, setNewContents] = useState([{ name: "", class: "", section: "", rollNo: "", admissionNo: "" }]);
+
+const totalSteps = 5;
+
   const addNewContent = () => {
-    setNewContents([...newContents, newContents.length]);
-  };
-  const removeContent = (index:any) => {
-    setNewContents(newContents.filter((_, i) => i !== index));
-  };
+  setNewContents([...newContents, { name: "", class: "", section: "", rollNo: "", admissionNo: "" }]);
+};
+
+const removeContent = (index: number) => {
+  const updated = [...newContents];
+  updated.splice(index, 1);
+  setNewContents(updated);
+};
+
   useEffect(() => {
   const fetchClasses = async () => {
     try {
@@ -206,10 +231,54 @@ const handleSubmitPersonalInfo = (e: React.FormEvent) => {
 
 
 
+const handleBack = () => {
+  if (currentStep > 1) {
+    setCurrentStep(currentStep - 1);
+  }
+};
+
+
+const steps = [
+  "Personal Information",
+  "Parents & Guardian  Information",
+  " Address",
+  "Other Info",
+  "Documents",
+  "Financial Details"
+];
+
+const [currentStep, setCurrentStep] = useState(0); // use index (0-based)
+
+
+const handleNextStep = () => {
+  if (currentStep === 1) {
+    const payload = {
+      ...personalInfo,
+      languages: owner,
+    };
+
+    console.log("✅ Step 1 Payload: Personal Info", payload);
+    setFormData((prev) => ({ ...prev, personalInfo: payload }));
+    setCurrentStep(2);
+  }
+
+  if (currentStep === 2) {
+    const payload = {
+      ...parentInfo,
+      siblings: newContents,
+    };
+
+    console.log("✅ Step 2 Payload: Parent & Guardian Info", payload);
+    setFormData((prev) => ({ ...prev, parentGuardianInfo: payload }));
+    setCurrentStep(3);
+  }
+};
+
   return (
     <>
       {/* Page Wrapper */}
       <div className="page-wrapper">
+
 
         <div className="content content-two">
           {showFinancialForm ? (
@@ -235,669 +304,49 @@ const handleSubmitPersonalInfo = (e: React.FormEvent) => {
               </nav>
             </div>
           </div>
+          <MultiStepProgressBar currentStep={currentStep} steps={steps} />
           {/* /Page Header */}
           <div className="row">
             <div className="col-md-12">
               <form onSubmit={(e) => e.preventDefault()}>
-                {/* Personal Information */}
-            <div className="card">
-  <div className="card-header bg-light">
-    <div className="d-flex align-items-center">
-      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-        <i className="ti ti-info-square-rounded fs-16" />
-      </span>
-      <h4 className="text-dark">Personal Information</h4>
-    </div>
-  </div>
-  <div className="card-body pb-1">
-    <div className="row">
-      <div className="col-md-12">
-        <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
-          <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
-            <i className="ti ti-photo-plus fs-16" />
-          </div>
-          <div className="profile-upload">
-            <div className="profile-uploader d-flex align-items-center">
-              <div className="drag-upload-btn mb-3">
-                Upload
-                <input
-                  type="file"
-                  className="form-control image-sign"
-                  multiple
-                  onChange={(e) => setFiles(e.target.files)}
-                />
-              </div>
-              <Link to="#" className="btn btn-primary mb-3" onClick={() => setFiles(null)}>
-                Remove
-              </Link>
-            </div>
-            <p className="fs-12">
-              Upload image size 4MB, Format JPG, PNG, SVG
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div className="row row-cols-xxl-5 row-cols-md-6">
-      {/** Academic Year */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Academic Year</label>
-          <CommonSelect
-            className="select"
-            options={academicYear}
-            value={academicYear.find(option => option.value === personalInfo.academicYear)}
-            onChange={(option) => setPersonalInfo({ ...personalInfo, academicYear: option?.value || "" })}
-          />
-        </div>
-      </div>
-
-      {/** Admission Number */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Admission Number</label>
-          <input
-            type="text"
-            className="form-control"
-            value={personalInfo.admissionNo}
-            onChange={(e) => setPersonalInfo({ ...personalInfo, admissionNo: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/** Admission Date */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Admission Date</label>
-          <div className="input-icon position-relative">
-     <DatePicker
-  value={dayjs(personalInfo.admissionDate || new Date())}
-  onChange={(date) => {
-    setPersonalInfo((prev) => ({
-      ...prev,
-      admissionDate: dayjs(date).format("YYYY-MM-DD"),
-    }));
-  }}
-/>
-
-            <span className="input-icon-addon">
-              <i className="ti ti-calendar" />
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/** Roll Number */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Roll Number</label>
-          <input
-            type="text"
-            className="form-control"
-            value={personalInfo.rollNo}
-            onChange={(e) => setPersonalInfo({ ...personalInfo, rollNo: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/** Status */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Status</label>
-          <CommonSelect
-            className="select"
-            options={status}
-            value={status.find(option => option.value === personalInfo.status)}
-            onChange={(option) => setPersonalInfo({ ...personalInfo, status: option?.value || "" })}
-          />
-        </div>
-      </div>
-
-      {/** First Name */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">First Name</label>
-          <input
-            type="text"
-            className="form-control"
-            value={personalInfo.firstName}
-            onChange={(e) => setPersonalInfo({ ...personalInfo, firstName: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/** Middle Name */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Middle Name</label>
-          <input
-            type="text"
-            className="form-control"
-            value={personalInfo.middleName}
-            onChange={(e) => setPersonalInfo({ ...personalInfo, middleName: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/** Last Name */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Last Name</label>
-          <input
-            type="text"
-            className="form-control"
-            value={personalInfo.lastName}
-            onChange={(e) => setPersonalInfo({ ...personalInfo, lastName: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/** Class */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Class</label>
-          <CommonSelect
-            className="select"
-            options={classOptions}
-            value={classOptions.find(option => option.value === personalInfo.class)}
-            onChange={(option) => setPersonalInfo({ ...personalInfo, class: option?.value || "" })}
-          />
-        </div>
-      </div>
-
-      {/** Section */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Section</label>
-          <CommonSelect
-            className="select"
-            options={allSection}
-            value={allSection.find(option => option.value === personalInfo.section)}
-            onChange={(option) => setPersonalInfo({ ...personalInfo, section: option?.value || "" })}
-          />
-        </div>
-      </div>
-
-      {/** Gender */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Gender</label>
-          <CommonSelect
-            className="select"
-            options={gender}
-            value={gender.find(option => option.value === personalInfo.gender)}
-            onChange={(option) => setPersonalInfo({ ...personalInfo, gender: option?.value || "" })}
-          />
-        </div>
-      </div>
-
-      {/** Date of Birth */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Date of Birth</label>
-          <div className="input-icon position-relative">
-           
-                <DatePicker
-  value={dayjs(personalInfo.dob || new Date())}
-  onChange={(date) => {
-    setPersonalInfo((prev) => ({
-      ...prev,
-      dob: dayjs(date).format("YYYY-MM-DD"),
-    }));
-  }}
-/>
-            <span className="input-icon-addon">
-              <i className="ti ti-calendar" />
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/** Blood Group */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Blood Group</label>
-          <CommonSelect
-            className="select"
-            options={bloodGroup}
-            value={bloodGroup.find(option => option.value === personalInfo.bloodGroup)}
-            onChange={(option) => setPersonalInfo({ ...personalInfo, bloodGroup: option?.value || "" })}
-          />
-        </div>
-      </div>
-
-      {/** House */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">House</label>
-          <CommonSelect
-            className="select"
-            options={house}
-            value={house.find(option => option.value === personalInfo.house)}
-            onChange={(option) => setPersonalInfo({ ...personalInfo, house: option?.value || "" })}
-          />
-        </div>
-      </div>
-
-      {/** Religion */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Religion</label>
-          <CommonSelect
-            className="select"
-            options={religion}
-            value={religion.find(option => option.value === personalInfo.religion)}
-            onChange={(option) => setPersonalInfo({ ...personalInfo, religion: option?.value || "" })}
-          />
-        </div>
-      </div>
-
-      {/** Category */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Category</label>
-          <CommonSelect
-            className="select"
-            options={cast}
-            value={cast.find(option => option.value === personalInfo.category)}
-            onChange={(option) => setPersonalInfo({ ...personalInfo, category: option?.value || "" })}
-          />
-        </div>
-      </div>
-
-      {/** Contact Number */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Primary Contact Number</label>
-          <input
-            type="text"
-            className="form-control"
-            value={personalInfo.primaryContact}
-            onChange={(e) => setPersonalInfo({ ...personalInfo, primaryContact: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/** Email */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Email Address</label>
-          <input
-            type="email"
-            className="form-control"
-            value={personalInfo.email}
-            onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/** Caste */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Caste</label>
-          <input
-            type="text"
-            className="form-control"
-            value={personalInfo.caste}
-            onChange={(e) => setPersonalInfo({ ...personalInfo, caste: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/** Suitable Batch */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Suitable Batch</label>
-          <CommonSelect
-            className="select"
-            options={mothertongue}
-            value={mothertongue.find(option => option.value === personalInfo.suitableBatch)}
-            onChange={(option) => setPersonalInfo({ ...personalInfo, suitableBatch: option?.value || "" })}
-          />
-        </div>
-      </div>
-
-      {/** Languages Known */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Language Known</label>
-          <TagsInput
-            value={owner}
-            onChange={(val) => setOwner(val)}
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-                
-                {/* Parents & Guardian Information */}
-                <div className="card">
-                  <div className="card-header bg-light">
-                    <div className="d-flex align-items-center">
-                      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-                        <i className="ti ti-user-shield fs-16" />
-                      </span>
-                      <h4 className="text-dark">
-                        Parents &amp; Guardian Information
-                      </h4>
-                    </div>
-                  </div>
-                  <div className="card-body pb-0">
-                    <div className="border-bottom mb-3">
-                      <h5 className="mb-3">Father’s Info</h5>
-                      <div className="row">
-                        <div className="col-md-12">
-                          <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
-                            <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
-                              <i className="ti ti-photo-plus fs-16" />
-                            </div>
-                            <div className="profile-upload">
-                              <div className="profile-uploader d-flex align-items-center">
-                                <div className="drag-upload-btn mb-3">
-                                  Upload
-                                  <input
-                                    type="file"
-                                    className="form-control image-sign"
-                                    multiple
-                                  />
-                                </div>
-                                <Link to="#" className="btn btn-primary mb-3">
-                                  Remove
-                                </Link>
-                              </div>
-                              <p className="fs-12">
-                                Upload image size 4MB, Format JPG, PNG, SVG
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Father Name</label>
-                            <input type="text" className="form-control" defaultValue={isEdit? 'Jerald Vicinius': undefined}/>
-                          </div>
-                        </div>
-                          <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Phone Number</label>
-                            <input type="text" className="form-control" defaultValue={isEdit? '+1 45545 46464': undefined}/>
-                          </div>
-                        </div>
-                        <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Adhar Number</label>
-                            <input type="text" className="form-control" defaultValue={isEdit? 'jera@example.com': undefined}/>
-                          </div>
-                        </div>
-                      
-                        <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Father Occupation
-                            </label>
-                            <input type="text" className="form-control" defaultValue={isEdit? 'Mechanic': undefined}/>
-                          </div>
-                        </div>
-                          <div className="profile-upload">
-                              <div className="profile-uploader d-flex align-items-center">
-                                    <label className="form-label">ITR Scan Copy</label>
-                                <div className="drag-upload-btn mb-3">
-                                  Upload
-                                  <input
-                                    type="file"
-                                    className="form-control image-sign"
-                                    multiple
-                                  />
-                                </div>
-                                <Link to="#" className="btn btn-primary mb-3">
-                                  Remove
-                                </Link>
-                              </div>
-                              <p className="fs-12">
-                               most Recent ITR Shuld Be Ulploaded
-                              </p>
-                            </div>
-                      </div>
-                    </div>
-                    <div className="border-bottom mb-3">
-                      <h5 className="mb-3">Mother’s Info</h5>
-                      <div className="row">
-                        <div className="col-md-12">
-                          <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
-                            <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
-                              <i className="ti ti-photo-plus fs-16" />
-                            </div>
-                            <div className="profile-upload">
-                              <div className="profile-uploader d-flex align-items-center">
-                                <div className="drag-upload-btn mb-3">
-                                  Upload
-                                  <input
-                                    type="file"
-                                    className="form-control image-sign"
-                                    multiple
-                                  />
-                                </div>
-                                <Link to="#" className="btn btn-primary mb-3">
-                                  Remove
-                                </Link>
-                              </div>
-                              <p className="fs-12">
-                                Upload image size 4MB, Format JPG, PNG, SVG
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Mother Name</label>
-                            <input type="text" className="form-control" defaultValue={isEdit? 'Roberta Webber': undefined}/>
-                          </div>
-                        </div>
-                           <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Phone Number</label>
-                            <input type="text" className="form-control" defaultValue={isEdit? '+1 46499 24357': undefined}/>
-                          </div>
-                        </div>
-                        <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Adhar Number</label>
-                            <input type="text" className="form-control" defaultValue={isEdit? 'robe@example.com': undefined}/>
-                          </div>
-                        </div>
-                     
-                        <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Mother Occupation
-                            </label>
-                            <input type="text" className="form-control" defaultValue={isEdit? 'Homemaker': undefined}/>
-                          </div>
-                        </div>
-                          <div className="profile-upload">
-                              <div className="profile-uploader d-flex align-items-center">
-                                    <label className="form-label">ITR Scan Copy</label>
-                                <div className="drag-upload-btn mb-3">
-                                  Upload
-                                  <input
-                                    type="file"
-                                    className="form-control image-sign"
-                                    multiple
-                                  />
-                                </div>
-                                <Link to="#" className="btn btn-primary mb-3">
-                                  Remove
-                                </Link>
-                              </div>
-                              <p className="fs-12">
-                               most Recent ITR Shuld Be Ulploaded
-                              </p>
-                            </div><br></br>
-                      </div>
-                    </div>
-                    <div>
    
-                     
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Sibilings */}
-                <div className="card">
-                  <div className="card-header bg-light">
-                    <div className="d-flex align-items-center">
-                      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-                        <i className="ti ti-users fs-16" />
-                      </span>
-                      <h4 className="text-dark">Sibilings</h4>
-                    </div>
-                  </div>
-                  <div className="card-body">
-      <div className="addsibling-info">
-        <div className="row">
-          <div className="col-md-12">
-            <div className="mb-2">
-              <label className="form-label">Sibling Info</label>
-              <div className="d-flex align-items-center flex-wrap">
-                <label className="form-label text-dark fw-normal me-2">
-                  Is Sibling studying in the same school
-                </label>
-                <div className="form-check me-3 mb-2">
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="sibling"
-                    id="yes"
-                    defaultChecked
-                  />
-                  <label className="form-check-label" htmlFor="yes">
-                    Yes
-                  </label>
-                </div>
-                <div className="form-check mb-2">
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="sibling"
-                    id="no"
-                  />
-                  <label className="form-check-label" htmlFor="no">
-                    No
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-          {newContents.map((_, index) => (
-            <div key={index} className="col-lg-12">
-              <div className="row">
-                <div className="col-lg-3 col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">Name</label>
-                    <CommonSelect
-                      className="select"
-                      options={names}
-                      defaultValue={isEdit?names[0]:undefined}
-                    />
-                  </div>
-                </div>
-                  <div className="col-lg-3 col-md-6">
-                  <div className="mb-3">
-                    <div className="d-flex align-items-center">
-                      <div className="w-100">
-                        <label className="form-label">Class</label>
-                        <CommonSelect
-                          className="select"
-                          options={allClass}
-                          defaultValue={isEdit?allClass[0]:undefined}
-                        />
-                      </div>
-                      {newContents.length > 1 && (
-                        <div>
-                          <label className="form-label">&nbsp;</label>
-                          <Link
-                            to="#"
-                            className="trash-icon ms-3"
-                            onClick={() => removeContent(index)}
-                          >
-                            <i className="ti ti-trash-x" />
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                  <div className="col-lg-3 col-md-6">
-                  <div className="mb-3">
-                    <div className="d-flex align-items-center">
-                      <div className="w-100">
-                        <label className="form-label">Section</label>
-                        <CommonSelect
-                          className="select"
-                          options={allClass}
-                          defaultValue={isEdit?allClass[0]:undefined}
-                        />
-                      </div>
-                      {newContents.length > 1 && (
-                        <div>
-                          <label className="form-label">&nbsp;</label>
-                          <Link
-                            to="#"
-                            className="trash-icon ms-3"
-                            onClick={() => removeContent(index)}
-                          >
-                            <i className="ti ti-trash-x" />
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="col-lg-3 col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">Roll No</label>
-                    <CommonSelect
-                      className="select"
-                      options={rollno}
-                      defaultValue={isEdit?rollno[0]:undefined}
-                    />
-                  </div>
-                </div>
-               
-                <div className="col-lg-3 col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">Admission No</label>
-                    <CommonSelect
-                      className="select"
-                      options={AdmissionNo}
-                      defaultValue={isEdit?AdmissionNo[0]:undefined}
-                    />
-                  </div>
-                </div>
-               
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="border-top pt-3">
-        <Link
-          to="#"
-          onClick={addNewContent}
-          className="add-sibling btn btn-primary d-inline-flex align-items-center"
-        >
-          <i className="ti ti-circle-plus me-2" />
-          Add New
-        </Link>
-      </div>
-    </div>
-                </div>
+{currentStep === 1 && (
+<PersonalInfoForm
+  personalInfo={personalInfo}
+  setPersonalInfo={setPersonalInfo}
+  classOptions={classOptions}
+  owner={owner}
+  setOwner={setOwner}
+  files={files}
+  setFiles={setFiles}
+/>
+
+)}
+
+{currentStep === 2 && (
+  <ParentsGuardianForm
+    currentStep={currentStep}
+    setCurrentStep={setCurrentStep}
+    setFormData={setFormData}
+    parentInfo={parentInfo}
+    setParentInfo={setParentInfo}
+    isEdit={isEdit}
+    newContents={newContents}
+    addNewContent={addNewContent}
+    removeContent={removeContent}
+    allClass={allClass}
+    names={names}
+    rollno={rollno}
+    AdmissionNo={AdmissionNo}
+  />
+)}
+
+
+
+
              
                 {/* Address */}
-                  <div className="card">
+                  {/* <div className="card">
                   <div className="card-header bg-light">
                     <div className="d-flex align-items-center">
                       <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
@@ -1021,9 +470,9 @@ const handleSubmitPersonalInfo = (e: React.FormEvent) => {
                     </div>
                   </div>
                 </div>
-           
+            */}
                 {/* Transport Information */}
-                <div className="card">
+                {/* <div className="card">
                   <div className="card-header bg-light d-flex align-items-center justify-content-between">
                     <div className="d-flex align-items-center">
                       <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
@@ -1065,10 +514,10 @@ const handleSubmitPersonalInfo = (e: React.FormEvent) => {
   </div>
 </div>
 
-                </div>
+                </div> */}
                
                 {/* Documents */}
-                <div className="card">
+                {/* <div className="card">
                   <div className="card-header bg-light">
                     <div className="d-flex align-items-center">
                       <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
@@ -1148,10 +597,10 @@ const handleSubmitPersonalInfo = (e: React.FormEvent) => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
             
                 {/* Medical History */}
-                <div className="card">
+                {/* <div className="card">
                   <div className="card-header bg-light">
                     <div className="d-flex align-items-center">
                       <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
@@ -1232,10 +681,10 @@ const handleSubmitPersonalInfo = (e: React.FormEvent) => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
               
                 {/* Previous School details */}
-                <div className="card">
+                {/* <div className="card">
                   <div className="card-header bg-light">
                     <div className="d-flex align-items-center">
                       <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
@@ -1260,7 +709,7 @@ const handleSubmitPersonalInfo = (e: React.FormEvent) => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
               
                 {/* /Other Details */}
            <div className="form-check mt-3">
@@ -1275,16 +724,17 @@ const handleSubmitPersonalInfo = (e: React.FormEvent) => {
     </p>
   </label>
 </div>
-<div className="d-flex justify-content-end mt-4">
-<button
-  type="button" // ✅ Important: prevents form submit behavior
-  className="btn btn-primary"
-  onClick={handleSubmitPersonalInfo}
->
-  <i className="bi bi-arrow-right-circle me-2" />
-  Next Step
-</button>
-
+<div className="d-flex justify-content-between mt-4">
+  {currentStep > 1 && (
+    <button className="btn btn-secondary" onClick={handleBack}>
+      <i className="bi bi-arrow-left-circle me-2" />
+      Back
+    </button>
+  )}
+  <button className="btn btn-primary" onClick={handleNextStep}>
+    <i className="bi bi-arrow-right-circle me-2" />
+    Next Step
+  </button>
 </div>
 
               </form>
