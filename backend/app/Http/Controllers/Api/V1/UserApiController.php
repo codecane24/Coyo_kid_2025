@@ -242,9 +242,9 @@ class UserApiController extends Controller
 
     public function update(Request $request, $encriptid)
     {
-        if (!$this->hasPermission('user_edit')) {
-          //  return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
-        }
+        // if (!$this->hasPermission('user_edit')) {
+        //   //  return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        // }
 
         try {
             $id = Crypt::decrypt($encriptid);
@@ -254,9 +254,9 @@ class UserApiController extends Controller
    
         $user = User::findOrFail($id);
 
-        if (!$this->hasPermission('user_edit')) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
-        }
+        // if (!$this->hasPermission('user_edit')) {
+        //     return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        // }
 
         $validated=$request;
         /*
