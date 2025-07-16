@@ -258,7 +258,7 @@ class UserApiController extends Controller
         //     return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         // }
 
-        $validated=$request;
+        $validated=$request->all();
         /*
         $validated = $request->validate([
             'first_name' => 'sometimes|required|string|max:255',
