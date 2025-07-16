@@ -325,13 +325,28 @@ class UserApiController extends Controller
         }
 
         // Handle permissions
-        if (isset($validated['permissions'])) {
-            $user->permissions()->sync(
-                is_array($validated['permissions'])
-                    ? $validated['permissions']
-                    : explode(',', $validated['permissions'])
-            );
-        }
+        if (!empty($validated['permissions'])) {
+                // Normalize input to array of integers
+                $permissionIds = is_array($validated['permissions'])
+                    ? array_map('intval', $validated['permissions'])
+                    : array_map('intval', explode(',', $validated['permissions']));
+                
+                // Delete existing permissions
+                DB::table('permission_user')->where('user_id', $user->id)->delete();
+                
+                // Prepare insert data
+                $insertData = array_map(function($permissionId) use ($user) {
+                    return [
+                        'user_id' => $user->id,
+                        'permission_id' => $permissionId,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+                }, $permissionIds);
+                
+                // Batch insert new permissions
+                DB::table('permission_user')->insert($insertData);
+            }
 
         return response()->json([
             'status' => 'success',
