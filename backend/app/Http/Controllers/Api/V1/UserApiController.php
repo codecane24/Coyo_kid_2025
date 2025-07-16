@@ -297,9 +297,9 @@ class UserApiController extends Controller
         $user->last_name = $validated['last_name'] ?? $user->last_name;
         $user->mobile = $validated['mobile'] ?? $user->mobile;
         $user->email = $validated['email'] ?? $user->email;
-        $user->gender = $validated['gender'] ??;
         $user->department_id = $validated['department_id'] ?? $user->department_id;
         $user->status = $validated['status'] ?? $user->status;
+        
         if (isset($validated['profile_image'])) {
             $user->profile_image = $validated['profile_image'];
         }
