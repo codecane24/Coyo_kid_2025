@@ -86,15 +86,15 @@ class StudentController extends Controller
 
         // Validation rules for Step 1
         $studentRules = [
-            'academic_year' => ['required', 'string', 'max:50'],
-            'admission_number' => ['required', 'string', 'max:50', 'unique:students,admission_no'],
+            'academic_year' => ['nullable', 'string', 'max:50'],
+            'admission_no' => ['required', 'string', 'max:50', 'unique:students,admission_no'],
             'roll_number' => ['nullable', 'string', 'max:50'],
             'admission_date' => ['required', 'date'],
-            'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])], // Assuming numeric status codes
+           // 'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])], // Assuming numeric status codes
             'first_name' => ['required', 'string', 'max:50'],
             'last_name' => ['required', 'string', 'max:50'],
             'class' => ['required', 'string', 'max:50'], // Changed to string, adjust if it's an ID
-            'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
+           // 'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
             'date_of_birth' => ['required', 'date'],
             'blood_group' => ['nullable', 'string', 'max:10'],
@@ -102,7 +102,7 @@ class StudentController extends Controller
             'religion' => ['nullable', Rule::in(['Christianity', 'Buddhism', 'Irreligion', 'Hinduism', 'Islam', 'Sikhism', 'Jainism'])], // Added more common religions
             'category' => ['nullable', Rule::in(['OBC', 'BC', 'General', 'SC', 'ST'])], // Added more common categories
             'primary_contact_number' => ['required', 'string', 'max:15'], // Changed from 'phone' to match request
-            'email' => ['required', 'email', 'max:255', 'unique:students,email'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:students,email'],
             'caste' => ['nullable', 'string', 'max:100'],
             'mother_tongue' => ['nullable', Rule::in(['English', 'Spanish', 'Hindi', 'Gujarati', 'Marathi'])], // Added more common languages
             'languages_known' => ['nullable', 'array'],
