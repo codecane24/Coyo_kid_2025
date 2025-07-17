@@ -113,7 +113,7 @@ class UserController extends ResponseController
                 ]);
             }
 
-
+        
             // Only one branch, continue login
             $request->merge([
                 'userId' => $user->id,
@@ -121,7 +121,7 @@ class UserController extends ResponseController
                 'branch_name' => $user?->branch?->name,
             ]);
 
-             return $this->finalizeLogin($request, $user, null);
+             return $this->finalizeLogin($request, $user, $user->branch_id);
         }
 
         // Step 2: Re-authenticate with branchid present
@@ -208,7 +208,7 @@ class UserController extends ResponseController
             'mobile' => $user->mobile,
             'email' => $user->email,
             'type' => $user->type,
-            'branch_id' => $branch?->id,
+            'branch_id' => $branch?->id ?? $user->branch_id,
             'branch_name' => $branch?->name,
             'fyear' => $fydata,
             'company_id' => $user->company_id,
