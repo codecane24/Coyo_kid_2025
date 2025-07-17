@@ -36,7 +36,7 @@ class MasterController extends Controller
 
     public function getSerialNo($type)
     {
-        
+        return getNewSerialNo($type);
     }
 
     public function companydata($companyEncruptedId)
