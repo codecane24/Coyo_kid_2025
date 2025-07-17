@@ -149,6 +149,7 @@ class StudentController extends Controller
             $student->mother_tongue = $request->mother_tongue;
             $student->languages = $request->languages_known ? json_encode($request->languages_known) : null;
             $student->profile_image = $profileImage;
+            $student->added_by=$request->user_id ?? Auth::user()->id;
 
             // Initialize other fields that will be updated in later steps to null/default
             /*
