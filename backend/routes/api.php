@@ -37,7 +37,7 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     
     // ecnrypted ID API
     Route::get('encrypt/{id}', 'MasterController@encryptId'); // Encrypt provided ID
-    Route::get('serialNo/{type}', 'MasterController@getSerialNo'); // Decrypt provided ID
+    Route::get('serialnumber/{type}', 'MasterController@getSerialNo'); // Decrypt provided ID
 
      // Role API
     Route::get('role', 'RoleController@index');
