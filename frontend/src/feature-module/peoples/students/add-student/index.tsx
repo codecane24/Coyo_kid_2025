@@ -74,8 +74,15 @@ export type PersonalInfoType = {
 
 const AddStudent = () => {
   const routes = all_routes;
+
     const { formData, setFormData } = useAdmissionForm();
     const personalInfoRef = useRef<any>(null);
+    const [studentId, setStudentId] = useState<string | null>(null);
+const method = studentId ? 'put' : 'post';
+const url = studentId ? `/student/${studentId}` : `/student`;
+const updateStudentId = (id: string) => {
+  setStudentId(id);
+};
 const toSnakeCase = (obj: any): any => {
   if (Array.isArray(obj)) {
     return obj.map(toSnakeCase);
@@ -172,7 +179,7 @@ const [showFinancialForm, setShowFinancialForm] = useState(false);
   const [owner1, setOwner1] = useState<string[]>([]);
   const [owner2, setOwner2] = useState<string[]>([]);
   const [defaultDate, setDefaultDate] = useState<dayjs.Dayjs | null>(null);
-const [studentId, setStudentId] = useState("");
+
 
   const location = useLocation();
 const [newContents, setNewContents] = useState([{ name: "", class: "", section: "", rollNo: "", admissionNo: "" }]);
@@ -295,7 +302,7 @@ const steps = [
 
 const [currentStep, setCurrentStep] = useState(1); // use index (0-based)
 const handleNextStep = async () => {
-  if (currentStep === 1) {
+ if (currentStep === 1) {
     const payload = {
       ...personalInfo,
       languages: owner,
@@ -305,24 +312,67 @@ const handleNextStep = async () => {
 
     const finalPayload = {
       step: "step_1",
-      student_id: "", // empty in step 1
+      student_id: "", // required in step_1
       ...snakePayload,
     };
 
-    console.log("✅ Step 1 Payload (Snake Case):", finalPayload);
+    console.log("✅ Step 1 Payload:", finalPayload);
 
     try {
       const res = await createStudent(finalPayload);
-      if (res?.data?.student_id) {
-        setStudentId(res.data.student_id); // Save for next steps
-      }
-    } catch (error) {
-      console.error("❌ Step 1 Submit Error:", error);
-    }
 
-    setFormData((prev) => ({ ...prev, personalInfo: snakePayload }));
-    setCurrentStep(2);
+      if (res?.data?.status === "false") {
+        // ✅ Backend returned status: false (like validation failed)
+        const validationErrors = res?.data?.errors;
+        let errorMessage = res?.data?.message || "Something went wrong";
+
+        // If validation errors exist, show detailed alerts
+        if (validationErrors) {
+          const allErrors = Object.entries(validationErrors)
+         .map(([field, messages]) => `${field}: ${(messages as string[]).join(", ")}`)
+
+            .join("\n");
+          alert(`❌ Validation Failed:\n${allErrors}`);
+        } else {
+          alert(`❌ Error: ${errorMessage}`);
+        }
+
+        return; // don't proceed to next step
+      }
+
+      const newStudentId = res?.data?.student_id;
+
+      if (newStudentId) {
+        setStudentId(newStudentId);
+        setFormData((prev) => ({ ...prev, personalInfo: snakePayload }));
+        setCurrentStep(2); // ✅ proceed
+      } else {
+        alert("❌ No student ID returned. Please try again.");
+      }
+
+    }catch (error: any) {
+  const response = error?.response;
+
+  if (response?.status === 422 && response?.data?.errors) {
+    const validationErrors = response.data.errors;
+
+    // Type guard: Convert unknown to string[]
+    const allErrors = Object.entries(validationErrors)
+      .map(([field, messages]) => {
+        if (Array.isArray(messages)) {
+          return `${field}: ${messages.join(", ")}`;
+        }
+        return `${field}: ${messages}`;
+      })
+      .join("\n");
+
+    alert(`❌ Validation Failed:\n${allErrors}`);
+  } else {
+    alert("❌ Server Error. Please try again later.");
   }
+}
+  }
+
 
   else if (currentStep === 2) {
     const payload = {
@@ -451,6 +501,7 @@ const handleNextStep = async () => {
             </div>
           </div>
           <MultiStepProgressBar currentStep={currentStep} steps={steps} />
+
           {/* /Page Header */}
           <div className="row">
             <div className="col-md-12">

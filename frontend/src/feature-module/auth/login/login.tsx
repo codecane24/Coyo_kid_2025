@@ -189,9 +189,6 @@ const handleBranchSelect = async () => {
   }
 };
 
-
-
-
   const redirectToDashboard = (role: string) => {
     switch (role) {
         case "superadmin":
