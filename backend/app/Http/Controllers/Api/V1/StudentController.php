@@ -271,8 +271,15 @@ class StudentController extends Controller
                 $student->email = $request->email;
                 $student->mother_tongue = $request->mother_tongue;
                 $student->languages = $request->languages_known ? json_encode($request->languages_known) : null;
-                $student->profile_image = $profileImage;
                 $student->added_by=$request->user_id ?? 0;
+
+                // Handle profile image upload
+                if($request->hasFile('profile_image')){
+                    $profileImage = $this->upload_file('profile_image', 'student_profiles');
+                    $student->profile_image = $profileImage;
+                }   
+                 
+            // Create a new Student instance and fill its attributes
                 $student->save();
 
                  return response()->json([
