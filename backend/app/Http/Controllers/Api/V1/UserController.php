@@ -114,9 +114,10 @@ class UserController extends ResponseController
             }
 
             if ($branches->count() == 1) {
-                $user->branch_id =$branches[0]->id;
-                $user->branch_name =$branches[0]->name;
-                return $this->finalizeLogin($request, $user, null);
+                $branch = UserBranch::where('user_id',$user->id)->first();
+                $user->branch_id =$branch->id;
+                $user->branch_name =$branche->name;
+                return $this->finalizeLogin($request, $user, $branch->id);
             }
 
             // Only one branch, continue login
