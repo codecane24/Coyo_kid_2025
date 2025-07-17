@@ -129,7 +129,7 @@ class StudentController extends Controller
 
             // Create a new Student instance and fill its attributes
             $student = new Student();
-            $student->code = 
+            $student->code = $stcode;
             $student->academic_year = $request->academic_year;
             $student->admission_no = $request->admission_number;
             $student->doj = $request->admission_date;
