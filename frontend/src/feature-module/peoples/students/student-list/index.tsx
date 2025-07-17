@@ -17,11 +17,34 @@ import {
 import CommonSelect from "../../../../core/common/commonSelect";
 import TooltipOption from "../../../../core/common/tooltipOption";
 import { getStudent } from "../../../../services/StudentData";
+import { exportData } from "../../../../utils/exportHelper";
+import { printElementById } from "../../../../utils/printHelper";
+const MyComponent = () => {
+  const tableData = [
+    { name: "John", age: 25, city: "New York" },
+    { name: "Priya", age: 30, city: "Ahmedabad" },
+  ];
+
+  const columns = [
+    { title: "Name", field: "name" },
+    { title: "Age", field: "age" },
+    { title: "City", field: "city" },
+  ];
+
+  const handleExport = (type: "pdf" | "excel") => {
+    exportData(type, tableData, columns, "MyTableData");
+  };
+
+  return <TooltipOption onExport={handleExport} />;
+};
+
 const StudentList = () => {
   const routes = all_routes;
     const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
 const [data, setData] = useState<any[]>([]);
 const [loading, setLoading] = useState(true);
+ const [refreshKey, setRefreshKey] = useState(0);
+
 
 useEffect(() => {
   const fetchStudents = async () => {
@@ -45,6 +68,8 @@ useEffect(() => {
       dropdownMenuRef.current.classList.remove("show");
     }
   };
+
+  
 const columns = [
   {
     title: "Admission No",
@@ -133,10 +158,28 @@ render: (_: unknown, record: any) => (
 
 ];
 
+// Fuctions to work the tooltip Options
+    const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1); // This will re-render component parts
+  };
+const handlePrint = () => {
+    printElementById("print-area"); // ID of the element you want to print
+  };
+const handleExport = (type: "pdf" | "excel") => {
+  const exportColumns = columns
+    .filter(col => col.dataIndex) // skip buttons, render-only columns
+    .map(col => ({
+      title: col.title,
+      field: col.dataIndex as string,
+    }));
+
+  exportData(type, data, exportColumns, "StudentList");
+};
+
   return (
     <>
       {/* Page Wrapper */}
-      <div className="page-wrapper">
+      <div className="page-wrapper" key={refreshKey}>
         <div className="content">
           {/* Page Header */}
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
@@ -155,7 +198,7 @@ render: (_: unknown, record: any) => (
               </nav>
             </div>
             <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-              <TooltipOption />
+ <TooltipOption onExport={handleExport} onPrint={handlePrint}  onRefresh={handleRefresh} />
 
               <div className="mb-2">
                 <Link
@@ -173,7 +216,7 @@ render: (_: unknown, record: any) => (
           <div className="card">
             <div className="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
               <h4 className="mb-3">Students List</h4>
-              <div className="d-flex align-items-center flex-wrap">
+              <div className="d-flex align-items-center flex-wrap" >
                 <div className="input-icon-start mb-3 me-2 position-relative">
                   <PredefinedDateRanges />
                 </div>
@@ -312,9 +355,9 @@ render: (_: unknown, record: any) => (
                 </div>
               </div>
             </div>
-          <div className="card-body p-0 py-3">
+          <div className="card-body p-0 py-3 " id="print-area">
       {/* Student List */}
-      <Table dataSource={data} columns={columns} Selection={true}  />
+      <Table  dataSource={data} columns={columns} Selection={true}  />
       {/* /Student List */}
     </div>
           </div>
