@@ -126,7 +126,8 @@ class UserApiController extends Controller
         }
 
        // $sNo = $this->getNewSerialNo('emp_code');
-        $this->increaseSerialNo('emp_code');
+      
+        $code=getNewSerialNo('user');
 
         if(!empty($validated['branches'])) {
             $userDefaultBranch=$validated['branches'][0];
@@ -135,6 +136,7 @@ class UserApiController extends Controller
         }
         $role = Role::where('name',$validated['type'])->first();
         $user = User::create([
+            'code' =>$code,
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
             'mobile' => $validated['mobile'],
@@ -151,6 +153,7 @@ class UserApiController extends Controller
            // 'login_start_time' => $validated['login_start_time'] ?? null,
            // 'login_end_time' => $validated['login_end_time'] ?? null,
         ]);
+       
 
              // Handle branches - ensure branches are passed as array of IDs
             if (!empty($validated['branches'])) {
@@ -191,7 +194,8 @@ class UserApiController extends Controller
                 DB::table('permission_user')->insert($insertData);
             }
 
-
+        increaseSerialNo('student'); 
+          
         return response()->json([
             'status' => 'success',
             'message' => 'User created successfully!',
@@ -561,8 +565,5 @@ class UserApiController extends Controller
      * @param string $key
      * @return void
      */
-    private function increaseSerialNo($key)
-    {
-        // Implement your serial number increment logic here
-    }
+   
 }
