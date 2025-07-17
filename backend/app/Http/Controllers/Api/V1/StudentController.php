@@ -14,7 +14,7 @@ use App\Models\StudentMedicalHistory;
 use App\Models\StudentPreviousSchool; // Ensure this model exists and is used if previous school data is handled
 use Illuminate\Support\Facades\Log; // Import Log facade for error logging
 use Illuminate\Support\Facades\Storage; // Import Storage facade for file uploads
-
+use Auth;
 class StudentController extends Controller
 {
     /**
