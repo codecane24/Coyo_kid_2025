@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import { Studentlist } from "../../../../core/data/json/studentList";
@@ -16,211 +16,170 @@ import {
 } from "../../../../core/common/selectoption/selectoption";
 import CommonSelect from "../../../../core/common/commonSelect";
 import TooltipOption from "../../../../core/common/tooltipOption";
+import { getStudent } from "../../../../services/StudentData";
+import { exportData } from "../../../../utils/exportHelper";
+import { printElementById } from "../../../../utils/printHelper";
+const MyComponent = () => {
+  const tableData = [
+    { name: "John", age: 25, city: "New York" },
+    { name: "Priya", age: 30, city: "Ahmedabad" },
+  ];
+
+  const columns = [
+    { title: "Name", field: "name" },
+    { title: "Age", field: "age" },
+    { title: "City", field: "city" },
+  ];
+
+  const handleExport = (type: "pdf" | "excel") => {
+    exportData(type, tableData, columns, "MyTableData");
+  };
+
+  return <TooltipOption onExport={handleExport} />;
+};
 
 const StudentList = () => {
   const routes = all_routes;
-  const data = Studentlist;
-  const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
+    const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
+const [data, setData] = useState<any[]>([]);
+const [loading, setLoading] = useState(true);
+ const [refreshKey, setRefreshKey] = useState(0);
+
+
+useEffect(() => {
+  const fetchStudents = async () => {
+    try {
+      const response = await getStudent();
+      const studentData = response?.data || [];
+      console.log("✅ API Response:", studentData);
+      setData(studentData);
+    } catch (error) {
+      console.error("❌ Failed to fetch student data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchStudents();
+}, []);
 
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
     }
   };
-  const columns = [
-    {
-      title: "Admission No",
-      dataIndex: "AdmissionNo",
-      render: (text: string) => (
-        <Link to={routes.studentDetail} className="link-primary">
-          {text}
-        </Link>
-      ),
-      sorter: (a: TableData, b: TableData) =>
-        a.AdmissionNo.length - b.AdmissionNo.length,
-    },
-    {
-      title: "Roll No",
-      dataIndex: "RollNo",
-      sorter: (a: TableData, b: TableData) => a.RollNo.length - b.RollNo.length,
-    },
-    {
-      title: "Name",
-      dataIndex: "name",
-      render: (text: string, record: any) => (
+
+  
+const columns = [
+  {
+    title: "Admission No",
+    dataIndex: "code",
+    render: (text: string) => text || "N/A",
+  },
+  {
+    title: "Roll No",
+    dataIndex: "role_no", // spelling matches your API
+    render: (text: string) => text || "N/A",
+  },
+  {
+    title: "Name",
+    render: (_: any, record: any) => {
+      const fullName = `${record.first_name || ""} ${record.last_name || ""}`.trim();
+      return (
         <div className="d-flex align-items-center">
-          <Link to="#" className="avatar avatar-md">
+          <div className="avatar avatar-md">
             <ImageWithBasePath
-              src={record.imgSrc}
+              src={record.imgSrc || "/default-user.png"}
               className="img-fluid rounded-circle"
               alt="img"
             />
-          </Link>
+          </div>
           <div className="ms-2">
-            <p className="text-dark mb-0">
-              <Link to="#">{text}</Link>
-            </p>
+            <p className="text-dark mb-0">{fullName || "N/A"}</p>
           </div>
         </div>
-      ),
-      sorter: (a: TableData, b: TableData) => a.name.length - b.name.length,
+      );
     },
-    {
-      title: "Class",
-      dataIndex: "class",
-      sorter: (a: TableData, b: TableData) => a.class.length - b.class.length,
+  },
+  {
+    title: "Class",
+    dataIndex: "class_id",
+    render: (text: string) => text || "N/A",
+  },
+  {
+    title: "Section",
+    render: () => "N/A", // section not available
+  },
+  {
+    title: "Gender",
+    dataIndex: "gender",
+    render: (text: string) =>
+      text ? text.charAt(0).toUpperCase() + text.slice(1) : "N/A",
+  },
+  {
+    title: "Status",
+    dataIndex: "status",
+    render: (value: string | number) => {
+      const statusText = value === "1" || value === 1 ? "Active" : "Inactive";
+      const badgeClass =
+        statusText === "Active"
+          ? "badge badge-soft-success"
+          : "badge badge-soft-danger";
+      return (
+        <span className={`${badgeClass} d-inline-flex align-items-center`}>
+          <i className="ti ti-circle-filled fs-5 me-1" />
+          {statusText}
+        </span>
+      );
     },
-    {
-      title: "Section",
-      dataIndex: "section",
-      sorter: (a: TableData, b: TableData) =>
-        a.section.length - b.section.length,
-    },
-    {
-      title: "Gender",
-      dataIndex: "gender",
-      sorter: (a: TableData, b: TableData) => a.gender.length - b.gender.length,
-    },
+  },
+  {
+    title: "Date of Join",
+    dataIndex: "doj",
+    render: (text: string) => text || "N/A",
+  },
+  {
+    title: "DOB",
+    dataIndex: "dob",
+    render: (text: string) => text || "N/A",
+  },
+  {
+  title: "Actions",
+  dataIndex: "actions",
+  key: "actions",
+render: (_: unknown, record: any) => (
 
-    {
-      title: "Status",
-      dataIndex: "status",
-      render: (text: string) => (
-        <>
-          {text === "Active" ? (
-            <span className="badge badge-soft-success d-inline-flex align-items-center">
-              <i className="ti ti-circle-filled fs-5 me-1"></i>
-              {text}
-            </span>
-          ) : (
-            <span className="badge badge-soft-danger d-inline-flex align-items-center">
-              <i className="ti ti-circle-filled fs-5 me-1"></i>
-              {text}
-            </span>
-          )}
-        </>
-      ),
-      sorter: (a: TableData, b: TableData) => a.status.length - b.status.length,
-    },
-    {
-      title: "Date of Join",
-      dataIndex: "DateofJoin",
-      sorter: (a: TableData, b: TableData) =>
-        a.DateofJoin.length - b.DateofJoin.length,
-    },
-    {
-      title: "DOB",
-      dataIndex: "DOB",
-      sorter: (a: TableData, b: TableData) => a.DOB.length - b.DOB.length,
-    },
-    {
-      title: "Action",
-      dataIndex: "action",
-      render: () => (
-        <>
-          <div className="d-flex align-items-center">
-            <Link
-              to="#"
-              className="btn btn-outline-light bg-white btn-icon d-flex align-items-center justify-content-center rounded-circle  p-0 me-2"
-            >
-              <i className="ti ti-brand-hipchat" />
-            </Link>
-            <Link
-              to="#"
-              className="btn btn-outline-light bg-white btn-icon d-flex align-items-center justify-content-center rounded-circle  p-0 me-2"
-            >
-              <i className="ti ti-phone" />
-            </Link>
-            <Link
-              to="#"
-              className="btn btn-outline-light bg-white btn-icon d-flex align-items-center justify-content-center rounded-circle p-0 me-3"
-            >
-              <i className="ti ti-mail" />
-            </Link>
-            <Link
-              to="#"
-              data-bs-toggle="modal"
-              data-bs-target="#add_fees_collect"
-              className="btn btn-light fs-12 fw-semibold me-3"
-            >
-              Collect Fees
-            </Link>
-            <div className="dropdown">
-              <Link
-                to="#"
-                className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <i className="ti ti-dots-vertical fs-14" />
-              </Link>
-              <ul className="dropdown-menu dropdown-menu-right p-3">
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="student-details"
-                  >
-                    <i className="ti ti-menu me-2" />
-                    View Student
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to={routes.editStudent}
-                  >
-                    <i className="ti ti-edit-circle me-2" />
-                    Edit
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#login_detail"
-                  >
-                    <i className="ti ti-lock me-2" />
-                    Login Details
-                  </Link>
-                </li>
-                <li>
-                  <Link className="dropdown-item rounded-1" to="#">
-                    <i className="ti ti-toggle-right me-2" />
-                    Disable
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="student-promotion"
-                  >
-                    <i className="ti ti-arrow-ramp-right-2 me-2" />
-                    Promote Student
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#delete-modal"
-                  >
-                    <i className="ti ti-trash-x me-2" />
-                    Delete
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </>
-      ),
-    },
-  ];
+    <div className="flex gap-2">
+      <button className="btn btn-sm btn-primary">Edit</button>
+      <button className="btn btn-sm btn-danger">Delete</button>
+    </div>
+  ),
+},
+
+];
+
+// Fuctions to work the tooltip Options
+    const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1); // This will re-render component parts
+  };
+const handlePrint = () => {
+    printElementById("print-area"); // ID of the element you want to print
+  };
+const handleExport = (type: "pdf" | "excel") => {
+  const exportColumns = columns
+    .filter(col => col.dataIndex) // skip buttons, render-only columns
+    .map(col => ({
+      title: col.title,
+      field: col.dataIndex as string,
+    }));
+
+  exportData(type, data, exportColumns, "StudentList");
+};
+
   return (
     <>
       {/* Page Wrapper */}
-      <div className="page-wrapper">
+      <div className="page-wrapper" key={refreshKey}>
         <div className="content">
           {/* Page Header */}
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
@@ -239,7 +198,7 @@ const StudentList = () => {
               </nav>
             </div>
             <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-              <TooltipOption />
+ <TooltipOption onExport={handleExport} onPrint={handlePrint}  onRefresh={handleRefresh} />
 
               <div className="mb-2">
                 <Link
@@ -257,7 +216,7 @@ const StudentList = () => {
           <div className="card">
             <div className="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
               <h4 className="mb-3">Students List</h4>
-              <div className="d-flex align-items-center flex-wrap">
+              <div className="d-flex align-items-center flex-wrap" >
                 <div className="input-icon-start mb-3 me-2 position-relative">
                   <PredefinedDateRanges />
                 </div>
@@ -396,11 +355,11 @@ const StudentList = () => {
                 </div>
               </div>
             </div>
-            <div className="card-body p-0 py-3">
-              {/* Student List */}
-              <Table dataSource={data} columns={columns} Selection={true} />
-              {/* /Student List */}
-            </div>
+          <div className="card-body p-0 py-3 " id="print-area">
+      {/* Student List */}
+      <Table  dataSource={data} columns={columns} Selection={true}  />
+      {/* /Student List */}
+    </div>
           </div>
           {/* /Students List */}
         </div>
