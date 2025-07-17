@@ -137,7 +137,6 @@ class StudentController extends Controller
             $student->first_name = $request->first_name;
             $student->last_name = $request->last_name;
             $student->class_id = $request->class_id;
-            $student->section = $request->section;
             $student->gender = $request->gender;
             $student->dob = $request->dob;
             $student->blood_group = $request->blood_group;
@@ -152,6 +151,7 @@ class StudentController extends Controller
             $student->profile_image = $profileImage;
 
             // Initialize other fields that will be updated in later steps to null/default
+            /*
             $student->current_address = null;
             $student->permanent_address = null;
             $student->transport_enabled = false;
@@ -165,6 +165,7 @@ class StudentController extends Controller
             $student->bank_branch = null;
             $student->bank_ifsc = null;
             $student->other_information = null;
+            */
 
             // Save the new student record to the database
             $student->save();
