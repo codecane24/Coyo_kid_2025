@@ -113,6 +113,11 @@ class UserController extends ResponseController
                 ]);
             }
 
+            if ($branches->count() == 1) {
+                $user->branch_id =$branches[0]->id;
+                $user->branch_name =$branches[0]->name;
+                return $this->finalizeLogin($request, $user, null);
+            }
 
             // Only one branch, continue login
             $request->merge([
