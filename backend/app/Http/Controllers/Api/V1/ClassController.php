@@ -104,13 +104,17 @@ class ClassController extends Controller
             ], 422);
         }
         // Create the class
+        $code=getNewSerialNo('class');
         $request->merge([
-            'code' => strtoupper($request->code) ?? '', // Ensure code is uppercase
+            'code' => $code, // Ensure code is uppercase
             'company_id' => $request->company_id ?? 1, // Decrypt company_id
             'branch_id' => $request->branch_id ?? 1 // Decrypt branch_id
         ]);
 
         $class = Classes::create($request->all());
+
+        // increase class code 
+         increaseSerialNo('class'); 
 
         return response()->json([
             'status' => true,
