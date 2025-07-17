@@ -214,6 +214,74 @@ class StudentController extends Controller
         $step = $request->input('step'); // Get the step from the request
 
         switch ($step) {
+            case 'step_1': // update student information
+                $stepName1 = "Student Information update";
+                $studentRules = [
+                    'academic_year' => ['nullable', 'string', 'max:50'],
+                    'admission_no' => ['required', 'string', 'max:50', 'unique:students,admission_no'],
+                    'roll_number' => ['nullable', 'string', 'max:50'],
+                    'admission_date' => ['required', 'date'],
+                // 'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])], // Assuming numeric status codes
+                    'first_name' => ['required', 'string', 'max:50'],
+                    'last_name' => ['required', 'string', 'max:50'],
+                    'class' => ['required', 'max:50'], // Changed to string, adjust if it's an ID
+                // 'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
+                    'gender' => ['required', Rule::in(['male', 'female', 'other'])],
+                    'dob' => ['required', 'date'],
+                    'blood_group' => ['nullable', 'string', 'max:10'],
+                    'house' => ['nullable', 'string', 'max:100'],
+                    'religion' => ['nullable', Rule::in(['Christianity', 'Buddhism', 'Irreligion', 'Hinduism', 'Islam', 'Sikhism', 'Jainism'])], // Added more common religions
+                    'category' => ['nullable', Rule::in(['OBC', 'BC', 'General', 'SC', 'ST'])], // Added more common categories
+                    'primary_contact' => ['required', 'string', 'max:15'], // Changed from 'phone' to match request
+                    'email' => ['nullable', 'email', 'max:255', 'unique:students,email,'.$id],
+                    'caste' => ['nullable', 'string', 'max:100'],
+                    'mother_tongue' => ['nullable', Rule::in(['English', 'Spanish', 'Hindi', 'Gujarati', 'Marathi'])], // Added more common languages
+                    'languages_known' => ['nullable', 'array'],
+                    'profile_image' => ['nullable', 'file', 'image', 'max:4096'],
+                ];
+
+                $validator = Validator::make($request->all(), $studentRules);
+                if ($validator->fails()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Data Validation failed',
+                        'errors' => $validator->errors(),
+                        'data' => null,
+                    ], 422);
+                }
+
+                $student =Student::find($id);
+
+                $student->academic_year = $request->academic_year;
+                $student->admission_no = $request->admission_number;
+                $student->doj = $request->admission_date;
+                $student->role_no = $request->roll_number;
+                $student->status = 2; // Set to incomplete for multi-step registration
+                $student->first_name = $request->first_name;
+                $student->last_name = $request->last_name;
+                $student->class_id = $request->class_id;
+                $student->gender = $request->gender;
+                $student->dob = $request->dob;
+                $student->blood_group = $request->blood_group;
+                $student->house = $request->house;
+                $student->religion = $request->religion;
+                $student->category = $request->category;
+                $student->caste = $request->caste;
+                $student->phone = $request->primary_contact; // Ensure this matches your column name
+                $student->email = $request->email;
+                $student->mother_tongue = $request->mother_tongue;
+                $student->languages = $request->languages_known ? json_encode($request->languages_known) : null;
+                $student->profile_image = $profileImage;
+                $student->added_by=$request->user_id ?? 0;
+                $student->save();
+
+                 return response()->json([
+                    'status' => 'success',
+                    'message' => "Step 1: $stepName1 completed successfully",
+                    'student_id' => $student->id,
+                    'data' => $student,
+                ], 201); // 201 Created for successful resource creation
+
             case 'step_2': // Parent/Guardian and Sibling Information
                 $stepName2 = "Parent/Guardian and Sibling Record";
                 $parentRules = [
