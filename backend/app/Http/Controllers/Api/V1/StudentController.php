@@ -34,7 +34,7 @@ class StudentController extends Controller
         $studentData = Student::get();
 
         return response()->json([
-            'status' => 'true',
+            'status' => 'success',
             'data' => $studentData,
             'message' => 'Students retrieved successfully.',
         ], 200);
@@ -59,7 +59,7 @@ class StudentController extends Controller
 
         if (!$student) {
             return response()->json([
-                'status' => 'false',
+                'status' => 'error',
                 'message' => __('api.err_student_not_found'),
                 'data' => null,
             ], 404); // 404 Not Found
@@ -67,7 +67,7 @@ class StudentController extends Controller
 
         $studentData = $this->get_student_data($student);
         return response()->json([
-            'status' => 'true',
+            'status' => 'success',
             'message' => __('api.succ_student_details'),
             'data' => $studentData,
         ], 200); // 200 OK
@@ -113,8 +113,8 @@ class StudentController extends Controller
         $validator = Validator::make($request->all(), $studentRules);
         if ($validator->fails()) {
             return response()->json([
-                'status' => 'false',
-                'message' => __('api.err_validation_failed'),
+                'status' => 'error',
+                'message' => 'Data Validation failed',
                 'errors' => $validator->errors(),
                 'data' => null,
             ], 422); // 422 Unprocessable Entity for validation errors
@@ -173,20 +173,17 @@ class StudentController extends Controller
 
             // Return success response for Step 1
             return response()->json([
-                'status' => 'true',
+                'status' => 'success',
                 'message' => "Step 1: $stepName1 completed successfully",
-                'data' => [
-                    'student_id' => $student->id,
-                    'admission_number' => $student->admission_no, // Corrected to admission_no
-                    'status' => $student->status,
-                ],
+                'student_id' => $student->id,
+                'data' => $student,
             ], 201); // 201 Created for successful resource creation
 
         } catch (\Exception $e) {
             // Log the error for debugging
             Log::error("Student creation (Step 1) failed: " . $e->getMessage());
             return response()->json([
-                'status' => 'false',
+                'status' => 'error',
                 'message' => "Step 1: $stepName1 failed. " . $e->getMessage(),
                 'data' => null,
             ], 500); // 500 Internal Server Error for unexpected exceptions
@@ -208,8 +205,8 @@ class StudentController extends Controller
 
         if (!$student) {
             return response()->json([
-                'status' => 'false',
-                'message' => __('api.err_student_not_found'),
+                'status' => 'error',
+                'message' =>'Student Not found',
                 'data' => null,
             ], 404); // 404 Not Found
         }
@@ -248,8 +245,8 @@ class StudentController extends Controller
                 $validator = Validator::make($request->all(), $parentRules);
                 if ($validator->fails()) {
                     return response()->json([
-                        'status' => 'false',
-                        'message' => __('api.err_validation_failed'),
+                        'status' => 'error',
+                        'message' => 'Data Validation failed',
                         'errors' => $validator->errors(),
                         'data' => null,
                     ], 422);
@@ -308,7 +305,7 @@ class StudentController extends Controller
                     }
 
                     return response()->json([
-                        'status' => 'true',
+                        'status' => 'success',
                         'message' => "Step 2: $stepName2 completed successfully",
                         'data' => [
                             'student_id' => $student->id,
@@ -318,7 +315,7 @@ class StudentController extends Controller
                 } catch (\Exception $e) {
                     Log::error("Student update (Step 2) failed: " . $e->getMessage());
                     return response()->json([
-                        'status' => 'false',
+                        'status' => 'error',
                         'message' => "Step 2: $stepName2 failed. " . $e->getMessage(),
                         'data' => null,
                     ], 500);
@@ -341,8 +338,8 @@ class StudentController extends Controller
                 $validator = Validator::make($request->all(), $addressRules);
                 if ($validator->fails()) {
                     return response()->json([
-                        'status' => 'false',
-                        'message' => __('api.err_validation_failed'),
+                        'status' => 'error',
+                        'message' => 'Data Validation failed',
                         'errors' => $validator->errors(),
                         'data' => null,
                     ], 422);
@@ -363,7 +360,7 @@ class StudentController extends Controller
                     ]);
 
                     return response()->json([
-                        'status' => 'true',
+                        'status' => 'success',
                         'message' => "Step 3: $stepName3 completed successfully",
                         'data' => [
                             'student_id' => $student->id,
@@ -373,7 +370,7 @@ class StudentController extends Controller
                 } catch (\Exception $e) {
                     Log::error("Student update (Step 3) failed: " . $e->getMessage());
                     return response()->json([
-                        'status' => 'false',
+                        'status' => 'error',
                         'message' => "Step 3: $stepName3 failed. " . $e->getMessage(),
                         'data' => null,
                     ], 500);
@@ -390,8 +387,8 @@ class StudentController extends Controller
                 $validator = Validator::make($request->all(), $medicalRules);
                 if ($validator->fails()) {
                     return response()->json([
-                        'status' => 'false',
-                        'message' => __('api.err_validation_failed'),
+                        'status' => 'error',
+                        'message' => 'Data Validation failed',
                         'errors' => $validator->errors(),
                         'data' => null,
                     ], 422);
@@ -409,7 +406,7 @@ class StudentController extends Controller
                     );
 
                     return response()->json([
-                        'status' => 'true',
+                        'status' => 'success',
                         'message' => "Step 4: $stepName4 completed successfully",
                         'data' => [
                             'student_id' => $student->id,
@@ -419,7 +416,7 @@ class StudentController extends Controller
                 } catch (\Exception $e) {
                     Log::error("Student update (Step 4) failed: " . $e->getMessage());
                     return response()->json([
-                        'status' => 'false',
+                        'status' => 'error',
                         'message' => "Step 4: $stepName4 failed. " . $e->getMessage(),
                         'data' => null,
                     ], 500);
@@ -436,8 +433,8 @@ class StudentController extends Controller
                 $validator = Validator::make($request->all(), $documentRules);
                 if ($validator->fails()) {
                     return response()->json([
-                        'status' => 'false',
-                        'message' => __('api.err_validation_failed'),
+                        'status' => 'error',
+                        'message' => 'Data Validation failed',
                         'errors' => $validator->errors(),
                         'data' => null,
                     ], 422);
@@ -462,7 +459,7 @@ class StudentController extends Controller
                     );
 
                     return response()->json([
-                        'status' => 'true',
+                        'status' => 'success',
                         'message' => "Step 5: $stepName5 completed successfully",
                         'data' => [
                             'student_id' => $student->id,
@@ -472,7 +469,7 @@ class StudentController extends Controller
                 } catch (\Exception $e) {
                     Log::error("Student update (Step 5) failed: " . $e->getMessage());
                     return response()->json([
-                        'status' => 'false',
+                        'status' => 'error',
                         'message' => "Step 5: $stepName5 failed. " . $e->getMessage(),
                         'data' => null,
                     ], 500);
@@ -490,8 +487,8 @@ class StudentController extends Controller
                 $validator = Validator::make($request->all(), $otherRules);
                 if ($validator->fails()) {
                     return response()->json([
-                        'status' => 'false',
-                        'message' => __('api.err_validation_failed'),
+                        'status' => 'error',
+                        'message' => 'Data Validation failed',
                         'errors' => $validator->errors(),
                         'data' => null,
                     ], 422);
@@ -507,7 +504,7 @@ class StudentController extends Controller
                     ]);
 
                     return response()->json([
-                        'status' => 'true',
+                        'status' => 'success',
                         'message' => "Step 6: $stepName6 completed successfully",
                         'data' => [
                             'student_id' => $student->id,
@@ -517,7 +514,7 @@ class StudentController extends Controller
                 } catch (\Exception $e) {
                     Log::error("Student update (Step 6) failed: " . $e->getMessage());
                     return response()->json([
-                        'status' => 'false',
+                        'status' => 'error',
                         'message' => "Step 6: $stepName6 failed. " . $e->getMessage(),
                         'data' => null,
                     ], 500);
@@ -531,7 +528,7 @@ class StudentController extends Controller
                     $student->update(['status' => 1]);
 
                     return response()->json([
-                        'status' => 'true',
+                        'status' => 'success',
                         'message' => __('api.succ_student_created'), // Assuming this message implies final success
                         'data' => [
                             'student_id' => $student->id,
@@ -542,7 +539,7 @@ class StudentController extends Controller
                 } catch (\Exception $e) {
                     Log::error("Student update (Step 7) failed: " . $e->getMessage());
                     return response()->json([
-                        'status' => 'false',
+                        'status' => 'error',
                         'message' => "Step 7: $stepName7 failed. " . $e->getMessage(),
                         'data' => null,
                     ], 500);
@@ -551,7 +548,7 @@ class StudentController extends Controller
             default:
                 // Handle invalid step or missing step parameter
                 return response()->json([
-                    'status' => 'false',
+                    'status' => 'error',
                     'message' => "Invalid or missing 'step' parameter. Please provide a valid step (e.g., 'step_1', 'step_2').",
                     'data' => null,
                 ], 400); // 400 Bad Request
