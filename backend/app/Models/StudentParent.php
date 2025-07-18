@@ -13,7 +13,7 @@ class StudentParent extends Model
 		'adhar',
 		'relation',
 		'image',
-		'docfolder_name'
+		'docfolder_name',
 		'status'
 	];
 
