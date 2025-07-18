@@ -266,7 +266,7 @@ class StudentController extends Controller
             // Create a new Student instance and fill its attributes
                 $student->save();
 
-                 return response()->json([
+                return response()->json([
                     'status' => 'success',
                     'message' => "Step 1: $stepName1 completed successfully",
                     'student_id' => $student->id,
@@ -360,7 +360,7 @@ class StudentController extends Controller
                             $parent->fill($parentDetails)->save();
 
                             $guardiansToAttach[$parent->id] = [
-                                'guardian_role' => $relationData['guardian_role'] ?? $relationType // Use provided role or default
+                               // 'guardian_role' => $relationData['guardian_role'] ?? $relationType // Use provided role or default
                             ];
                         } 
                     }
@@ -401,15 +401,21 @@ class StudentController extends Controller
             case 'step_3': // Address and Transport/Hostel
                 $stepName3 = "Address and Transport/Hostel Details";
                 $addressRules = [
-                    'current_address' => ['required', 'string', 'max:255'],
-                    'permanent_address' => ['required', 'string', 'max:255'],
-                    'transport_enabled' => ['boolean'],
-                    'transport.route' => ['required_if:transport_enabled,true', Rule::in(['Newyork', 'Denver', 'Chicago', 'London', 'Paris', 'Tokyo'])], // Expanded routes
-                    'transport.vehicle_number' => ['required_if:transport_enabled,true', 'string', 'max:50'],
-                    'transport.pickup_point' => ['required_if:transport_enabled,true', Rule::in(['Cincinatti', 'Illinois', 'Morgan', 'Brooklyn', 'Manhattan', 'Shinjuku'])], // Expanded points
-                    'hostel_enabled' => ['boolean'],
-                    'hostel.name' => ['required_if:hostel_enabled,true', Rule::in(['Phoenix Residence', 'Tranquil Haven', 'Radiant Towers', 'Nova Nest', 'Starfall Dorms', 'Whispering Pines'])], // Expanded hostels
-                    'hostel.room_no' => ['required_if:hostel_enabled,true', 'string', 'max:20'],
+                    'address' => ['required','string','max:100'],
+                    'area'  => ['required','string','max:50'],
+                    'city_name' => ['nullable','string','max:50'],
+                    'city_id' => ['required','numeric'],
+                    'state_name' =>['nullable','string'],
+                    'state_id' =>['required','numeric'],
+                    'landmark' =>['nullable','string','max:50'],
+                    'address_2' => ['nullable','string','max:100'],
+                    'area_2'  => ['nullable','string','max:50'],
+                    'city_name_2' => ['nullable','string','max:50'],
+                    'city_id_2' => ['nullable','numeric'],
+                    'state_name_2' =>['nullable','string'],
+                    'state_id_2' =>['nullable','numeric'],
+                    'landmark_2' =>['nullable','max:50'],
+                    'country' => ['nullable','max:50'],
                 ];
 
                 $validator = Validator::make($request->all(), $addressRules);
@@ -423,18 +429,27 @@ class StudentController extends Controller
                 }
 
                 try {
+
+                    $updateData=[
+                        'address' => $request->address,
+                        'area' => $request->area,
+                        'city_name' => $request->city_name,
+                        'city_id' =>$request->city_id,
+                        'state_id' =>$request->state_id,
+                        'state_name' =>$request->state_name,
+                        'landmark' =>$request->landmark,
+                        'address_2' => $request->address_2,
+                        'area_2' => $request->area_2,
+                        'city_name_2' => $request->city_name_2,
+                        'city_id_2' =>$request->city_id_2,
+                        'state_id_2' =>$request->state_id_2,
+                        'state_name_2' =>$request->state_name_2,
+                        'landmark' =>$request->landmark,
+                        'country' => $request->country,
+                    ];
+                    
                     // Update student's address, transport, and hostel details
-                    $student->update([
-                        'current_address' => $request->current_address,
-                        'permanent_address' => $request->permanent_address,
-                        'transport_enabled' => $request->boolean('transport_enabled'), // Use boolean() for boolean casts
-                        'transport_route' => $request->boolean('transport_enabled') ? ($request->input('transport.route')) : null,
-                        'transport_vehicle_number' => $request->boolean('transport_enabled') ? ($request->input('transport.vehicle_number')) : null,
-                        'transport_pickup_point' => $request->boolean('transport_enabled') ? ($request->input('transport.pickup_point')) : null,
-                        'hostel_enabled' => $request->boolean('hostel_enabled'),
-                        'hostel_name' => $request->boolean('hostel_enabled') ? ($request->input('hostel.name')) : null,
-                        'hostel_room_no' => $request->boolean('hostel_enabled') ? ($request->input('hostel.room_no')) : null,
-                    ]);
+                    $student->update($updateData);
 
                     return response()->json([
                         'status' => 'success',
