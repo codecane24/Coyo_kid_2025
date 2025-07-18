@@ -26,9 +26,10 @@ interface Props {
   classOptions: { label: string; value: string }[];
   owner: string[];
   setOwner: (val: string[]) => void;
-  files: FileList | null;
+
   setFiles: (val: FileList | null) => void;
   setFormData?: (val: any) => void; // ✅ Add this line
+  currentStep?: number; // Optional, if you need to track the step
 }
 
 
@@ -44,7 +45,7 @@ const PersonalInfoForm = forwardRef<PersonalInfoFormRef, Props>(
       classOptions,
       owner,
       setOwner,
-      files,
+
       setFiles,
     },
     ref

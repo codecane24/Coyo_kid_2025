@@ -1,304 +1,500 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import CommonSelect from "../../../../core/common/commonSelect";
-interface Props {
-  currentStep: number;
-  setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
-  parentInfo: {
-    fatherName: string;
-    fatherPhone: string;
-    fatherAdhar: string;
-    fatherOccupation: string;
-    motherName: string;
-    motherPhone: string;
-    motherAdhar: string;
-    motherOccupation: string;
-    siblingSameSchool: string;
-  };
-  setParentInfo: React.Dispatch<
-    React.SetStateAction<{
-      fatherName: string;
-      fatherPhone: string;
-      fatherAdhar: string;
-      fatherOccupation: string;
-      motherName: string;
-      motherPhone: string;
-      motherAdhar: string;
-      motherOccupation: string;
-      siblingSameSchool: string;
-    }>
-  >;
-  isEdit: boolean;
-  newContents: any[];
-  addNewContent: () => void;
-  removeContent: (index: number) => void;
-  allClass: { label: string; value: string }[];
-  names: { label: string; value: string }[];
-  rollno: { label: string; value: string }[];
-  AdmissionNo: { label: string; value: string }[];
+
+const siblingOptions = ["STD2123", "STD4566", "STD7890"];
+
+interface Guardian {
+  name: string;
+  phone: string;
+  adhar: string;
+  occupation: string;
+  relation: string;
+  profileImage?: File | null;
+  adharImage?: File | null;
 }
 
-
-const ParentsGuardianForm: React.FC<Props> = ({
-  currentStep,
-  setCurrentStep,
-  setFormData,
-  isEdit,
-  newContents,
-  addNewContent,
-  removeContent,
-  allClass,
-  names,
-  rollno,
-  AdmissionNo,
-}) => {
-const [parentInfo, setParentInfo] = useState<{
-  [key: string]: string;
+export interface ParentInfo {
   fatherName: string;
   fatherPhone: string;
+    fatherEmail?: string; 
   fatherAdhar: string;
   fatherOccupation: string;
+  fatherProfileImage?: File | null;
+  fatherAdharImage?: File | null;
+
   motherName: string;
+    motherEmail?: string;
   motherPhone: string;
   motherAdhar: string;
   motherOccupation: string;
+  motherProfileImage?: File | null;
+  motherAdharImage?: File | null;
+
   siblingSameSchool: string;
-}>({
-  fatherName: "",
-  fatherPhone: "",
-  fatherAdhar: "",
-  fatherOccupation: "",
-  motherName: "",
-  motherPhone: "",
-  motherAdhar: "",
-  motherOccupation: "",
-  siblingSameSchool: "yes",
-});
 
+  siblingStudentIds: string[]; 
+  guardians: Guardian[];
+}
 
-  const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
+interface Props {
+  parentInfo: ParentInfo;
+  setParentInfo: React.Dispatch<React.SetStateAction<ParentInfo>>;
+  currentStep: number;
+}
 
-  const handleValidation = () => {
-    const requiredFields = [
-      "fatherName",
-      "fatherPhone",
-      "fatherAdhar",
-      "fatherOccupation",
-      "motherName",
-      "motherPhone",
-      "motherAdhar",
-      "motherOccupation",
-    ];
-
-    const newErrors: { [key: string]: boolean } = {};
-    requiredFields.forEach((field) => {
-      if (!parentInfo[field]) {
-        newErrors[field] = true;
-      }
-    });
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+const ParentsGuardianForm: React.FC<Props> = ({ parentInfo, setParentInfo }) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setParentInfo((prev) => ({ ...prev, [name]: value }));
   };
 
-  // To be called by parent on Next button click
-  const handleNext = () => {
-    if (!handleValidation()) return;
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof ParentInfo) => {
+    const file = e.target.files?.[0] || null;
+    setParentInfo((prev) => ({ ...prev, [field]: file }));
+  };
 
-    const payload = {
-      ...parentInfo,
-      siblings: newContents,
+  const handleGuardianChange = (index: number, field: keyof Guardian, value: any) => {
+    const updated = [...parentInfo.guardians];
+    updated[index][field] = value;
+    setParentInfo({ ...parentInfo, guardians: updated });
+  };
+
+  const handleGuardianImage = (index: number, field: keyof Guardian, file: File | null) => {
+    const updated = [...parentInfo.guardians];
+    updated[index] = {
+      ...updated[index],
+      [field]: file,
     };
-
-    console.log("Payload: Parents & Guardian Info", payload);
-
-    setFormData((prev: any) => ({
-      ...prev,
-      parentsGuardianInfo: payload,
-    }));
-
-    setCurrentStep(currentStep + 1);
+    setParentInfo({ ...parentInfo, guardians: updated });
   };
 
-  // Expose handleNext to parent if needed via ref later
+  const addGuardian = () => {
+    setParentInfo((prev) => ({
+      ...prev,
+      guardians: [
+        ...prev.guardians,
+        {
+          name: "",
+          phone: "",
+          adhar: "",
+          occupation: "",
+          relation: "",
+          profileImage: null,
+          adharImage: null,
+        },
+      ],
+    }));
+  };
+
+  const removeGuardian = (index: number) => {
+    const updated = [...parentInfo.guardians];
+    updated.splice(index, 1);
+    setParentInfo({ ...parentInfo, guardians: updated });
+  };
+const handleSiblingChange = (value: string, index: number) => {
+  const updatedSiblings = [...parentInfo.siblingStudentIds];
+  updatedSiblings[index] = value;
+  setParentInfo((prev) => ({ ...prev, siblingStudentIds: updatedSiblings })); // ✅ corrected
+};
+
+
+
+const addSibling = () => {
+  setParentInfo((prev) => ({ ...prev, siblingStudentIds: [...prev.siblingStudentIds, ""] })); // ✅ corrected
+};
+
+
+const removeSibling = (index: number) => {
+  const updatedSiblings = [...parentInfo.siblingStudentIds];
+  updatedSiblings.splice(index, 1);
+  setParentInfo((prev) => ({ ...prev, siblingStudentIds: updatedSiblings })); // ✅ corrected
+};
+
+
+const renderImageUploader  = (
+  label: string,
+  field: keyof ParentInfo,
+  removeFn: () => void,
+  accept: string = "image/*"
+) => (
+  <div className="file-upload mb-2">
+    <label className="block text-sm font-medium mb-1">{label}</label>
+    <div className="d-flex align-items-center">
+      <div className="drag-upload-btn mb-2">
+        Upload
+        <input
+          type="file"
+          className="form-control image-sign"
+            accept="image/*,.pdf"
+          onChange={(e) => handleImageChange(e, field)}
+        />
+      </div>
+      <Link to="#" className="btn btn-primary mb-2" onClick={removeFn}>
+        Remove
+      </Link>
+    </div>
+    <p className="fs-12 text-sm text-gray-500">
+      Max 4MB. Allowed: JPG, PNG{accept.includes("pdf") && ", PDF"}
+    </p>
+  </div>
+);
+
+  
 
   return (
-    <>
-      <div className="card">
-        <div className="card-header bg-light">
-          <div className="d-flex align-items-center">
-            <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-              <i className="ti ti-user-shield fs-16" />
-            </span>
-            <h4 className="text-dark">Parents & Guardian Information</h4>
+<div className="container-fluid py-3">
+  
+  {/* FATHER */}
+  <div className="card mb-5">
+    <div className="card-header bg-light">
+      <div className="d-flex align-items-center">
+        <span className="bg-white avatar avatar-sm me-2 text-gray-7 d-flex justify-content-center align-items-center">
+          <i className="ti ti-user fs-16" />
+        </span>
+        <h4 className="text-dark mb-0">Father's Details</h4>
+      </div>
+    </div>
+    <div className="card-body pb-1">
+      <div className="row row-cols-xxl-5 row-cols-md-6">
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          <label className="form-label">Father Name</label>
+          <input type="text" name="fatherName" value={parentInfo.fatherName} onChange={handleInputChange} className="form-control" placeholder="Enter Name" />
+        </div>
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+  <label className="form-label">Email</label>
+  <input
+    type="email"
+    name="fatherEmail"
+    value={parentInfo.fatherEmail || ""}
+    onChange={handleInputChange}
+    className="form-control"
+    placeholder="Enter Email"
+  />
+</div>
+
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          <label className="form-label">Phone</label>
+          <input type="text" name="fatherPhone" value={parentInfo.fatherPhone} onChange={handleInputChange} className="form-control" placeholder="Enter Phone" />
+        </div>
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          <label className="form-label">Aadhar</label>
+          <input type="text" name="fatherAdhar" value={parentInfo.fatherAdhar} onChange={handleInputChange} className="form-control" placeholder="Enter Aadhar" />
+        </div>
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          <label className="form-label">Occupation</label>
+          <input type="text" name="fatherOccupation" value={parentInfo.fatherOccupation} onChange={handleInputChange} className="form-control" placeholder="Enter Occupation" />
+        </div>
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          {renderImageUploader("Father's Profile Image", "fatherProfileImage", () =>
+            handleImageChange({ target: { files: null } } as any, "fatherProfileImage")
+          )}
+        </div>
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          {renderImageUploader("Father's Aadhar Image", "fatherAdharImage", () =>
+            handleImageChange({ target: { files: null } } as any, "fatherAdharImage")
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* MOTHER */}
+  <div className="card mb-5">
+    <div className="card-header bg-light">
+      <div className="d-flex align-items-center">
+        <span className="bg-white avatar avatar-sm me-2 text-gray-7 d-flex justify-content-center align-items-center">
+          <i className="ti ti-user fs-16" />
+        </span>
+        <h4 className="text-dark mb-0">Mother's Details</h4>
+      </div>
+    </div>
+    <div className="card-body pb-1">
+      <div className="row row-cols-xxl-5 row-cols-md-6">
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          <label className="form-label">Mother Name</label>
+          <input type="text" name="motherName" value={parentInfo.motherName} onChange={handleInputChange} className="form-control" placeholder="Enter Name" />
+        </div>
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          <label className="form-label">Phone</label>
+          <input type="text" name="motherPhone" value={parentInfo.motherPhone} onChange={handleInputChange} className="form-control" placeholder="Enter Phone" />
+        </div>
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+  <label className="form-label">Email</label>
+  <input
+    type="email"
+    name="motherEmail"
+    value={parentInfo.motherEmail || ""}
+    onChange={handleInputChange}
+    className="form-control"
+    placeholder="Enter Email"
+  />
+</div>
+
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          <label className="form-label">Aadhar</label>
+          <input type="text" name="motherAdhar" value={parentInfo.motherAdhar} onChange={handleInputChange} className="form-control" placeholder="Enter Aadhar" />
+        </div>
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          <label className="form-label">Occupation</label>
+          <input type="text" name="motherOccupation" value={parentInfo.motherOccupation} onChange={handleInputChange} className="form-control" placeholder="Enter Occupation" />
+        </div>
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          {renderImageUploader("Mother's Profile Image", "motherProfileImage", () =>
+            handleImageChange({ target: { files: null } } as any, "motherProfileImage")
+          )}
+        </div>
+        <div className="col-xxl col-xl-3 col-md-6 mb-3">
+          {renderImageUploader("Mother's Aadhar Image", "motherAdharImage", () =>
+            handleImageChange({ target: { files: null } } as any, "motherAdharImage")
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+{/* GUARDIANS */}
+<div className="card mb-5">
+  <div className="card-header bg-light">
+    <div className="d-flex align-items-center">
+      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0 d-flex justify-content-center align-items-center">
+        <i className="ti ti-users fs-16" />
+      </span>
+      <h4 className="text-dark mb-0">Guardian's Information</h4>
+    </div>
+  </div>
+
+  <div className="card-body pb-1">
+    {parentInfo.guardians.map((guardian, index) => (
+      <div key={index} className="border border-dashed rounded p-3 mb-4 bg-light-subtle">
+        <div className="row row-cols-xxl-5 row-cols-md-6">
+          {/* Name */}
+          <div className="col-xxl col-xl-3 col-md-6">
+            <div className="mb-3">
+              <label className="form-label">Name</label>
+              <input
+                type="text"
+                className="form-control"
+                value={guardian.name}
+                onChange={(e) => handleGuardianChange(index, "name", e.target.value)}
+                placeholder="Enter Name"
+              />
+            </div>
+          </div>
+
+          {/* Phone */}
+          <div className="col-xxl col-xl-3 col-md-6">
+            <div className="mb-3">
+              <label className="form-label">Phone</label>
+              <input
+                type="text"
+                className="form-control"
+                value={guardian.phone}
+                onChange={(e) => handleGuardianChange(index, "phone", e.target.value)}
+                placeholder="Enter Phone"
+              />
+            </div>
+          </div>
+
+          {/* Aadhar */}
+          <div className="col-xxl col-xl-3 col-md-6">
+            <div className="mb-3">
+              <label className="form-label">Aadhar</label>
+              <input
+                type="text"
+                className="form-control"
+                value={guardian.adhar}
+                onChange={(e) => handleGuardianChange(index, "adhar", e.target.value)}
+                placeholder="Enter Aadhar"
+              />
+            </div>
+          </div>
+
+          {/* Occupation */}
+          <div className="col-xxl col-xl-3 col-md-6">
+            <div className="mb-3">
+              <label className="form-label">Occupation</label>
+              <input
+                type="text"
+                className="form-control"
+                value={guardian.occupation}
+                onChange={(e) => handleGuardianChange(index, "occupation", e.target.value)}
+                placeholder="Enter Occupation"
+              />
+            </div>
+          </div>
+
+          {/* Relation */}
+          <div className="col-xxl col-xl-3 col-md-6">
+            <div className="mb-3">
+              <label className="form-label">Relation</label>
+              <input
+                type="text"
+                className="form-control"
+                value={guardian.relation}
+                onChange={(e) => handleGuardianChange(index, "relation", e.target.value)}
+                placeholder="Enter Relation"
+              />
+            </div>
+          </div>
+
+          {/* Profile Image */}
+          <div className="col-xxl col-xl-3 col-md-6">
+            <div className="mb-3">
+              <label className="form-label">Profile Image</label>
+              <input
+                type="file"
+                className="form-control"
+                onChange={(e) =>
+                  handleGuardianImage(index, "profileImage", e.target.files?.[0] || null)
+                }
+              />
+            </div>
+          </div>
+
+          {/* Aadhar Image */}
+          <div className="col-xxl col-xl-3 col-md-6">
+            <div className="mb-3">
+              <label className="form-label">Aadhar Image</label>
+              <input
+                type="file"
+                className="form-control"
+                onChange={(e) =>
+                  handleGuardianImage(index, "adharImage", e.target.files?.[0] || null)
+                }
+              />
+            </div>
           </div>
         </div>
-        <div className="card-body pb-0">
-          <div className="border-bottom mb-3">
-            <h5 className="mb-3">Father’s Info</h5>
-            <div className="row">
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Father Name</label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.fatherName ? "border-danger" : ""}`}
-                  value={parentInfo.fatherName}
-                  onChange={(e) => setParentInfo({ ...parentInfo, fatherName: e.target.value })}
-                />
-              </div>
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Phone Number</label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.fatherPhone ? "border-danger" : ""}`}
-                  value={parentInfo.fatherPhone}
-                  onChange={(e) => setParentInfo({ ...parentInfo, fatherPhone: e.target.value })}
-                />
-              </div>
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Adhar Number</label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.fatherAdhar ? "border-danger" : ""}`}
-                  value={parentInfo.fatherAdhar}
-                  onChange={(e) => setParentInfo({ ...parentInfo, fatherAdhar: e.target.value })}
-                />
-              </div>
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Father Occupation</label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.fatherOccupation ? "border-danger" : ""}`}
-                  value={parentInfo.fatherOccupation}
-                  onChange={(e) => setParentInfo({ ...parentInfo, fatherOccupation: e.target.value })}
-                />
-              </div>
-            </div>
-          </div>
 
-          <div className="border-bottom mb-3">
-            <h5 className="mb-3">Mother’s Info</h5>
-            <div className="row">
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Mother Name</label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.motherName ? "border-danger" : ""}`}
-                  value={parentInfo.motherName}
-                  onChange={(e) => setParentInfo({ ...parentInfo, motherName: e.target.value })}
-                />
-              </div>
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Phone Number</label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.motherPhone ? "border-danger" : ""}`}
-                  value={parentInfo.motherPhone}
-                  onChange={(e) => setParentInfo({ ...parentInfo, motherPhone: e.target.value })}
-                />
-              </div>
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Adhar Number</label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.motherAdhar ? "border-danger" : ""}`}
-                  value={parentInfo.motherAdhar}
-                  onChange={(e) => setParentInfo({ ...parentInfo, motherAdhar: e.target.value })}
-                />
-              </div>
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Mother Occupation</label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.motherOccupation ? "border-danger" : ""}`}
-                  value={parentInfo.motherOccupation}
-                  onChange={(e) => setParentInfo({ ...parentInfo, motherOccupation: e.target.value })}
-                />
-              </div>
-            </div>
-          </div>
+        {/* Remove Button */}
+        <div className="mt-2">
+          <button
+            type="button"
+            className="btn btn-outline-danger btn-sm"
+            onClick={() => removeGuardian(index)}
+          >
+            Remove Guardian
+          </button>
+        </div>
+      </div>
+    ))}
 
-          <div className="mb-3">
-            <label className="form-label">Is sibling studying in the same school?</label>
-            <div className="d-flex gap-4">
-              <label className="form-check-label">
-                <input
-                  type="radio"
-                  name="sibling"
-                  value="yes"
-                  checked={parentInfo.siblingSameSchool === "yes"}
-                  onChange={() => setParentInfo({ ...parentInfo, siblingSameSchool: "yes" })}
-                />
-                Yes
-              </label>
-              <label className="form-check-label">
-                <input
-                  type="radio"
-                  name="sibling"
-                  value="no"
-                  checked={parentInfo.siblingSameSchool === "no"}
-                  onChange={() => setParentInfo({ ...parentInfo, siblingSameSchool: "no" })}
-                />
-                No
-              </label>
-            </div>
-          </div>
+    {/* Add Guardian Button */}
+    <button type="button" onClick={addGuardian} className="btn btn-primary">
+      Add More Guardian
+    </button>
+  </div>
+</div>
+
+
+{/* SIBLING */}
+{/* SIBLING */}
+{/* SIBLING INFO */}
+<div className="card mb-5">
+  <div className="card-header bg-light">
+    <div className="d-flex align-items-center">
+      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0 d-flex justify-content-center align-items-center">
+        <i className="ti ti-users-group fs-16" />
+      </span>
+      <h4 className="text-dark mb-0">Sibling Information</h4>
+    </div>
+  </div>
+
+  <div className="card-body pb-1">
+    <div className="row row-cols-xxl-5 row-cols-md-6">
+      {/* Sibling in Same School */}
+      <div className="col-xxl col-xl-3 col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Is any sibling in the same school?</label>
+          <div className="d-flex gap-3">
+  <div className="form-check">
+    <input
+      className="form-check-input"
+      type="radio"
+      name="siblingSameSchool"
+      value="yes"
+      checked={parentInfo.siblingSameSchool === "yes"}
+      onChange={(e) =>
+        setParentInfo((prev) => ({
+          ...prev,
+          siblingSameSchool: e.target.value,
+        }))
+      }
+    />
+    <label className="form-check-label">Yes</label>
+  </div>
+  <div className="form-check">
+    <input
+      className="form-check-input"
+      type="radio"
+      name="siblingSameSchool"
+      value="no"
+      checked={parentInfo.siblingSameSchool === "no"}
+      onChange={(e) =>
+        setParentInfo((prev) => ({
+          ...prev,
+          siblingSameSchool: e.target.value,
+        }))
+      }
+    />
+    <label className="form-check-label">No</label>
+  </div>
+</div>
+      {parentInfo.siblingSameSchool === "yes" && (
+  <div className="col-12">
+    <label className="form-label">Sibling Student ID(s)</label>
+{parentInfo.siblingStudentIds.map((siblingId: string, index: number) => (
+  <div key={index} className="d-flex align-items-center gap-2 mb-2">
+    <select
+      value={siblingId}
+      onChange={(e) => handleSiblingChange(e.target.value, index)}
+      className="form-select w-auto"
+    >
+      <option value="">Select ID</option>
+      {siblingOptions.map((id) => (
+        <option key={id} value={id}>
+          {id}
+        </option>
+      ))}
+    </select>
+    <button
+      type="button"
+      className="btn btn-sm btn-danger"
+      onClick={() => removeSibling(index)}
+    >
+      Remove
+    </button>
+  </div>
+))}
+
+
+    <button
+      type="button"
+      className="btn btn-sm btn-outline-primary mt-2"
+      onClick={addSibling}
+    >
+      + Add Sibling
+    </button>
+  </div>
+)}
+
         </div>
       </div>
 
-      {/* Siblings */}
-      <div className="card">
-        <div className="card-header bg-light">
-          <div className="d-flex align-items-center">
-            <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-              <i className="ti ti-users fs-16" />
-            </span>
-            <h4 className="text-dark">Siblings</h4>
-          </div>
-        </div>
-        <div className="card-body">
-          {newContents.map((_, index) => (
-            <div key={index} className="row">
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Name</label>
-                <CommonSelect className="select" options={names} />
-              </div>
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Class</label>
-                <CommonSelect className="select" options={allClass} />
-              </div>
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Section</label>
-                <CommonSelect className="select" options={allClass} />
-              </div>
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Roll No</label>
-                <CommonSelect className="select" options={rollno} />
-              </div>
-              <div className="col-lg-3 col-md-6 mb-3">
-                <label className="form-label">Admission No</label>
-                <CommonSelect className="select" options={AdmissionNo} />
-              </div>
-              <div className="col-lg-1 col-md-6 d-flex align-items-center mb-3">
-                {newContents.length > 1 && (
-                  <Link to="#" onClick={() => removeContent(index)}>
-                    <i className="ti ti-trash-x fs-18 text-danger" />
-                  </Link>
-                )}
-              </div>
-            </div>
-          ))}
+    </div>
+  </div>
+</div>
 
-          <div className="pt-2">
-            <Link to="#" onClick={addNewContent} className="btn btn-primary">
-              <i className="ti ti-circle-plus me-2" />
-              Add New Sibling
-            </Link>
-          </div>
-        </div>
-      </div>
-    </>
+
+
+
+
+
+
+</div>
+
+
+
+
   );
 };
 
