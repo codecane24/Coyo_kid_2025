@@ -266,7 +266,7 @@ class StudentController extends Controller
             // Create a new Student instance and fill its attributes
                 $student->save();
 
-                 return response()->json([
+                return response()->json([
                     'status' => 'success',
                     'message' => "Step 1: $stepName1 completed successfully",
                     'student_id' => $student->id,
@@ -275,15 +275,81 @@ class StudentController extends Controller
 
            case 'step_2': // Parent/Guardian and Sibling Information
                 $stepName2 = "Parent/Guardian and Sibling Record";
+id
+student_id
+relation
+name
+phone
+email
+aadhar
+aadhar_file
+qualiffication
+occupation
+itr_no
+irt_file
+status
+created_at
+updated_at
+docfolder_name
+image, 
+{
+    "step": "step_2",
+    "student_id": null,
+    "father_name": "desai",
+    "father_phone": "123456",
+    "father_adhar": "123456",
+    "father_adhar_image": null,
+    "father_adhar_image": null,
+    "father_occupation": "dasdsa",
+    "mother_name": "dsaasd",
+    "mother_phone": "123456789",
+    "mother_adhar": "123456789",
+    "mother_occupation": "fafsaf",
+    "mother_adhar_image": null,
+    "sibling_same_school": "yes",
+    "sibling_student_ids": [
+        "STD4566",
+        "STD2123",
+        "STD7890"
+    ],
+    "guardians": [
+        {
+            "name": "'l'l",
+            "phone": "1345679",
+            "adhar": "123456789",
+            "occupation": "hghgh",
+            "relation": "hghghg",
+            "profile_image": {},
+            "adhar_image": null
+        }
+    ]
+}
+
 
                 $parentRules = [
-                    'parents' => ['required', 'array', 'min:1'],
-                    'parents.*.parent_relation' => ['required', 'string'],
-                    'parents.*.name' => ['required', 'string', 'max:100'],
-                    'parents.*.phone' => ['nullable', 'string', 'max:15'],
-                    'parents.*.email' => ['nullable', 'email', 'max:255'],
-                    'parents.*.image' => ['nullable', 'file', 'image', 'max:4096'],
-                    'parents.*.occupation' => ['nullable', 'string', 'max:100'],
+                    'father_name' => ['required', 'string', 'max:100'],
+                    'father_phone' => ['nullable', 'string', 'max:15'],
+                    'father_email' => ['nullable', 'email'],
+                    'father_adhar' => ['nullable', 'string', 'max:12'],
+                    'father_occupation' => ['nullable', 'string', 'max:100'],
+                    'father_adhar_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'mother_name' => ['required', 'string', 'max:100'],
+                    'mother_email' => ['nullable', 'email'],
+                    'mother_phone' => ['nullable', 'string', 'max:15'],
+                    'mother_adhar' => ['nullable', 'string', 'max:12'],
+                    'mother_occupation' => ['nullable', 'string', 'max:100'],
+                    'mother_adhar_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'sibling_same_school' => ['required', 'string', 'in:yes,no'],
+                    'sibling_student_ids' => ['nullable', 'array'],
+                    'sibling_student_ids.*' => ['string', 'max:50'],
+                    'guardians' => ['nullable', 'array'],
+                    'guardians.*.name' => ['required', 'string', 'max:100'],
+                    'guardians.*.phone' => ['nullable', 'string', 'max:15'],
+                    'guardians.*.adhar' => ['nullable', 'string', 'max:12'],
+                    'guardians.*.occupation' => ['nullable', 'string', 'max:100'],
+                    'guardians.*.relation' => ['required', 'string', 'max:50'],
+                    'guardians.*.profile_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'guardians.*.adhar_image' => ['nullable', 'file', 'image', 'max:4096'],
                 ];
 
                 $validator = Validator::make($request->all(), $parentRules);
@@ -300,83 +366,114 @@ class StudentController extends Controller
                 try {
                     $fatherId = null;
                     $motherId = null;
-                   
-                    foreach ($request->input('parent_relations', []) as $index => $relationData) {
-                        $relationType = $relationData['parent_relation'];
+                    $guardiansToAttach = [];
 
-                        $imagePath = null;
-                        if ($request->hasFile("parent_relations.{$index}.image")) {
-                           // $imagePath = $this->upload_file("parent_relations.{$index}.image", 'relation_profiles');
-                        }
+                    // Handle Father
+                    $fatherDetails = [
+                        'relation' => 'father',
+                        'name' => $request->input('father_name'),
+                        'phone' => $request->input('father_phone'),
+                        'adhar' => $request->input('father_adhar'),
+                        'qualiffication' =>  $request->input('father_qualification') ?? '',
+                        'occupation' => $request->input('father_occupation') ?? '',
+                    ];
 
-                        $parentDetails = [
-                            'name' => $relationData['name'],
-                            'email' => $relationData['email'] ?? null,
-                            'phone' => $relationData['phone'] ?? null,
-                            'occupation' => $relationData['occupation'] ?? null,
-                            'image' => $imagePath,
-                            'address' => $relationData['address'] ?? null,
-                        ];
+                    $father = StudentParent::firstOrNew([
+                        'phone' => $fatherDetails['phone'],
+                        'adhar' => $fatherDetails['adhar'],
+                    ]);
 
-                        if (in_array($relationType, ['father', 'mother'])) {
-                            // Find or create the parent record based on email/phone, then update
-                            $parent = StudentParent::firstOrNew([
-                                'email' => $parentDetails['email'],
-                                'phone' => $parentDetails['phone']
-                            ]);
-
-                            // If not found by both, try by just email, then just phone
-                            if (!$parent->exists) {
-                                if ($parentDetails['email']) {
-                                    $parent = StudentParent::firstOrNew(['email' => $parentDetails['email']]);
-                                } elseif ($parentDetails['phone']) {
-                                    $parent = StudentParent::firstOrNew(['phone' => $parentDetails['phone']]);
-                                }
-                            }
-
-                            // Fill remaining details and save
-                            $parent->fill($parentDetails)->save();
-
-                            // Assign parent ID to the correct foreign key on the student
-                            if ($relationType === 'father') {
-                                $fatherId = $parent->id;
-                            } elseif ($relationType === 'mother') {
-                                $motherId = $parent->id;
-                            }
-                        } elseif (in_array($relationType, ['guardian', 'other', 'grandmother', 'grandfather'])) {
-                            // These are treated as guardians (many-to-many)
-                            $parent = StudentParent::firstOrNew([
-                                'email' => $parentDetails['email'],
-                                'phone' => $parentDetails['phone']
-                            ]);
-
-                            if (!$parent->exists) {
-                                if ($parentDetails['email']) {
-                                    $parent = StudentParent::firstOrNew(['email' => $parentDetails['email']]);
-                                } elseif ($parentDetails['phone']) {
-                                    $parent = StudentParent::firstOrNew(['phone' => $parentDetails['phone']]);
-                                }
-                            }
-                            $parent->fill($parentDetails)->save();
-
-                            $guardiansToAttach[$parent->id] = [
-                                'guardian_role' => $relationData['guardian_role'] ?? $relationType // Use provided role or default
-                            ];
-                        } 
+                    if (!$father->exists && $fatherDetails['phone']) {
+                        $father = StudentParent::firstOrNew(['phone' => $fatherDetails['phone']]);
+                    } elseif (!$father->exists && $fatherDetails['adhar']) {
+                        $father = StudentParent::firstOrNew(['adhar' => $fatherDetails['adhar']]);
                     }
 
-                    // Update the student record with the new father and mother foreign keys
+                    $father->fill($fatherDetails)->save();
+                    $fatherId = $father->id;
+
+                    // Handle Mother
+                    $motherDetails = [
+                        'relation' => 'mother',
+                        'name' => $request->input('mother_name'),
+                        'phone' => $request->input('mother_phone'),
+                        'adhar' => $request->input('mother_adhar'),
+                        'occupation' => $request->input('mother_occupation'),
+                    ];
+
+                    if ($request->hasFile('mother_adhar_image')) {
+                        // $motherDetails['image'] = $this->upload_file('mother_adhar_image', 'relation_profiles');
+                    }
+
+                    $mother = StudentParent::firstOrNew([
+                        'phone' => $motherDetails['phone'],
+                        'adhar' => $motherDetails['adhar'],
+                    ]);
+
+                    if (!$mother->exists && $motherDetails['phone']) {
+                        $mother = StudentParent::firstOrNew(['phone' => $motherDetails['phone']]);
+                    } elseif (!$mother->exists && $motherDetails['adhar']) {
+                        $mother = StudentParent::firstOrNew(['adhar' => $motherDetails['adhar']]);
+                    }
+
+                    $mother->fill($motherDetails)->save();
+                    $motherId = $mother->id;
+
+                    // Handle Guardians
+                    foreach ($request->input('guardians', []) as $index => $guardianData) {
+                        $guardianDetails = [
+                            'relation' => $guardianData['relation'],
+                            'name' => $guardianData['name'],
+                            'phone' => $guardianData['phone'] ?? null,
+                            'adhar' => $guardianData['adhar'] ?? null,
+                            'occupation' => $guardianData['occupation'] ?? null,
+                        ];
+
+                        if ($request->hasFile("guardians.{$index}.profile_image")) {
+                            // $guardianDetails['image'] = $this->upload_file("guardians.{$index}.profile_image", 'relation_profiles');
+                        }
+                        if ($request->hasFile("guardians.{$index}.adhar_image")) {
+                            // $guardianDetails['adhar_image'] = $this->upload_file("guardians.{$index}.adhar_image", 'relation_profiles');
+                        }
+
+                        $guardian = StudentParent::firstOrNew([
+                            'phone' => $guardianDetails['phone'],
+                            'adhar' => $guardianDetails['adhar'],
+                        ]);
+
+                        if (!$guardian->exists && $guardianDetails['phone']) {
+                            $guardian = StudentParent::firstOrNew(['phone' => $guardianDetails['phone']]);
+                        } elseif (!$guardian->exists && $guardianDetails['adhar']) {
+                            $guardian = StudentParent::firstOrNew(['adhar' => $guardianDetails['adhar']]);
+                        }
+
+                        $guardian->fill($guardianDetails)->save();
+                        $guardiansToAttach[$guardian->id] = [
+                            'guardian_role' => $guardianData['relation'],
+                        ];
+                    }
+
+                    // Update student with father and mother IDs
                     $student->update([
                         'father_id' => $fatherId,
                         'mother_id' => $motherId,
-                        // Removed guardian_type update as it's no longer used
                     ]);
 
-                    // Sync guardians to the student (detach existing, attach new)
-                    //$student->guardians()->sync($guardiansToAttach);
+                    // Sync guardians
+                    // $student->guardians()->sync($guardiansToAttach);
 
-                    // Handle siblings: Delete existing and re-create
+                    // Handle siblings
                     StudentSibling::where('student_id', $student->id)->delete();
+                    $siblingsToCreate = [];
+                    if ($request->input('sibling_same_school') === 'yes') {
+                        foreach ($request->input('sibling_student_ids', []) as $siblingId) {
+                            $siblingsToCreate[] = [
+                                'sibling_student_id' => $siblingId,
+                                'same_school' => true,
+                            ];
+                        }
+                    }
+
                     foreach ($siblingsToCreate as $sibling) {
                         StudentSibling::create(array_merge(['student_id' => $student->id], $sibling));
                     }
@@ -401,15 +498,21 @@ class StudentController extends Controller
             case 'step_3': // Address and Transport/Hostel
                 $stepName3 = "Address and Transport/Hostel Details";
                 $addressRules = [
-                    'current_address' => ['required', 'string', 'max:255'],
-                    'permanent_address' => ['required', 'string', 'max:255'],
-                    'transport_enabled' => ['boolean'],
-                    'transport.route' => ['required_if:transport_enabled,true', Rule::in(['Newyork', 'Denver', 'Chicago', 'London', 'Paris', 'Tokyo'])], // Expanded routes
-                    'transport.vehicle_number' => ['required_if:transport_enabled,true', 'string', 'max:50'],
-                    'transport.pickup_point' => ['required_if:transport_enabled,true', Rule::in(['Cincinatti', 'Illinois', 'Morgan', 'Brooklyn', 'Manhattan', 'Shinjuku'])], // Expanded points
-                    'hostel_enabled' => ['boolean'],
-                    'hostel.name' => ['required_if:hostel_enabled,true', Rule::in(['Phoenix Residence', 'Tranquil Haven', 'Radiant Towers', 'Nova Nest', 'Starfall Dorms', 'Whispering Pines'])], // Expanded hostels
-                    'hostel.room_no' => ['required_if:hostel_enabled,true', 'string', 'max:20'],
+                    'address' => ['required','string','max:100'],
+                    'area'  => ['required','string','max:50'],
+                    'city_name' => ['nullable','string','max:50'],
+                    'city_id' => ['required','numeric'],
+                    'state_name' =>['nullable','string'],
+                    'state_id' =>['required','numeric'],
+                    'landmark' =>['nullable','string','max:50'],
+                    'address_2' => ['nullable','string','max:100'],
+                    'area_2'  => ['nullable','string','max:50'],
+                    'city_name_2' => ['nullable','string','max:50'],
+                    'city_id_2' => ['nullable','numeric'],
+                    'state_name_2' =>['nullable','string'],
+                    'state_id_2' =>['nullable','numeric'],
+                    'landmark_2' =>['nullable','max:50'],
+                    'country' => ['nullable','max:50'],
                 ];
 
                 $validator = Validator::make($request->all(), $addressRules);
@@ -423,18 +526,27 @@ class StudentController extends Controller
                 }
 
                 try {
+
+                    $updateData=[
+                        'address' => $request->address,
+                        'area' => $request->area,
+                        'city_name' => $request->city_name,
+                        'city_id' =>$request->city_id,
+                        'state_id' =>$request->state_id,
+                        'state_name' =>$request->state_name,
+                        'landmark' =>$request->landmark,
+                        'address_2' => $request->address_2,
+                        'area_2' => $request->area_2,
+                        'city_name_2' => $request->city_name_2,
+                        'city_id_2' =>$request->city_id_2,
+                        'state_id_2' =>$request->state_id_2,
+                        'state_name_2' =>$request->state_name_2,
+                        'landmark' =>$request->landmark,
+                        'country' => $request->country,
+                    ];
+
                     // Update student's address, transport, and hostel details
-                    $student->update([
-                        'current_address' => $request->current_address,
-                        'permanent_address' => $request->permanent_address,
-                        'transport_enabled' => $request->boolean('transport_enabled'), // Use boolean() for boolean casts
-                        'transport_route' => $request->boolean('transport_enabled') ? ($request->input('transport.route')) : null,
-                        'transport_vehicle_number' => $request->boolean('transport_enabled') ? ($request->input('transport.vehicle_number')) : null,
-                        'transport_pickup_point' => $request->boolean('transport_enabled') ? ($request->input('transport.pickup_point')) : null,
-                        'hostel_enabled' => $request->boolean('hostel_enabled'),
-                        'hostel_name' => $request->boolean('hostel_enabled') ? ($request->input('hostel.name')) : null,
-                        'hostel_room_no' => $request->boolean('hostel_enabled') ? ($request->input('hostel.room_no')) : null,
-                    ]);
+                    $student->update($updateData);
 
                     return response()->json([
                         'status' => 'success',

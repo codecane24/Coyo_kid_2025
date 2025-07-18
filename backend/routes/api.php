@@ -59,6 +59,9 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     // Students API
     Route::apiResource('student', 'StudentController');
 
+    //=== Fees API 
+    Route::apiResource('fees-group','FeesGroupControler');
+
 });
 
 

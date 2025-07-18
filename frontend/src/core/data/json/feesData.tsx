@@ -1,7 +1,7 @@
 export const feesData = [
     {
       key: "1",
-      id: "FG80482",
+      id: "FG804855",
       feesGroup: "Tuition Fees",
       description: "The money that you pay to be taught",
       status: "Active",

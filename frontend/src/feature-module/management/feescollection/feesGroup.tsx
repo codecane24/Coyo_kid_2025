@@ -1,28 +1,40 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { all_routes } from "../../router/all_routes";
 import { Link } from "react-router-dom";
 import PredefinedDateRanges from "../../../core/common/datePicker";
 import CommonSelect from "../../../core/common/commonSelect";
-import {
-  ids,
-  names,
-  status,
-} from "../../../core/common/selectoption/selectoption";
+import { ids, names, status } from "../../../core/common/selectoption/selectoption";
 import { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
-import { feesData } from "../../../core/data/json/feesData";
+import { getFeesGroupList } from "../../../services/FeesGroupData";
 import FeesModal from "./feesModal";
 import TooltipOption from "../../../core/common/tooltipOption";
 
 const FeesGroup = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const data = feesData;
+  const [data, setData] = useState<TableData[]>([]);
+
+  useEffect(() => {
+    const fetchFeesGroup = async () => {
+      try {
+        const res = await getFeesGroupList();
+        setData(res?.data || []);
+      } catch (err) {
+        console.error("Failed to fetch fees groups:", err);
+        setData([]);
+      }
+    };
+
+    fetchFeesGroup();
+  }, []);
+
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
     }
   };
+
   const columns = [
     {
       title: "ID",
@@ -36,30 +48,28 @@ const FeesGroup = () => {
     },
     {
       title: "Fees Group",
-      dataIndex: "feesGroup",
-      sorter: (a: TableData, b: TableData) =>
-        a.feesGroup.length - b.feesGroup.length,
+      dataIndex: "name",
+      sorter: (a: TableData, b: TableData) => a.name.length - b.name.length,
     },
     {
       title: "Description",
       dataIndex: "description",
-      sorter: (a: TableData, b: TableData) =>
-        a.description.length - b.description.length,
+      sorter: (a: TableData, b: TableData) => a.description.length - b.description.length,
     },
     {
       title: "Status",
       dataIndex: "status",
       render: (text: string) => (
         <>
-          {text === "Active" ? (
+          {text === "1" ? (
             <span className="badge badge-soft-success d-inline-flex align-items-center">
               <i className="ti ti-circle-filled fs-5 me-1"></i>
-              {text}
+              Active
             </span>
           ) : (
             <span className="badge badge-soft-danger d-inline-flex align-items-center">
               <i className="ti ti-circle-filled fs-5 me-1"></i>
-              {text}
+              Inactive
             </span>
           )}
         </>
@@ -111,12 +121,11 @@ const FeesGroup = () => {
       ),
     },
   ];
+
   return (
     <>
-      {/* Page Wrapper */}
       <div className="page-wrapper">
         <div className="content">
-          {/* Page Header */}
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
             <div className="my-auto mb-2">
               <h3 className="page-title mb-1">Fees Collection</h3>
@@ -135,7 +144,7 @@ const FeesGroup = () => {
               </nav>
             </div>
             <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <TooltipOption />
+              <TooltipOption />
               <div className="mb-2">
                 <Link
                   to="#"
@@ -149,14 +158,13 @@ const FeesGroup = () => {
               </div>
             </div>
           </div>
-          {/* /Page Header */}
-          {/* Students List */}
+          
           <div className="card">
             <div className="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
               <h4 className="mb-3">Fees Collection</h4>
               <div className="d-flex align-items-center flex-wrap">
                 <div className="input-icon-start mb-3 me-2 position-relative">
-                 <PredefinedDateRanges/>
+                  <PredefinedDateRanges/>
                 </div>
                 <div className="dropdown mb-3 me-2">
                   <Link
@@ -168,10 +176,7 @@ const FeesGroup = () => {
                     <i className="ti ti-filter me-2" />
                     Filter
                   </Link>
-                  <div
-                    className="dropdown-menu drop-width"
-                    ref={dropdownMenuRef}
-                  >
+                  <div className="dropdown-menu drop-width" ref={dropdownMenuRef}>
                     <form>
                       <div className="d-flex align-items-center border-bottom p-3">
                         <h4>Filter</h4>
@@ -260,15 +265,11 @@ const FeesGroup = () => {
               </div>
             </div>
             <div className="card-body p-0 py-3">
-              {/* Student List */}
               <Table dataSource={data} columns={columns} Selection={true} />
-              {/* /Student List */}
             </div>
           </div>
-          {/* /Students List */}
         </div>
       </div>
-      {/* /Page Wrapper */}
       <FeesModal/>
     </>
   );

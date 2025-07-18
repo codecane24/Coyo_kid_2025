@@ -2,18 +2,16 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
-class StudentParent extends Model
+class FeesGroup extends Model
 {
-	protected $table = 'student_parents';
+	protected $table = 'fees_group_master';
 
 	protected $fillable = [
 		'code',
 		'name',
-		'phone',
-		'adhar',
-		'relation',
-		'image',
-		'docfolder_name'
+		'branch_id',
+		'company_id',
+		'created_by',
 		'status'
 	];
 
@@ -21,4 +19,6 @@ class StudentParent extends Model
 		'created_at',
 		'updated_at'
 	];
+
+
 }

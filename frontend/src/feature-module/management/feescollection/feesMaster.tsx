@@ -13,9 +13,10 @@ import {
 } from "../../../core/common/selectoption/selectoption";
 import { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
-import FeesModal from "./feesModal";
+
 import { feesMasterData } from "../../../core/data/json/feesMaster";
 import TooltipOption from "../../../core/common/tooltipOption";
+import FeesModal from "./feesModal";
 
 const FeesMaster = () => {
   const routes = all_routes;
@@ -335,7 +336,7 @@ const FeesMaster = () => {
         </div>
       </div>
       {/* /Page Wrapper */}
-      <FeesModal />
+      <FeesModal/>
     </>
   );
 };
