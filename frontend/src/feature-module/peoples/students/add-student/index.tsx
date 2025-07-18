@@ -38,7 +38,7 @@ import SchoolTransportMedicalForm from "./SchoolTransportMedicalForm";
 import DocumentsForm from "./DocumentsForm";
 import { FinancialInfoType } from "./FinancialDetailsForm";
 import { createStudent } from "../../../../services/StudentData";
-
+import { ParentInfo } from "./ParentsGuardianForm";
 type ClassItem = {
   id: string;
   name: string; 
@@ -74,6 +74,8 @@ export type PersonalInfoType = {
 
 const AddStudent = () => {
   const routes = all_routes;
+const [files, setFiles] = useState<File[]>([]);
+
 
     const { formData, setFormData } = useAdmissionForm();
     const personalInfoRef = useRef<any>(null);
@@ -95,6 +97,41 @@ const toSnakeCase = (obj: any): any => {
   }
   return obj;
 };
+function toSnakeCaseTwo(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj
+      .map(toSnakeCase)
+      .filter((item) => item !== undefined && item !== "");
+  }
+
+  if (obj !== null && typeof obj === "object") {
+    const newObj: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(obj)) {
+      const snakeKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
+      const convertedValue = toSnakeCase(value);
+
+      const isEmptyObject =
+        convertedValue &&
+        typeof convertedValue === "object" &&
+        !Array.isArray(convertedValue) &&
+        Object.keys(convertedValue).length === 0;
+
+      const shouldInclude = convertedValue !== "" && !isEmptyObject;
+
+      if (shouldInclude || convertedValue === null) {
+        newObj[snakeKey] = convertedValue;
+      }
+    }
+
+    return newObj;
+  }
+
+  return obj;
+}
+
+
+
 
       const [personalInfo, setPersonalInfo] = useState({
   academicYear: "",
@@ -119,17 +156,52 @@ const toSnakeCase = (obj: any): any => {
   suitableBatch: "",
   languages: [], // for TagsInput
 });
-const [parentInfo, setParentInfo] = useState({
+const [parentInfo, setParentInfo] = useState<ParentInfo>({
   fatherName: "",
   fatherPhone: "",
   fatherAdhar: "",
   fatherOccupation: "",
+  fatherEmail: "", // 👈 add this
+  fatherProfileImage: null,
+  fatherAdharImage: null,
   motherName: "",
   motherPhone: "",
   motherAdhar: "",
   motherOccupation: "",
-  siblingSameSchool: "", // "yes" or "no"
+  motherEmail: "", // 👈 add this
+  motherProfileImage: null,
+  motherAdharImage: null,
+  siblingSameSchool: "",
+  siblingStudentIds: [""],
+  guardians: [
+    {
+      name: "",
+      phone: "",
+      adhar: "",
+      occupation: "",
+      relation: "",
+      profileImage: null,
+      adharImage: null,
+    },
+  ],
 });
+
+const [parentImages, setParentImages] = useState<{
+  fatherProfile?: File;
+  fatherAdhar?: File;
+  motherProfile?: File;
+  motherAdhar?: File;
+  guardianProfiles: File[];
+  guardianAdhars: File[];
+}>({
+  guardianProfiles: [],
+  guardianAdhars: [],
+});
+
+
+
+
+
 const [addressInfo, setAddressInfo] = useState({
   permanent: {
     houseNo: "",
@@ -237,7 +309,7 @@ const removeContent = (index: number) => {
   }, [location.pathname])
 
 
-const [files, setFiles] = useState<FileList | null>(null);
+
 const formatDate = (dateStr: string | undefined) => {
   if (!dateStr) return "";
   const d = new Date(dateStr);
@@ -302,7 +374,7 @@ const steps = [
 
 const [currentStep, setCurrentStep] = useState(1); // use index (0-based)
 const handleNextStep = async () => {
- if (currentStep === 1) {
+ if (currentStep === 2) {
     const payload = {
       ...personalInfo,
       languages: owner,
@@ -340,8 +412,8 @@ const handleNextStep = async () => {
         return; // don't proceed to next step
       }
 
-      const newStudentId = res?.data?.student_id;
-
+      const newStudentId = res?.student_id;
+console.log("✅ New Student ID:", newStudentId);
       if (newStudentId) {
         setStudentId(newStudentId);
         setFormData((prev) => ({ ...prev, personalInfo: snakePayload }));
@@ -374,16 +446,16 @@ const handleNextStep = async () => {
   }
 
 
-  else if (currentStep === 2) {
+  else if (currentStep === 1) {
     const payload = {
       ...parentInfo,
-      siblings: newContents,
+
     };
 
     const finalPayload = {
       step: "step_2",
       student_id: studentId,
-      ...toSnakeCase(payload),
+      ...toSnakeCaseTwo(payload),
     };
 
     try {
@@ -392,7 +464,7 @@ const handleNextStep = async () => {
       console.error("❌ Step 2 Submit Error:", error);
     }
 
-    console.log("✅ Step 2 Payload: Parent & Guardian Info", payload);
+    console.log("✅ Step 2 Payload: Parent & Guardian Info", finalPayload);
     setFormData((prev) => ({ ...prev, parentGuardianInfo: payload }));
     setCurrentStep(3);
   }
@@ -507,41 +579,27 @@ const handleNextStep = async () => {
             <div className="col-md-12">
               <form onSubmit={(e) => e.preventDefault()}>
    
-{currentStep === 1 && (
+{currentStep === 2 && (
 <PersonalInfoForm
   personalInfo={personalInfo}
   setPersonalInfo={setPersonalInfo}
   classOptions={classOptions}
   owner={owner}
   setOwner={setOwner}
-  files={files}
-  setFiles={setFiles}
+  currentStep={currentStep}
+
+setFiles={(val) => setFiles(val ? Array.from(val) : [])} 
 />
 
 )}
 
-{currentStep === 2 && (
-  <ParentsGuardianForm
+{currentStep === 1 && (
+<ParentsGuardianForm
     currentStep={currentStep}
-    setCurrentStep={setCurrentStep}
-    setFormData={setFormData}
-    parentInfo={parentInfo}
-    setParentInfo={setParentInfo}
-    isEdit={isEdit}
-    newContents={newContents}
-    addNewContent={addNewContent}
-    removeContent={removeContent}
-    allClass={allClass}
-    names={names}
-    rollno={rollno}
-    AdmissionNo={AdmissionNo}
+  parentInfo={parentInfo}
+  setParentInfo={setParentInfo}
   />
-)}
-
-
-
-
-             
+)}          
           {currentStep === 3 && (
   <AddressForm
     currentStep={currentStep}
