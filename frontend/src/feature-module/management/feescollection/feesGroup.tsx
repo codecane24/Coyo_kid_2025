@@ -6,7 +6,7 @@ import CommonSelect from "../../../core/common/commonSelect";
 import { ids, names, status } from "../../../core/common/selectoption/selectoption";
 import { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
-import { getFeesGroupList, createFeesGroup, updateFeesGroup, deleteFeesGroup } from "../../../services/FeesGroupData";
+import { getFeesGroupList } from "../../../services/FeesGroupData";
 import FeesModal from "./feesModal";
 import TooltipOption from "../../../core/common/tooltipOption";
 
@@ -14,62 +14,24 @@ const FeesGroup = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
   const [data, setData] = useState<TableData[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchFeesGroup = async () => {
-    try {
-      const res = await getFeesGroupList();
-      setData(res?.data || []);
-      setError(null);
-    } catch (err) {
-      console.error("Failed to fetch fees groups:", err);
-      setError("Failed to load fees groups. Please try again.");
-      setData([]);
-    }
-  };
 
   useEffect(() => {
+    const fetchFeesGroup = async () => {
+      try {
+        const res = await getFeesGroupList();
+        setData(res?.data || []);
+      } catch (err) {
+        console.error("Failed to fetch fees groups:", err);
+        setData([]);
+      }
+    };
+
     fetchFeesGroup();
   }, []);
 
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
-    }
-  };
-
-  const handleAddFeesGroup = async (formData: { name: string; description: string; status: string }) => {
-    try {
-      const newFeesGroup = await createFeesGroup(formData);
-      setData([...data, newFeesGroup]);
-      setError(null);
-    } catch (err) {
-      console.error("Failed to create fees group:", err);
-      setError("Failed to create fees group. Please try again.");
-    }
-  };
-
-  const handleEditFeesGroup = async (id: string, formData: { name: string; description: string; status: string }) => {
-    try {
-      const updatedFeesGroup = await updateFeesGroup(id, formData);
-      setData(data.map(item => (item.id === id ? updatedFeesGroup : item)));
-      setEditingId(null);
-      setError(null);
-    } catch (err) {
-      console.error("Failed to update fees group:", err);
-      setError("Failed to update fees group. Please try again.");
-    }
-  };
-
-  const handleDeleteFeesGroup = async (id: string) => {
-    try {
-      await deleteFeesGroup(id);
-      setData(data.filter(item => item.id !== id));
-      setError(null);
-    } catch (err) {
-      console.error("Failed to delete fees group:", err);
-      setError("Failed to delete fees group. Please try again.");
     }
   };
 
@@ -117,7 +79,7 @@ const FeesGroup = () => {
     {
       title: "Action",
       dataIndex: "action",
-      render: (_: any, record: TableData) => (
+      render: () => (
         <>
           <div className="d-flex align-items-center">
             <div className="dropdown">
@@ -136,7 +98,6 @@ const FeesGroup = () => {
                     to="#"
                     data-bs-toggle="modal"
                     data-bs-target="#edit_fees_group"
-                    onClick={() => setEditingId(record.id)}
                   >
                     <i className="ti ti-edit-circle me-2" />
                     Edit
@@ -148,7 +109,6 @@ const FeesGroup = () => {
                     to="#"
                     data-bs-toggle="modal"
                     data-bs-target="#delete-modal"
-                    onClick={() => setEditingId(record.id)}
                   >
                     <i className="ti ti-trash-x me-2" />
                     Delete
@@ -166,11 +126,6 @@ const FeesGroup = () => {
     <>
       <div className="page-wrapper">
         <div className="content">
-          {error && (
-            <div className="alert alert-danger" role="alert">
-              {error}
-            </div>
-          )}
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
             <div className="my-auto mb-2">
               <h3 className="page-title mb-1">Fees Collection</h3>
@@ -209,7 +164,7 @@ const FeesGroup = () => {
               <h4 className="mb-3">Fees Collection</h4>
               <div className="d-flex align-items-center flex-wrap">
                 <div className="input-icon-start mb-3 me-2 position-relative">
-                  <PredefinedDateRanges />
+                  <PredefinedDateRanges/>
                 </div>
                 <div className="dropdown mb-3 me-2">
                   <Link
@@ -315,12 +270,7 @@ const FeesGroup = () => {
           </div>
         </div>
       </div>
-      <FeesModal
-        editData={editingId ? data.find(item => item.id === editingId) : null}
-        onAdd={handleAddFeesGroup}
-        onEdit={handleEditFeesGroup}
-        onDelete={handleDeleteFeesGroup}
-      />
+      <FeesModal/>
     </>
   );
 };

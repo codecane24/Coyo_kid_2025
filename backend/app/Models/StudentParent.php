@@ -6,6 +6,17 @@ class StudentParent extends Model
 {
 	protected $table = 'student_parents';
 
+	protected $fillable = [
+		'code',
+		'name',
+		'phone',
+		'adhar',
+		'relation',
+		'image',
+		'docfolder_name'
+		'status'
+	];
+
 	protected $hidden = [
 		'created_at',
 		'updated_at'
