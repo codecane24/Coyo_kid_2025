@@ -24,7 +24,7 @@ class FeesGroupControler extends Controller
        return response()->json([
             'status' => 'success',
             'message' => 'deta fetch succesfully',
-            'data' => $class
+            'data' => $data
         ], 201);
      
     }
