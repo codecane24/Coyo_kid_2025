@@ -21,8 +21,12 @@ class FeesGroupControler extends Controller
     //     $class->name = empty($class->name) ? optional($class->classmaster)->name : $class->name;
     //     return $class;
     // });
-       
-        return response()->json($data);
+       return response()->json([
+            'status' => 'success',
+            'message' => 'deta fetch succesfully',
+            'data' => $class
+        ], 201);
+     
     }
 
     /**

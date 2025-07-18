@@ -6,7 +6,7 @@ export const getFeesGroupList = async () => {
   return response.data;
 };
 
-export const createFeesGroup = async (classData: any) => {
-  const response = await axiosInstance.post("/fees-group", classData);
+export const createFeesGroup = async (feesGroupData: any) => {
+  const response = await axiosInstance.post("/fees-group", feesGroupData);
   return response.data;
 };
