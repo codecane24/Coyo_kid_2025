@@ -7,43 +7,53 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class FeesGroupController extends Controller
+class FeesGroupControler extends Controller
 {
     /**
-     * Display a listing of the fees groups.
+     * Display a listing of the classes.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $data = FeesGroup::select('id', 'code', 'name', 'status', 'description')->get();
-        
-        return response()->json([
+        $data = FeesGroup::get();
+    //     ->map(function ($class) {
+    //     $class->name = empty($class->name) ? optional($class->classmaster)->name : $class->name;
+    //     return $class;
+    // });
+       return response()->json([
             'status' => 'success',
-            'message' => 'Data fetched successfully',
+            'message' => 'deta fetch succesfully',
             'data' => $data
-        ], 200);
+        ], 201);
+     
     }
 
     /**
-     * Display the specified fees group.
+     * Display the specified class.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
-        $feesGroup = FeesGroup::select('id', 'code', 'name', 'status', 'description')
-            ->findOrFail($id);
+        $class = FeesGroup::select(
+            'id', 
+            'code', 
+            'name', 
+            'classmaster_id', 
+            'section', 
+            'room_no', 
+            'status',
+            'company_id',
+            'branch_id'
+        )->findOrFail($id);
         
-        return response()->json([
-            'status' => 'success',
-            'data' => $feesGroup
-        ], 200);
+        return response()->json($class);
     }
 
     /**
-     * Store a newly created fees group in storage.
+     * Store a newly created class in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -52,10 +62,19 @@ class FeesGroupController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:50',
-            'code' => 'required|string|max:50|unique:fees_groups,code',
+            'classmaster_id' => 'required|integer|exists:classes_master,id',
+            'section' => 'nullable|string|max:50',
+            'room_no' => 'nullable|string|max:50',
             'status' => 'required|boolean',
-            'description' => 'nullable|string|max:255',
         ]);
+
+        /*
+        'code' => 'required|string|unique:classes,code|max:50',
+        'company_id' => 'required|integer|exists:companies,id',
+        'branch_id' => 'required|integer|exists:branches,id',
+        'user_id' => 'required|integer|exists:branches,id',
+            
+        */
 
         if ($validator->fails()) {
             return response()->json([
@@ -64,24 +83,40 @@ class FeesGroupController extends Controller
             ], 422);
         }
 
-        $code = getNewSerialNo('fees_group');
+        // check if combination of classmaster_id,sectin, room_no, and company_id already exists
+        $exists = FeesGroup::where('classmaster_id', $request->classmaster_id)
+            ->where('section', $request->section)
+            ->where('branch_id', $request->branch_id ?? null) // Allow null branch_id
+            ->where('company_id', $request->company_id ?? null) // Allow null company_id
+            ->exists(); 
+        if ($exists) {
+            return response()->json([   
+                'status' => false,
+                'message' => 'Class with the same class, section  already exists.'
+            ], 422);
+        }
+        // Create the class
+        $code=getNewSerialNo('class');
         $request->merge([
-            'code' => $code,
+            'code' => $code, // Ensure code is uppercase
+            'company_id' => $request->company_id ?? 1, // Decrypt company_id
+            'branch_id' => $request->branch_id ?? 1 // Decrypt branch_id
         ]);
 
-        $feesGroup = FeesGroup::create($request->all());
+        $class = FeesGroup::create($request->all());
 
-        increaseSerialNo('fees_group');
+        // increase class code 
+         increaseSerialNo('class'); 
 
         return response()->json([
             'status' => true,
-            'message' => 'Fees group created successfully',
-            'data' => $feesGroup
+            'message' => 'Class created successfully',
+            'data' => $class
         ], 201);
     }
 
     /**
-     * Update the specified fees group in storage.
+     * Update the specified class in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
@@ -89,50 +124,54 @@ class FeesGroupController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $feesGroup = FeesGroup::findOrFail($id);
+        $class = FeesGroup::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:50',
             'code' => [
                 'required',
                 'string',
                 'max:50',
-                Rule::unique('fees_groups', 'code')->ignore($feesGroup->id)
+                Rule::unique('classes')->ignore($class->id)
             ],
+            'name' => 'required|string|max:255',
+            'classmaster_id' => 'required|integer|exists:classmasters,id',
+            'section' => 'nullable|string|max:100',
+            'room_no' => 'nullable|string|max:50',
             'status' => 'required|boolean',
-            'description' => 'nullable|string|max:255',
+            'company_id' => 'required|integer|exists:companies,id',
+            'branch_id' => 'required|integer|exists:branches,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => false,
+                'success' => false,
                 'errors' => $validator->errors()
             ], 422);
         }
 
-        $feesGroup->update($request->all());
+        $class->update($request->all());
 
         return response()->json([
-            'status' => true,
-            'message' => 'Fees group updated successfully',
-            'data' => $feesGroup
-        ], 200);
+            'success' => true,
+            'message' => 'Class updated successfully',
+            'data' => $class
+        ]);
     }
 
     /**
-     * Remove the specified fees group from storage.
+     * Remove the specified class from storage.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
-        $feesGroup = FeesGroup::findOrFail($id);
-        $feesGroup->delete();
+        $class = FeesGroup::findOrFail($id);
+        $class->delete();
 
         return response()->json([
-            'status' => true,
-            'message' => 'Fees group deleted successfully'
-        ], 200);
+            'success' => true,
+            'message' => 'Class deleted successfully'
+        ]);
     }
 }

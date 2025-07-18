@@ -12,6 +12,8 @@ class StudentParent extends Model
 		'phone',
 		'adhar',
 		'relation',
+		'occoccupation',
+		'itr',
 		'image',
 		'docfolder_name',
 		'status'

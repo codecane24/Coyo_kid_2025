@@ -19,12 +19,14 @@ const FeesGroup = () => {
     const fetchFeesGroup = async () => {
       try {
         const res = await getFeesGroupList();
+        console.log(res);
         setData(res?.data || []);
       } catch (err) {
         console.error("Failed to fetch fees groups:", err);
         setData([]);
       }
     };
+    
 
     fetchFeesGroup();
   }, []);
