@@ -18,19 +18,19 @@ class TeacherController extends Controller
     {
         $teachers = Teacher::select(
             'id',
-            'teacher_id',
+            'code',
             'first_name',
             'last_name',
             'class_id',
             'subject_id',
             'gender',
-            'primary_contact_number',
+            'phone',
             'email',
             'blood_group',
             'date_of_joining',
             'father_name',
             'mother_name',
-            'date_of_birth',
+            'dob',
             'marital_status',
             'languages_known',
             'qualification',
@@ -87,19 +87,19 @@ class TeacherController extends Controller
     {
         $teacher = Teacher::select(
             'id',
-            'teacher_id',
+            'code',
             'first_name',
             'last_name',
             'class_id',
             'subject_id',
             'gender',
-            'primary_contact_number',
+            'phone',
             'email',
             'blood_group',
             'date_of_joining',
             'father_name',
             'mother_name',
-            'date_of_birth',
+            'dob',
             'marital_status',
             'languages_known',
             'qualification',
@@ -154,19 +154,19 @@ class TeacherController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'teacher_id' => 'required|string|unique:teachers,teacher_id|max:50',
+            'code' => 'required|string|unique:teachers,code|max:50',
             'first_name' => 'required|string|max:50',
             'last_name' => 'nullable|string|max:50',
             'class_id' => 'required|integer|exists:classes,id',
             'subject_id' => 'required|integer|exists:subjects,id',
             'gender' => 'required|string|in:Male,Female,Other',
-            'primary_contact_number' => 'required|string|max:20',
+            'phone' => 'required|string|max:20',
             'email' => 'required|email|unique:teachers,email|max:255',
             'blood_group' => 'nullable|string|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
             'date_of_joining' => 'required|date',
             'father_name' => 'nullable|string|max:50',
             'mother_name' => 'nullable|string|max:50',
-            'date_of_birth' => 'required|date',
+            'dob' => 'required|date',
             'marital_status' => 'required|string|in:Single,Married,Divorced,Widowed',
             'languages_known' => 'nullable|array',
             'qualification' => 'required|string|max:100',
@@ -226,7 +226,7 @@ class TeacherController extends Controller
         }
 
         // Generate unique teacher ID
-        $data['teacher_id'] = getNewSerialNo('teacher');
+        $data['code'] = getNewSerialNo('teacher');
         
         // Set default company_id and branch_id if not provided
         $data['company_id'] = $request->company_id ?? 1;
@@ -256,7 +256,7 @@ class TeacherController extends Controller
         $teacher = Teacher::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'teacher_id' => [
+            'code' => [
                 'required',
                 'string',
                 'max:50',
@@ -267,7 +267,7 @@ class TeacherController extends Controller
             'class_id' => 'required|integer|exists:classes,id',
             'subject_id' => 'required|integer|exists:subjects,id',
             'gender' => 'required|string|in:Male,Female,Other',
-            'primary_contact_number' => 'required|string|max:20',
+            'phone' => 'required|string|max:20',
             'email' => [
                 'required',
                 'email',
@@ -278,7 +278,7 @@ class TeacherController extends Controller
             'date_of_joining' => 'required|date',
             'father_name' => 'nullable|string|max:50',
             'mother_name' => 'nullable|string|max:50',
-            'date_of_birth' => 'required|date',
+            'dob' => 'required|date',
             'marital_status' => 'required|string|in:Single,Married,Divorced,Widowed',
             'languages_known' => 'nullable|array',
             'qualification' => 'required|string|max:100',

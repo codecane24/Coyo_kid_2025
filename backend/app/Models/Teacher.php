@@ -8,26 +8,26 @@ use Illuminate\Database\Eloquent\Model;
 class Teacher extends Model
 {
     use HasFactory;
-	protected $table ='teacher';
+	protected $table ='teachers';
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'teacher_id',
+        'code',
         'first_name',
         'last_name',
         'class_id',
         'subject_id',
         'gender',
-        'primary_contact_number',
+        'phone',
         'email',
         'blood_group',
         'date_of_joining',
         'father_name',
         'mother_name',
-        'date_of_birth',
+        'dob',
         'marital_status',
         'languages_known',
         'qualification',
