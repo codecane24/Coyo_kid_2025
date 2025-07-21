@@ -24,6 +24,7 @@ const TeacherList = () => {
       const fetchTeacherData = async () => {
         try {
           const res = await getTeacherList();
+          console.log('Teacher_List');
           console.log(res);
           setData(res?.data || []);
         } catch (err) {

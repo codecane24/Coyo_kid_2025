@@ -74,7 +74,12 @@ class TeacherController extends Controller
         )->with(['class', 'subject'])
          ->get();
 
-        return response()->json($teachers);
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => $teachers,
+            'message' => 'Teacher retrieved successfully.',
+        ], 200);
     }
 
     /**
@@ -157,9 +162,9 @@ class TeacherController extends Controller
             'code' => 'required|string|unique:teachers,code|max:50',
             'first_name' => 'required|string|max:50',
             'last_name' => 'nullable|string|max:50',
-            'class_id' => 'required|integer|exists:classes,id',
-            'subject_id' => 'required|integer|exists:subjects,id',
-            'gender' => 'required|string|in:Male,Female,Other',
+            'class_id' => 'nullable|integer|exists:classes,id',
+            'subject_id' => 'nullable|integer|exists:subjects,id',
+            'gender' => 'required|string|in:male,female,other',
             'phone' => 'required|string|max:20',
             'email' => 'required|email|unique:teachers,email|max:255',
             'blood_group' => 'nullable|string|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
@@ -177,7 +182,6 @@ class TeacherController extends Controller
             'address' => 'required|string|max:255',
             'permanent_address' => 'required|string|max:255',
             'pan_number' => 'nullable|string|max:50',
-            'status' => 'required|boolean',
             'epf_no' => 'nullable|string|max:50',
             'basic_salary' => 'nullable|numeric',
             'contract_type' => 'nullable|string|in:Full-Time,Part-Time,Contract',
