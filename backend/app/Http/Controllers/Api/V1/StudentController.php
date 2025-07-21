@@ -546,15 +546,15 @@ class StudentController extends Controller
                     $student->address=$request->input('current_address.address');
                     $student->area=$request->input('current_address.area');
                     $student->landmark=$request->input('current_address.landmark');
-                    $student->city=$request->input('current_address.city');
-                    $student->state=$request->input('current_address.state');
+                    $student->city_name=$request->input('current_address.city');
+                    $student->state_name=$request->input('current_address.state');
                     $student->pincode=$request->input('current_address.pincode');
 
                     $student->address_2=$request->input('permanent_address.address');
                     $student->area_2=$request->input('permanent_address.area');
                     $student->landmark_2=$request->input('permanent_address.landmark');
-                    $student->city_2=$request->input('permanent_address.city');
-                    $student->state_2=$request->input('permanent_address.state');
+                    $student->city_name_2=$request->input('permanent_address.city');
+                    $student->state_name_2=$request->input('permanent_address.state');
                     $student->pincode_2=$request->input('permanent_address.pincode');
                    
 
@@ -570,16 +570,16 @@ class StudentController extends Controller
                                 'address' => $student->address,
                                 'area' => $student->area,
                                 'landmark' => $student->landmark,
-                                'city' => $student->city,
-                                'state' => $student->state,
+                                'city' => $student->city_name,
+                                'state' => $student->state_name,
                                 'pincode' => $student->pincode,
                             ],
                             'permanent_address' => [
                                 'address' => $student->address_2,
                                 'area' => $student->area_2,
                                 'landmark' => $student->landmark_2,
-                                'city' => $student->city_2,
-                                'state' => $student->state_2,
+                                'city' => $student->city_name_2,
+                                'state' => $student->state_name_2,
                                 'pincode' => $student->pincode_2,
                             ]
                         ],
