@@ -552,7 +552,6 @@ class StudentController extends Controller
 
                     $student->address_2=$request->input('permanent_address.address');
                     $student->area_2=$request->input('permanent_address.area');
-                    $student->landmark_2=$request->input('permanent_address.landmark');
                     $student->city_name_2=$request->input('permanent_address.city');
                     $student->state_name_2=$request->input('permanent_address.state');
                     $student->pincode_2=$request->input('permanent_address.pincode');
@@ -577,7 +576,6 @@ class StudentController extends Controller
                             'permanent_address' => [
                                 'address' => $student->address_2,
                                 'area' => $student->area_2,
-                                'landmark' => $student->landmark_2,
                                 'city' => $student->city_name_2,
                                 'state' => $student->state_name_2,
                                 'pincode' => $student->pincode_2,
