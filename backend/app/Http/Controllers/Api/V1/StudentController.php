@@ -500,73 +500,108 @@ class StudentController extends Controller
                     ], 500);
                 }
 
-            case 'step_3': // Address and Transport/Hostel Details
-            $stepName3 = "Address and Transport/Hostel Details";
-
-            $addressRules = [
-                'current_address.address' => ['required', 'string', 'max:100'],
-                'current_address.area' => ['required', 'string', 'max:50'],
-                'current_address.landmark' => ['nullable', 'string', 'max:50'],
-                'current_address.city' => ['required', 'string', 'max:50'],
-                'current_address.state' => ['required', 'string', 'max:50'],
-                'current_address.pincode' => ['nullable', 'string', 'max:10'],
-                'permanent_address.address' => ['nullable', 'string', 'max:100'],
-                'permanent_address.area' => ['nullable', 'string', 'max:50'],
-                'permanent_address.landmark' => ['nullable', 'string', 'max:50'],
-                'permanent_address.city' => ['nullable', 'string', 'max:50'],
-                'permanent_address.state' => ['nullable', 'string', 'max:50'],
-                'permanent_address.pincode' => ['nullable', 'string', 'max:10'],
-            ];
-
-            $validator = Validator::make($request->all(), $addressRules);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Data Validation failed',
-                    'errors' => $validator->errors(),
-                    'data' => null,
-                ], 422);
-            }
-
-            try {
-                // Verify student exists
-                $student = Student::findOrFail($request->input('student_id'));
-
-                $updateData = [
-                    'address' => $request->input('current_address.address'),
-                    'area' => $request->input('current_address.area'),
-                    'landmark' => $request->input('current_address.landmark'),
-                    'city_name' => $request->input('current_address.city'),
-                    'state_name' => $request->input('current_address.state'),
-                    'pincode' => $request->input('current_address.pincode'),
-                    'address_2' => $request->input('permanent_address.address'),
-                    'area_2' => $request->input('permanent_address.area'),
-                    'landmark_2' => $request->input('permanent_address.landmark'),
-                    'city_name_2' => $request->input('permanent_address.city'),
-                    'state_name_2' => $request->input('permanent_address.state'),
-                    'pincode_2' => $request->input('permanent_address.pincode'),
+         
+            case 'step_3': // Address and Transport/Hostel
+                $stepName3 = "Address and Transport/Hostel Details";
+                
+                // Validation rules for the address fields
+                $addressRules = [
+                    'student_id' => ['required', 'numeric', 'exists:students,id'],
+                    'current_address' => ['required', 'array'],
+                    'current_address.address' => ['required', 'string', 'max:255'],
+                    'current_address.area' => ['required', 'string', 'max:100'],
+                    'current_address.landmark' => ['required', 'string', 'max:100'],
+                    'current_address.city' => ['required', 'string', 'max:50'],
+                    'current_address.state' => ['required', 'string', 'max:50'],
+                    'current_address.pincode' => ['required', 'string', 'max:10', 'regex:/^\d{6}$/'],
+                    'permanent_address' => ['nullable', 'array'],
+                    'permanent_address.address' => ['nullable', 'string', 'max:255'],
+                    'permanent_address.area' => ['nullable', 'string', 'max:100'],
+                    'permanent_address.landmark' => ['nullable', 'string', 'max:100'],
+                    'permanent_address.city' => ['nullable', 'string', 'max:50'],
+                    'permanent_address.state' => ['nullable', 'string', 'max:50'],
+                    'permanent_address.pincode' => ['nullable', 'string', 'max:10', 'regex:/^\d{6}$/'],
+                    
                 ];
 
-                // Update student's address details
-                $student->update($updateData);
+                // Custom validation messages
+                $messages = [
+                    'permanent_address.pincode.regex' => 'Permanent address pincode must be 6 digits',
+                    'current_address.pincode.regex' => 'Current address pincode must be 6 digits',
+                ];
 
-                return response()->json([
-                    'status' => 'success',
-                    'message' => "Step 3: $stepName3 completed successfully",
-                    'data' => [
-                        'student_id' => $student->id,
-                    ],
-                ], 200);
+                $validator = Validator::make($request->all(), $addressRules, $messages);
+                
+                if ($validator->fails()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Address validation failed',
+                        'errors' => $validator->errors(),
+                        'data' => null,
+                    ], 422);
+                }
 
-            } catch (\Exception $e) {
-                \Log::error("Student update (Step 3) failed: " . $e->getMessage());
-                return response()->json([
-                    'status' => 'error',
-                    'message' => "Step 3: $stepName3 failed. " . $e->getMessage(),
-                    'data' => null,
-                ], 500);
-            }
+                try {
+                    // Find the student
+                    $student = Student::findOrFail($request->student_id);
+
+                    // Map JSON fields to database columns
+                    $updateData = [
+                        // Permanent address fields (original fields)
+                        'address' => $request->permanent_address['address'],
+                        'area' => $request->permanent_address['area'],
+                        'landmark' => $request->permanent_address['landmark'],
+                        'city' => $request->permanent_address['city'],
+                        'state' => $request->permanent_address['state'],
+                        'pincode' => $request->permanent_address['pincode'],
+                        
+                        // Current address fields (_2 fields)
+                        'address_2' => $request->current_address['address'],
+                        'area_2' => $request->current_address['area'],
+                        'landmark_2' => $request->current_address['landmark'],
+                        'city_2' => $request->current_address['city'],
+                        'state_2' => $request->current_address['state'],
+                        'pincode_2' => $request->current_address['pincode'],
+                        
+                        // Update timestamps
+                        'updated_at' => now(),
+                    ];
+
+                    // Update the student record
+                    $student->update($updateData);
+
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => "Step 3: $stepName3 completed successfully",
+                        'data' => [
+                            'student_id' => $student->id,
+                            'permanent_address' => [
+                                'address' => $student->address,
+                                'area' => $student->area,
+                                'landmark' => $student->landmark,
+                                'city' => $student->city,
+                                'state' => $student->state,
+                                'pincode' => $student->pincode,
+                            ],
+                            'current_address' => [
+                                'address' => $student->address_2,
+                                'area' => $student->area_2,
+                                'landmark' => $student->landmark_2,
+                                'city' => $student->city_2,
+                                'state' => $student->state_2,
+                                'pincode' => $student->pincode_2,
+                            ]
+                        ],
+                    ], 200);
+
+                } catch (\Exception $e) {
+                    Log::error("Student address update failed: " . $e->getMessage());
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => "Step 3: $stepName3 failed. " . $e->getMessage(),
+                        'data' => null,
+                    ], 500);
+                }
     
                 case 'step_4': // Medical History
                 $stepName4 = "Medical History Record";
