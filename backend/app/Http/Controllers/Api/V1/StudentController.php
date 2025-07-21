@@ -109,6 +109,7 @@ class StudentController extends Controller
             'profile_image' => 'nullable|image|file|max:4096',
         ];
 
+        
         // Perform validation
         $validator = Validator::make($request->all(), $studentRules);
         if ($validator->fails()) {
