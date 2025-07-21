@@ -543,33 +543,30 @@ class StudentController extends Controller
                     $student = Student::findOrFail($request->student_id);
 
                     // Map fields to database columns - using direct array access for form data
-                    $updateData = [
-                        // Permanent address fields
-                        'address' => $request->input('permanent_address.address'),
-                        'area' => $request->input('permanent_address.area'),
-                        'landmark' => $request->input('permanent_address.landmark'),
-                        'city' => $request->input('permanent_address.city'),
-                        'state' => $request->input('permanent_address.state'),
-                        'pincode' => $request->input('permanent_address.pincode'),
-                        
-                        // Current address fields
-                        'address_2' => $request->input('current_address.address'),
-                        'area_2' => $request->input('current_address.area'),
-                        'landmark_2' => $request->input('current_address.landmark'),
-                        'city_2' => $request->input('current_address.city'),
-                        'state_2' => $request->input('current_address.state'),
-                        'pincode_2' => $request->input('current_address.pincode'),
-                    ];
+                    $student->address=$request->input('current_address.address');
+                    $student->area=$request->input('current_address.area');
+                    $student->landmark=$request->input('current_address.landmark');
+                    $student->city=$request->input('current_address.city');
+                    $student->state=$request->input('current_address.state');
+                    $student->pincode=$request->input('current_address.pincode');
+
+                    $student->address=$request->input('permanent_address.address');
+                    $student->area=$request->input('permanent_address.area');
+                    $student->landmark=$request->input('permanent_address.landmark');
+                    $student->city=$request->input('permanent_address.city');
+                    $student->state=$request->input('permanent_address.state');
+                    $student->pincode=$request->input('permanent_address.pincode');
+                   
 
                     // Update the student record
-                    $student->update($updateData);
+                   $student->save();
 
                     return response()->json([
                         'status' => 'success',
                         'message' => "Step 3: $stepName3 completed successfully",
                         'data' => [
                             'student_id' => $student->id,
-                            'permanent_address' => [
+                            'current_address' => [
                                 'address' => $student->address,
                                 'area' => $student->area,
                                 'landmark' => $student->landmark,
@@ -577,7 +574,7 @@ class StudentController extends Controller
                                 'state' => $student->state,
                                 'pincode' => $student->pincode,
                             ],
-                            'current_address' => [
+                            'permanent_address' => [
                                 'address' => $student->address_2,
                                 'area' => $student->area_2,
                                 'landmark' => $student->landmark_2,
