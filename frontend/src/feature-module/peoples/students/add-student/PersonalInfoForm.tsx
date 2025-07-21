@@ -18,7 +18,9 @@ import {
   gender,
   mothertongue,
   allSection,
+  Class,
 } from "../../../../core/common/selectoption/selectoption";
+import { PersonalInfoType } from ".";
 
 interface Props {
   personalInfo: any;
@@ -26,8 +28,9 @@ interface Props {
   classOptions: { label: string; value: string }[];
   owner: string[];
   setOwner: (val: string[]) => void;
+    files: File[]; // ✅ Instead of FileList
+ setFiles: (val: File[]) => void;
 
-  setFiles: (val: FileList | null) => void;
   setFormData?: (val: any) => void; // ✅ Add this line
   currentStep?: number; // Optional, if you need to track the step
 }
@@ -42,11 +45,11 @@ const PersonalInfoForm = forwardRef<PersonalInfoFormRef, Props>(
     {
       personalInfo,
       setPersonalInfo,
-      classOptions,
+      
       owner,
       setOwner,
-
       setFiles,
+        files,
     },
     ref
   ) => {
@@ -59,7 +62,7 @@ const PersonalInfoForm = forwardRef<PersonalInfoFormRef, Props>(
       "rollNo",
       "status",
       "firstName",
-      "class",
+     
       "section",
       "gender",
       "dob",
@@ -100,27 +103,63 @@ const PersonalInfoForm = forwardRef<PersonalInfoFormRef, Props>(
             <div className="col-md-12">
               <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
                 <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
-                  <i className="ti ti-photo-plus fs-16" />
+                 {files.length > 0 ? (
+    <img
+      src={URL.createObjectURL(files[0])}
+      alt="preview"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        borderRadius: "8px",
+      }}
+    />
+  ) : (
+    <i className="ti ti-photo-plus fs-16" />
+  )}
                 </div>
-                <div className="profile-upload">
-                  <div className="profile-uploader d-flex align-items-center">
-                    <div className="drag-upload-btn mb-3">
-                      Upload
-                      <input
-                        type="file"
-                        className="form-control image-sign"
-                        multiple
-                        onChange={(e) => setFiles(e.target.files)}
-                      />
-                    </div>
-                    <Link to="#" className="btn btn-primary mb-3" onClick={() => setFiles(null)}>
-                      Remove
-                    </Link>
-                  </div>
-                  <p className="fs-12">
-                    Upload image size 4MB, Format JPG, PNG, SVG
-                  </p>
-                </div>
+<div className="profile-upload">
+  <div className="profile-uploader d-flex align-items-center">
+    <div className="drag-upload-btn mb-3">
+      Upload
+<input
+  type="file"
+  accept="image/*"
+  onChange={(e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPersonalInfo((prev: PersonalInfoType) => ({
+        ...prev,
+        profileImage: file,
+      }));
+      setFiles([file]); // ✅ This enables image preview
+    }
+  }}
+/>
+
+
+    </div>
+<Link
+  to="#"
+  className="btn btn-primary mb-3"
+  onClick={() => {
+    setPersonalInfo({ ...personalInfo, profileImage: null });
+    setFiles([]); // ✅ Clear preview on remove
+  }}
+>
+  Remove
+</Link>
+
+  </div>
+
+  <p className="fs-12">
+    Upload image size 4MB, Format JPG, PNG, SVG
+  </p>
+
+
+</div>
+
+
               </div>
             </div>
           </div>
@@ -135,7 +174,7 @@ const PersonalInfoForm = forwardRef<PersonalInfoFormRef, Props>(
               { label: "First Name", type: "text", key: "firstName" },
               { label: "Middle Name", type: "text", key: "middleName" },
               { label: "Last Name", type: "text", key: "lastName" },
-              { label: "Class", type: "select", key: "class", options: classOptions },
+              { label: "Class", type: "select", key: "class", options: Class },
               { label: "Section", type: "select", key: "section", options: allSection },
               { label: "Gender", type: "select", key: "gender", options: gender },
               { label: "Date of Birth", type: "date", key: "dob" },

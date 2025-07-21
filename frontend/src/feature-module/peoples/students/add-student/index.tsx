@@ -37,7 +37,7 @@ import AddressForm from "./AddressForm";
 import SchoolTransportMedicalForm from "./SchoolTransportMedicalForm";
 import DocumentsForm from "./DocumentsForm";
 import { FinancialInfoType } from "./FinancialDetailsForm";
-import { createStudent } from "../../../../services/StudentData";
+import { createStudent, updateStudent } from "../../../../services/StudentData";
 import { ParentInfo } from "./ParentsGuardianForm";
 type ClassItem = {
   id: string;
@@ -67,6 +67,7 @@ export type PersonalInfoType = {
   caste: string;
   suitableBatch: string;
   languagesKnown: string[];
+  profileImage?: File | null;
 };
 
 
@@ -79,7 +80,11 @@ const [files, setFiles] = useState<File[]>([]);
 
     const { formData, setFormData } = useAdmissionForm();
     const personalInfoRef = useRef<any>(null);
-    const [studentId, setStudentId] = useState<string | null>(null);
+const [studentId, setStudentId] = useState<string>(""); // instead of string | null
+function camelToSnake(str: string) {
+  return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+}
+
 const method = studentId ? 'put' : 'post';
 const url = studentId ? `/student/${studentId}` : `/student`;
 const updateStudentId = (id: string) => {
@@ -154,48 +159,49 @@ function toSnakeCaseTwo(obj: any): any {
   email: "",
   caste: "",
   suitableBatch: "",
-  languages: [], // for TagsInput
+   languages: [] as string[], // ✅ force type
+  profileImage: null as File | null, // ✅ new field for image
 });
 const [parentInfo, setParentInfo] = useState<ParentInfo>({
   fatherName: "",
   fatherPhone: "",
-  fatherAdhar: "",
+  fatherAadhar: "",
   fatherOccupation: "",
   fatherEmail: "", // 👈 add this
   fatherProfileImage: null,
-  fatherAdharImage: null,
+  fatherAadharImage: null,
   motherName: "",
   motherPhone: "",
-  motherAdhar: "",
+  motherAadhar: "",
   motherOccupation: "",
   motherEmail: "", // 👈 add this
   motherProfileImage: null,
-  motherAdharImage: null,
+  motherAadharImage: null,
   siblingSameSchool: "",
   siblingStudentIds: [""],
   guardians: [
     {
       name: "",
       phone: "",
-      adhar: "",
+      aadhar: "",
       occupation: "",
       relation: "",
       profileImage: null,
-      adharImage: null,
+      aadharImage: null,
     },
   ],
 });
 
 const [parentImages, setParentImages] = useState<{
   fatherProfile?: File;
-  fatherAdhar?: File;
+  fatherAadhar?: File;
   motherProfile?: File;
-  motherAdhar?: File;
+  motherAadhar?: File;
   guardianProfiles: File[];
-  guardianAdhars: File[];
+  guardianAadhars: File[];
 }>({
   guardianProfiles: [],
-  guardianAdhars: [],
+  guardianAadhars: [],
 });
 
 
@@ -373,101 +379,205 @@ const steps = [
 ];
 
 const [currentStep, setCurrentStep] = useState(1); // use index (0-based)
-const handleNextStep = async () => {
- if (currentStep === 2) {
-    const payload = {
-      ...personalInfo,
-      languages: owner,
-    };
+const buildFormDataFromPayload = (payload: typeof personalInfo): FormData => {
+  const formData = new FormData();
 
-    const snakePayload = toSnakeCase(payload);
+  for (const [key, value] of Object.entries(payload)) {
+    const snakeKey = camelToSnake(key);
 
-    const finalPayload = {
-      step: "step_1",
-      student_id: "", // required in step_1
-      ...snakePayload,
-    };
-
-    console.log("✅ Step 1 Payload:", finalPayload);
-
-    try {
-      const res = await createStudent(finalPayload);
-
-      if (res?.data?.status === "false") {
-        // ✅ Backend returned status: false (like validation failed)
-        const validationErrors = res?.data?.errors;
-        let errorMessage = res?.data?.message || "Something went wrong";
-
-        // If validation errors exist, show detailed alerts
-        if (validationErrors) {
-          const allErrors = Object.entries(validationErrors)
-         .map(([field, messages]) => `${field}: ${(messages as string[]).join(", ")}`)
-
-            .join("\n");
-          alert(`❌ Validation Failed:\n${allErrors}`);
-        } else {
-          alert(`❌ Error: ${errorMessage}`);
-        }
-
-        return; // don't proceed to next step
-      }
-
-      const newStudentId = res?.student_id;
-console.log("✅ New Student ID:", newStudentId);
-      if (newStudentId) {
-        setStudentId(newStudentId);
-        setFormData((prev) => ({ ...prev, personalInfo: snakePayload }));
-        setCurrentStep(2); // ✅ proceed
-      } else {
-        alert("❌ No student ID returned. Please try again.");
-      }
-
-    }catch (error: any) {
-  const response = error?.response;
-
-  if (response?.status === 422 && response?.data?.errors) {
-    const validationErrors = response.data.errors;
-
-    // Type guard: Convert unknown to string[]
-    const allErrors = Object.entries(validationErrors)
-      .map(([field, messages]) => {
-        if (Array.isArray(messages)) {
-          return `${field}: ${messages.join(", ")}`;
-        }
-        return `${field}: ${messages}`;
-      })
-      .join("\n");
-
-    alert(`❌ Validation Failed:\n${allErrors}`);
-  } else {
-    alert("❌ Server Error. Please try again later.");
-  }
-}
+    if (key === "profileImage" && value instanceof File) {
+      formData.append("profile_image", value); // ✅ Manual override
+    } else if (Array.isArray(value)) {
+      formData.append(snakeKey, JSON.stringify(value)); // ✅ serialize arrays
+    } else if (value !== null && value !== undefined) {
+      formData.append(snakeKey, value);
+    }
   }
 
+  formData.append("step", "step_1"); // ✅ optional
+  return formData;
+};
+const buildFormDataFromPayload2 = (payload: any): FormData => {
+  const formData = new FormData();
 
-  else if (currentStep === 1) {
-    const payload = {
-      ...parentInfo,
+  const appendFormData = (data: any, parentKey = "") => {
+    if (Array.isArray(data)) {
+      data.forEach((item, index) => {
+        appendFormData(item, `${parentKey}[${index}]`);
+      });
+    } else if (data instanceof File) {
+      formData.append(parentKey, data);
+    } else if (data !== null && typeof data === "object") {
+      Object.entries(data).forEach(([key, value]) => {
+        const snakeKey = camelToSnake(key);
+        appendFormData(value, parentKey ? `${parentKey}[${snakeKey}]` : snakeKey);
+      });
+    } else {
+      formData.append(parentKey, data ?? "");
+    }
+  };
 
-    };
+  appendFormData(payload);
+  formData.append("step", "step_2"); // If needed
+  return formData;
+};
 
-    const finalPayload = {
-      step: "step_2",
-      student_id: studentId,
-      ...toSnakeCaseTwo(payload),
-    };
+const handleStep1Submit = async (
+  finalPayload: FormData,
+  studentId: string | null,
+  setStudentId: (id: string) => void,
+  setFormData: (fn: (prev: any) => any) => void,
+  setCurrentStep: (step: number) => void
+) => {
+  try {
+    let res;
 
-    try {
-      await createStudent(finalPayload);
-    } catch (error) {
-      console.error("❌ Step 2 Submit Error:", error);
+    if (studentId) {
+      res = await updateStudent(studentId, finalPayload); // PUT
+    } else {
+      console.log("=====> Test payload:", finalPayload.get("profile_image"));
+      res = await createStudent(finalPayload); // POST
     }
 
-    console.log("✅ Step 2 Payload: Parent & Guardian Info", finalPayload);
-    setFormData((prev) => ({ ...prev, parentGuardianInfo: payload }));
-    setCurrentStep(3);
+    if (res?.data?.status === "false") {
+      const validationErrors = res?.data?.errors;
+      const errorMessage = res?.data?.message || "Something went wrong";
+
+      if (validationErrors) {
+        const allErrors = Object.entries(validationErrors)
+          .map(([field, messages]) => `${field}: ${(messages as string[]).join(", ")}`)
+          .join("\n");
+        alert(`❌ Validation Failed:\n${allErrors}`);
+      } else {
+        alert(`❌ Error: ${errorMessage}`);
+      }
+
+      return;
+    }
+
+    const newStudentId = res?.student_id;
+    if (!studentId && newStudentId) {
+      setStudentId(newStudentId);
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      personalInfo: finalPayload, // This could be adjusted if needed
+    }));
+
+    setCurrentStep(2);
+  } catch (error: any) {
+    const response = error?.response;
+
+    if (response?.status === 422 && response?.data?.errors) {
+      const validationErrors = response.data.errors;
+
+      const allErrors = Object.entries(validationErrors)
+        .map(([field, messages]) =>
+          Array.isArray(messages) ? `${field}: ${messages.join(", ")}` : `${field}: ${messages}`
+        )
+        .join("\n");
+
+      alert(`❌ Validation Failed:\n${allErrors}`);
+    } else {
+      alert("❌ Server Error. Please try again later.");
+    }
   }
+};
+
+
+
+const handleNextStep = async () => {
+if (currentStep === 1) {
+  const formData = buildFormDataFromPayload(personalInfo);
+
+  console.log("✅ FormData to be sent:");
+//  formData.forEach((value, key) => {
+//   console.log(`${key}:`, value);
+// });
+
+
+  try {
+    await handleStep1Submit(
+      formData,
+      studentId,
+      setStudentId,
+      setFormData,
+      setCurrentStep
+    );
+  } catch (error) {
+    console.error("❌ Step 1 Submit Error:", error);
+  }
+}
+
+else if (currentStep === 2) {
+  const payload = {
+    ...parentInfo,
+  };
+
+  const formData = new FormData();
+
+  formData.append("student_id", String(studentId ?? ""));
+  formData.append("step", "step_2");
+  formData.append("_method", "PUT");
+
+  const toSnake = (str: string) =>
+    str.replace(/([A-Z])/g, "_$1").toLowerCase();
+
+  for (const [key, value] of Object.entries(parentInfo)) {
+    const snakeKey = toSnake(key);
+
+    if (value instanceof File) {
+      formData.append(snakeKey, value);
+    } else if (Array.isArray(value)) {
+      if (key === "guardians") {
+        value.forEach((guardian, index) => {
+          Object.entries(guardian).forEach(([gKey, gValue]) => {
+            const fullKey = `guardians[${index}][${toSnake(gKey)}]`;
+
+            if (gValue instanceof File) {
+              formData.append(fullKey, gValue);
+            } else {
+              formData.append(fullKey, String(gValue ?? ""));
+            }
+          });
+        });
+        // ❌ DO NOT send this (Laravel doesn't need this)
+        // formData.append("guardians", JSON.stringify(value));
+      } else if (key === "siblingStudentIds") {
+        value.forEach((id, index) => {
+          formData.append(`sibling_student_ids[${index}]`, String(id));
+        });
+      } else {
+        // Other arrays
+        value.forEach((item, index) => {
+          formData.append(`${snakeKey}[${index}]`, String(item));
+        });
+      }
+    } else if (typeof value === "object" && value !== null) {
+      formData.append(snakeKey, JSON.stringify(value));
+    } else {
+      formData.append(snakeKey, String(value ?? ""));
+    }
+  }
+
+  try {
+    await updateStudent(studentId, formData);
+    console.log("✅ FormData sent:");
+    formData.forEach((val, key) => console.log(`${key}:`, val));
+  } catch (error) {
+    console.error("❌ Submit Error:", error);
+  }
+
+  setFormData((prev) => ({ ...prev, parentGuardianInfo: payload }));
+  setCurrentStep(3);
+}
+
+
+
+
+
+
 
   else if (currentStep === 3) {
     const payload = {
@@ -579,7 +689,7 @@ console.log("✅ New Student ID:", newStudentId);
             <div className="col-md-12">
               <form onSubmit={(e) => e.preventDefault()}>
    
-{currentStep === 2 && (
+{currentStep === 1 && (
 <PersonalInfoForm
   personalInfo={personalInfo}
   setPersonalInfo={setPersonalInfo}
@@ -587,13 +697,13 @@ console.log("✅ New Student ID:", newStudentId);
   owner={owner}
   setOwner={setOwner}
   currentStep={currentStep}
-
+  files={files}  
 setFiles={(val) => setFiles(val ? Array.from(val) : [])} 
 />
 
 )}
 
-{currentStep === 1 && (
+{currentStep === 2  && (
 <ParentsGuardianForm
     currentStep={currentStep}
   parentInfo={parentInfo}
