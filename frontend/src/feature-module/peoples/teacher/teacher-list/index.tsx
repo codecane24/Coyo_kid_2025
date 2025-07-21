@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect  } from "react";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import CommonSelect from "../../../../core/common/commonSelect";
@@ -12,16 +12,36 @@ import PredefinedDateRanges from "../../../../core/common/datePicker";
 import Table from "../../../../core/common/dataTable/index";
 import { TableData } from "../../../../core/data/interface";
 import { teacherLists } from "../../../../core/data/json/teacherlist";
+import { getTeacherList } from "../../../../services/TeacherServices";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
 import TooltipOption from "../../../../core/common/tooltipOption";
+import { formatDate } from "../../../../utils/dateUtils";  
 
 const TeacherList = () => {
   const routes = all_routes;
-  const data = teacherLists;
+  const [data, setData] = useState<TableData[]>([]);
+
+   useEffect(() => {
+      const fetchTeacherData = async () => {
+        try {
+          const res = await getTeacherList();
+          console.log('Teacher_List');
+          console.log(res);
+          setData(res?.data || []);
+        } catch (err) {
+          console.error("Failed to fetch fees groups:", err);
+          setData([]);
+        }
+      };
+      
+  
+      fetchTeacherData();
+    }, []);
+
   const columns = [
     {
       title: "ID",
-      dataIndex: "id",
+      dataIndex: "code",
       render: (text: string) => (
         <Link to={routes.teacherDetails} className="link-primary">
           {text}
@@ -31,19 +51,19 @@ const TeacherList = () => {
     },
     {
       title: "Name",
-      dataIndex: "name",
+      dataIndex: "first_name",
       render: (text: string, record: any) => (
         <div className="d-flex align-items-center">
           <Link to="#" className="avatar avatar-md">
             <ImageWithBasePath
-              src={record.img}
+              src={record.profile_image}
               className="img-fluid rounded-circle"
               alt="img"
             />
           </Link>
           <div className="ms-2">
             <p className="text-dark mb-0">
-              <Link to="#">{text}</Link>
+              <Link to="#">{`${record.first_name} ${record.last_name}`}</Link>
             </p>
           </div>
         </div>
@@ -73,7 +93,8 @@ const TeacherList = () => {
     },
     {
       title: "Date Of Join",
-      dataIndex: "dateofJoin",
+      dataIndex: "date_of_joining",
+      render: (dateString: string) => formatDate(dateString), // Default: "31 Dec 2000"
       sorter: (a: TableData, b: TableData) =>
         a.dateofJoin.length - b.dateofJoin.length,
     },
@@ -81,17 +102,17 @@ const TeacherList = () => {
     {
       title: "Status",
       dataIndex: "status",
-      render: (text: string) => (
+      render: (text:boolean) => (
         <>
-          {text === "Active" ? (
+          {text == true ? (
             <span className="badge badge-soft-success d-inline-flex align-items-center">
               <i className="ti ti-circle-filled fs-5 me-1"></i>
-              {text}
+              Active
             </span>
           ) : (
             <span className="badge badge-soft-danger d-inline-flex align-items-center">
               <i className="ti ti-circle-filled fs-5 me-1"></i>
-              {text}
+              Inactive
             </span>
           )}
         </>

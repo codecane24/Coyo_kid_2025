@@ -275,88 +275,51 @@ class StudentController extends Controller
 
            case 'step_2': // Parent/Guardian and Sibling Information
                 $stepName2 = "Parent/Guardian and Sibling Record";
-id
-student_id
-relation
-name
-phone
-email
-aadhar
-aadhar_file
-qualiffication
-occupation
-itr_no
-irt_file
-status
-created_at
-updated_at
-docfolder_name
-image, 
-{
-    "step": "step_2",
-    "student_id": null,
-    "father_name": "desai",
-    "father_phone": "123456",
-    "father_adhar": "123456",
-    "father_adhar_image": null,
-    "father_adhar_image": null,
-    "father_occupation": "dasdsa",
-    "mother_name": "dsaasd",
-    "mother_phone": "123456789",
-    "mother_adhar": "123456789",
-    "mother_occupation": "fafsaf",
-    "mother_adhar_image": null,
-    "sibling_same_school": "yes",
-    "sibling_student_ids": [
-        "STD4566",
-        "STD2123",
-        "STD7890"
-    ],
-    "guardians": [
-        {
-            "name": "'l'l",
-            "phone": "1345679",
-            "adhar": "123456789",
-            "occupation": "hghgh",
-            "relation": "hghghg",
-            "profile_image": {},
-            "adhar_image": null
-        }
-    ]
-}
-
 
                 $parentRules = [
                     'father_name' => ['required', 'string', 'max:100'],
                     'father_phone' => ['nullable', 'string', 'max:15'],
                     'father_email' => ['nullable', 'email'],
-                    'father_adhar' => ['nullable', 'string', 'max:12'],
+                    'father_aadhar' => ['nullable', 'string', 'max:12'],
                     'father_occupation' => ['nullable', 'string', 'max:100'],
-                    'father_adhar_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'father_qualification' => ['nullable', 'string', 'max:100'],
+                    'father_aadhar_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'father_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'father_itr_no' => ['nullable', 'string', 'max:50'],
+                    'father_itr_file' => ['nullable', 'file', 'max:4096'],
                     'mother_name' => ['required', 'string', 'max:100'],
                     'mother_email' => ['nullable', 'email'],
                     'mother_phone' => ['nullable', 'string', 'max:15'],
-                    'mother_adhar' => ['nullable', 'string', 'max:12'],
+                    'mother_aadhar' => ['nullable', 'string', 'max:12'],
                     'mother_occupation' => ['nullable', 'string', 'max:100'],
-                    'mother_adhar_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'mother_qualification' => ['nullable', 'string', 'max:100'],
+                    'mother_aadhar_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'mother_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'mother_itr_no' => ['nullable', 'string', 'max:50'],
+                    'mother_itr_file' => ['nullable', 'file', 'max:4096'],
                     'sibling_same_school' => ['required', 'string', 'in:yes,no'],
                     'sibling_student_ids' => ['nullable', 'array'],
                     'sibling_student_ids.*' => ['string', 'max:50'],
                     'guardians' => ['nullable', 'array'],
                     'guardians.*.name' => ['required', 'string', 'max:100'],
                     'guardians.*.phone' => ['nullable', 'string', 'max:15'],
-                    'guardians.*.adhar' => ['nullable', 'string', 'max:12'],
+                    'guardians.*.email' => ['nullable', 'email'],
+                    'guardians.*.aadhar' => ['nullable', 'string', 'max:12'],
                     'guardians.*.occupation' => ['nullable', 'string', 'max:100'],
+                    'guardians.*.qualification' => ['nullable', 'string', 'max:100'],
                     'guardians.*.relation' => ['required', 'string', 'max:50'],
                     'guardians.*.profile_image' => ['nullable', 'file', 'image', 'max:4096'],
-                    'guardians.*.adhar_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'guardians.*.aadhar_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'guardians.*.itr_no' => ['nullable', 'string', 'max:50'],
+                    'guardians.*.itr_file' => ['nullable', 'file', 'max:4096'],
                 ];
 
                 $validator = Validator::make($request->all(), $parentRules);
 
-                if ($validator->fails()) {
+                if ($validator->fails())
+                {
                     return response()->json([
-                        'status' => 'false',
+                        'status' => 'error',
                         'message' => __('api.err_validation_failed'),
                         'errors' => $validator->errors(),
                         'data' => null,
@@ -364,6 +327,16 @@ image,
                 }
 
                 try {
+                    // Verify student exists
+                    if (!$request->input('student_id')) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Student ID is required',
+                            'data' => null,
+                        ], 400);
+                    }
+
+                    $student = Student::findOrFail($request->input('student_id'));
                     $fatherId = null;
                     $motherId = null;
                     $guardiansToAttach = [];
@@ -373,20 +346,33 @@ image,
                         'relation' => 'father',
                         'name' => $request->input('father_name'),
                         'phone' => $request->input('father_phone'),
-                        'adhar' => $request->input('father_adhar'),
-                        'qualiffication' =>  $request->input('father_qualification') ?? '',
+                        'email' => $request->input('father_email'),
+                        'aadhar' => $request->input('father_aadhar'),
+                        'qualification' => $request->input('father_qualification') ?? '',
                         'occupation' => $request->input('father_occupation') ?? '',
+                        'itr_no' => $request->input('father_itr_no') ?? null,
+                        'docfolder_name' => $student->docfolder_name,
                     ];
+
+                    if ($request->hasFile('father_aadhar_image')) {
+                        $fatherDetails['aadhar_file'] = $request->file('father_aadhar_image')->store('relation_profiles');
+                    }
+                    if ($request->hasFile('father_image')) {
+                        $fatherDetails['image'] = $request->file('father_image')->store('relation_profiles');
+                    }
+                    if ($request->hasFile('father_itr_file')) {
+                        $fatherDetails['itr_file'] = $request->file('father_itr_file')->store('relation_profiles');
+                    }
 
                     $father = StudentParent::firstOrNew([
                         'phone' => $fatherDetails['phone'],
-                        'adhar' => $fatherDetails['adhar'],
+                        'aadhar' => $fatherDetails['aadhar'],
                     ]);
 
                     if (!$father->exists && $fatherDetails['phone']) {
                         $father = StudentParent::firstOrNew(['phone' => $fatherDetails['phone']]);
-                    } elseif (!$father->exists && $fatherDetails['adhar']) {
-                        $father = StudentParent::firstOrNew(['adhar' => $fatherDetails['adhar']]);
+                    } elseif (!$father->exists && $fatherDetails['aadhar']) {
+                        $father = StudentParent::firstOrNew(['aadhar' => $fatherDetails['aadhar']]);
                     }
 
                     $father->fill($fatherDetails)->save();
@@ -397,23 +383,33 @@ image,
                         'relation' => 'mother',
                         'name' => $request->input('mother_name'),
                         'phone' => $request->input('mother_phone'),
-                        'adhar' => $request->input('mother_adhar'),
-                        'occupation' => $request->input('mother_occupation'),
+                        'email' => $request->input('mother_email'),
+                        'aadhar' => $request->input('mother_aadhar'),
+                        'qualification' => $request->input('mother_qualification') ?? '',
+                        'occupation' => $request->input('mother_occupation') ?? '',
+                        'itr_no' => $request->input('mother_itr_no') ?? null,
+                        'docfolder_name' => $student->docfolder_name,
                     ];
 
-                    if ($request->hasFile('mother_adhar_image')) {
-                        // $motherDetails['image'] = $this->upload_file('mother_adhar_image', 'relation_profiles');
+                    if ($request->hasFile('mother_aadhar_image')) {
+                        $motherDetails['aadhar_file'] = $request->file('mother_aadhar_image')->store('relation_profiles');
+                    }
+                    if ($request->hasFile('mother_image')) {
+                        $motherDetails['image'] = $request->file('mother_image')->store('relation_profiles');
+                    }
+                    if ($request->hasFile('mother_itr_file')) {
+                        $motherDetails['itr_file'] = $request->file('mother_itr_file')->store('relation_profiles');
                     }
 
                     $mother = StudentParent::firstOrNew([
                         'phone' => $motherDetails['phone'],
-                        'adhar' => $motherDetails['adhar'],
+                        'aadhar' => $motherDetails['aadhar'],
                     ]);
 
                     if (!$mother->exists && $motherDetails['phone']) {
                         $mother = StudentParent::firstOrNew(['phone' => $motherDetails['phone']]);
-                    } elseif (!$mother->exists && $motherDetails['adhar']) {
-                        $mother = StudentParent::firstOrNew(['adhar' => $motherDetails['adhar']]);
+                    } elseif (!$mother->exists && $motherDetails['aadhar']) {
+                        $mother = StudentParent::firstOrNew(['aadhar' => $motherDetails['aadhar']]);
                     }
 
                     $mother->fill($motherDetails)->save();
@@ -425,26 +421,33 @@ image,
                             'relation' => $guardianData['relation'],
                             'name' => $guardianData['name'],
                             'phone' => $guardianData['phone'] ?? null,
-                            'adhar' => $guardianData['adhar'] ?? null,
+                            'email' => $guardianData['email'] ?? null,
+                            'aadhar' => $guardianData['aadhar'] ?? null,
+                            'qualification' => $guardianData['qualification'] ?? '',
                             'occupation' => $guardianData['occupation'] ?? null,
+                            'itr_no' => $guardianData['itr_no'] ?? null,
+                            'docfolder_name' => $student->docfolder_name,
                         ];
 
                         if ($request->hasFile("guardians.{$index}.profile_image")) {
-                            // $guardianDetails['image'] = $this->upload_file("guardians.{$index}.profile_image", 'relation_profiles');
+                            $guardianDetails['image'] = $request->file("guardians.{$index}.profile_image")->store('relation_profiles');
                         }
-                        if ($request->hasFile("guardians.{$index}.adhar_image")) {
-                            // $guardianDetails['adhar_image'] = $this->upload_file("guardians.{$index}.adhar_image", 'relation_profiles');
+                        if ($request->hasFile("guardians.{$index}.aadhar_image")) {
+                            $guardianDetails['aadhar_file'] = $request->file("guardians.{$index}.aadhar_image")->store('relation_profiles');
+                        }
+                        if ($request->hasFile("guardians.{$index}.itr_file")) {
+                            $guardianDetails['itr_file'] = $request->file("guardians.{$index}.itr_file")->store('relation_profiles');
                         }
 
                         $guardian = StudentParent::firstOrNew([
                             'phone' => $guardianDetails['phone'],
-                            'adhar' => $guardianDetails['adhar'],
+                            'aadhar' => $guardianDetails['aadhar'],
                         ]);
 
                         if (!$guardian->exists && $guardianDetails['phone']) {
                             $guardian = StudentParent::firstOrNew(['phone' => $guardianDetails['phone']]);
-                        } elseif (!$guardian->exists && $guardianDetails['adhar']) {
-                            $guardian = StudentParent::firstOrNew(['adhar' => $guardianDetails['adhar']]);
+                        } elseif (!$guardian->exists && $guardianDetails['aadhar']) {
+                            $guardian = StudentParent::firstOrNew(['aadhar' => $guardianDetails['aadhar']]);
                         }
 
                         $guardian->fill($guardianDetails)->save();
@@ -460,7 +463,7 @@ image,
                     ]);
 
                     // Sync guardians
-                    // $student->guardians()->sync($guardiansToAttach);
+                    $student->guardians()->sync($guardiansToAttach);
 
                     // Handle siblings
                     StudentSibling::where('student_id', $student->id)->delete();
@@ -489,7 +492,7 @@ image,
                 } catch (\Exception $e) {
                     Log::error("Student update (Step 2) failed: " . $e->getMessage());
                     return response()->json([
-                        'status' => 'false',
+                        'status' => 'error',
                         'message' => "Step 2: $stepName2 failed. " . $e->getMessage(),
                         'data' => null,
                     ], 500);

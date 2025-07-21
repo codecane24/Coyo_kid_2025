@@ -6,6 +6,11 @@ class Student extends Model
 {
 	protected $table = 'students';
 
+	 protected $fillable = [
+        'father_id',
+        'mother_id'
+	 ];
+
 	protected $hidden = [
 		'created_at',
 		'updated_at'

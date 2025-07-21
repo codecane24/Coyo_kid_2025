@@ -7,13 +7,20 @@ import { ids, names, status } from "../../../core/common/selectoption/selectopti
 import { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
 import { getFeesGroupList } from "../../../services/FeesGroupData";
-import FeesModal from "./feesModal";
+import FeesGroupModal from "./feesGroupModal";
 import TooltipOption from "../../../core/common/tooltipOption";
 
 const FeesGroup = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
+  const sortDropdownRef = useRef<HTMLUListElement | null>(null);
   const [data, setData] = useState<TableData[]>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedFeeGroup, setSelectedFeeGroup] = useState<TableData | null>(null);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
 
   useEffect(() => {
     const fetchFeesGroup = async () => {
@@ -25,14 +32,30 @@ const FeesGroup = () => {
         setData([]);
       }
     };
-
+    
     fetchFeesGroup();
   }, []);
 
   const handleApplyClick = () => {
-    if (dropdownMenuRef.current) {
-      dropdownMenuRef.current.classList.remove("show");
-    }
+    setShowFilterDropdown(false);
+  };
+
+  const toggleFilterDropdown = () => {
+    setShowFilterDropdown(!showFilterDropdown);
+  };
+
+  const toggleSortDropdown = () => {
+    setShowSortDropdown(!showSortDropdown);
+  };
+
+  const handleEditClick = (record: TableData) => {
+    setSelectedFeeGroup(record);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteClick = (record: TableData) => {
+    setSelectedFeeGroup(record);
+    setShowDeleteModal(true);
   };
 
   const columns = [
@@ -79,45 +102,36 @@ const FeesGroup = () => {
     {
       title: "Action",
       dataIndex: "action",
-      render: () => (
-        <>
-          <div className="d-flex align-items-center">
-            <div className="dropdown">
-              <Link
-                to="#"
-                className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
+      render: (_: any, record: TableData) => (
+        <div className="d-flex align-items-center">
+          <div className="dropdown">
+            <button
+              className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedFeeGroup(record);
+              }}
+            >
+              <i className="ti ti-dots-vertical fs-14" />
+            </button>
+            <div className={`dropdown-menu dropdown-menu-right p-3 ${selectedFeeGroup?.id === record.id ? 'show' : ''}`}>
+              <button
+                className="dropdown-item rounded-1"
+                onClick={() => handleEditClick(record)}
               >
-                <i className="ti ti-dots-vertical fs-14" />
-              </Link>
-              <ul className="dropdown-menu dropdown-menu-right p-3">
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#edit_fees_group"
-                  >
-                    <i className="ti ti-edit-circle me-2" />
-                    Edit
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#delete-modal"
-                  >
-                    <i className="ti ti-trash-x me-2" />
-                    Delete
-                  </Link>
-                </li>
-              </ul>
+                <i className="ti ti-edit-circle me-2" />
+                Edit
+              </button>
+              <button
+                className="dropdown-item rounded-1"
+                onClick={() => handleDeleteClick(record)}
+              >
+                <i className="ti ti-trash-x me-2" />
+                Delete
+              </button>
             </div>
           </div>
-        </>
+        </div>
       ),
     },
   ];
@@ -146,15 +160,13 @@ const FeesGroup = () => {
             <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
               <TooltipOption />
               <div className="mb-2">
-                <Link
-                  to="#"
+                <button
                   className="btn btn-primary"
-                  data-bs-toggle="modal"
-                  data-bs-target="#add_fees_group"
+                  onClick={() => setShowAddModal(true)}
                 >
                   <i className="ti ti-square-rounded-plus me-2" />
                   Add Fees Group
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -167,16 +179,14 @@ const FeesGroup = () => {
                   <PredefinedDateRanges/>
                 </div>
                 <div className="dropdown mb-3 me-2">
-                  <Link
-                    to="#"
+                  <button
                     className="btn btn-outline-light bg-white dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    data-bs-auto-close="outside"
+                    onClick={toggleFilterDropdown}
                   >
                     <i className="ti ti-filter me-2" />
                     Filter
-                  </Link>
-                  <div className="dropdown-menu drop-width" ref={dropdownMenuRef}>
+                  </button>
+                  <div className={`dropdown-menu drop-width ${showFilterDropdown ? 'show' : ''}`} ref={dropdownMenuRef}>
                     <form>
                       <div className="d-flex align-items-center border-bottom p-3">
                         <h4>Filter</h4>
@@ -216,49 +226,52 @@ const FeesGroup = () => {
                         </div>
                       </div>
                       <div className="p-3 d-flex align-items-center justify-content-end">
-                        <Link to="#" className="btn btn-light me-3">
+                        <button 
+                          type="button"
+                          className="btn btn-light me-3"
+                          onClick={() => setShowFilterDropdown(false)}
+                        >
                           Reset
-                        </Link>
-                        <Link
-                          to="#"
+                        </button>
+                        <button
+                          type="button"
                           className="btn btn-primary"
                           onClick={handleApplyClick}
                         >
                           Apply
-                        </Link>
+                        </button>
                       </div>
                     </form>
                   </div>
                 </div>
                 <div className="dropdown mb-3">
-                  <Link
-                    to="#"
+                  <button
                     className="btn btn-outline-light bg-white dropdown-toggle"
-                    data-bs-toggle="dropdown"
+                    onClick={toggleSortDropdown}
                   >
                     <i className="ti ti-sort-ascending-2 me-2" />
-                    Sort by A-Z{" "}
-                  </Link>
-                  <ul className="dropdown-menu p-3">
+                    Sort by A-Z
+                  </button>
+                  <ul className={`dropdown-menu p-3 ${showSortDropdown ? 'show' : ''}`} ref={sortDropdownRef}>
                     <li>
-                      <Link to="#" className="dropdown-item rounded-1">
+                      <button className="dropdown-item rounded-1">
                         Ascending
-                      </Link>
+                      </button>
                     </li>
                     <li>
-                      <Link to="#" className="dropdown-item rounded-1">
+                      <button className="dropdown-item rounded-1">
                         Descending
-                      </Link>
+                      </button>
                     </li>
                     <li>
-                      <Link to="#" className="dropdown-item rounded-1">
+                      <button className="dropdown-item rounded-1">
                         Recently Viewed
-                      </Link>
+                      </button>
                     </li>
                     <li>
-                      <Link to="#" className="dropdown-item rounded-1">
+                      <button className="dropdown-item rounded-1">
                         Recently Added
-                      </Link>
+                      </button>
                     </li>
                   </ul>
                 </div>
@@ -270,7 +283,16 @@ const FeesGroup = () => {
           </div>
         </div>
       </div>
-      <FeesModal/>
+
+      <FeesGroupModal
+        feeGroupToEdit={selectedFeeGroup}
+        showEditModal={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        showAddModal={showAddModal}
+        onAddClose={() => setShowAddModal(false)}
+        showDeleteModal={showDeleteModal}
+        onDeleteClose={() => setShowDeleteModal(false)}
+      />
     </>
   );
 };
