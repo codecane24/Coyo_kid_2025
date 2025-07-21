@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect  } from "react";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import CommonSelect from "../../../../core/common/commonSelect";
@@ -12,12 +12,30 @@ import PredefinedDateRanges from "../../../../core/common/datePicker";
 import Table from "../../../../core/common/dataTable/index";
 import { TableData } from "../../../../core/data/interface";
 import { teacherLists } from "../../../../core/data/json/teacherlist";
+import { getTeacherList } from "../../../../services/TeacherServices";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
 import TooltipOption from "../../../../core/common/tooltipOption";
 
 const TeacherList = () => {
   const routes = all_routes;
-  const data = teacherLists;
+  const [data, setData] = useState<TableData[]>([]);
+
+   useEffect(() => {
+      const fetchTeacherData = async () => {
+        try {
+          const res = await getTeacherList();
+          console.log(res);
+          setData(res?.data || []);
+        } catch (err) {
+          console.error("Failed to fetch fees groups:", err);
+          setData([]);
+        }
+      };
+      
+  
+      fetchTeacherData();
+    }, []);
+
   const columns = [
     {
       title: "ID",
