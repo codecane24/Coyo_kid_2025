@@ -70,7 +70,8 @@ class TeacherController extends Controller
             'resume_file',
             'joining_letter_file',
             'company_id',
-            'branch_id'
+            'branch_id',
+            'profile_image'
         )->with(['class', 'subject'])
          ->get();
 

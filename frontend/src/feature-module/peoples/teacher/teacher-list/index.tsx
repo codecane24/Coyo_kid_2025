@@ -40,7 +40,7 @@ const TeacherList = () => {
   const columns = [
     {
       title: "ID",
-      dataIndex: "id",
+      dataIndex: "code",
       render: (text: string) => (
         <Link to={routes.teacherDetails} className="link-primary">
           {text}
@@ -50,12 +50,12 @@ const TeacherList = () => {
     },
     {
       title: "Name",
-      dataIndex: "name",
+      dataIndex: "first_name",
       render: (text: string, record: any) => (
         <div className="d-flex align-items-center">
           <Link to="#" className="avatar avatar-md">
             <ImageWithBasePath
-              src={record.img}
+              src={record.profile_image}
               className="img-fluid rounded-circle"
               alt="img"
             />
