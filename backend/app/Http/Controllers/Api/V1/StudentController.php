@@ -507,21 +507,18 @@ class StudentController extends Controller
                 // Validation rules for the address fields
                 $addressRules = [
                     'student_id' => ['required', 'numeric', 'exists:students,id'],
-                    'current_address' => ['required', 'array'],
+                    'permanent_address.address' => ['required', 'string', 'max:255'],
+                    'permanent_address.area' => ['required', 'string', 'max:100'],
+                    'permanent_address.landmark' => ['required', 'string', 'max:100'],
+                    'permanent_address.city' => ['required', 'string', 'max:50'],
+                    'permanent_address.state' => ['required', 'string', 'max:50'],
+                    'permanent_address.pincode' => ['required', 'string', 'max:10', 'regex:/^\d{6}$/'],
                     'current_address.address' => ['required', 'string', 'max:255'],
                     'current_address.area' => ['required', 'string', 'max:100'],
                     'current_address.landmark' => ['required', 'string', 'max:100'],
                     'current_address.city' => ['required', 'string', 'max:50'],
                     'current_address.state' => ['required', 'string', 'max:50'],
                     'current_address.pincode' => ['required', 'string', 'max:10', 'regex:/^\d{6}$/'],
-                    'permanent_address' => ['nullable', 'array'],
-                    'permanent_address.address' => ['nullable', 'string', 'max:255'],
-                    'permanent_address.area' => ['nullable', 'string', 'max:100'],
-                    'permanent_address.landmark' => ['nullable', 'string', 'max:100'],
-                    'permanent_address.city' => ['nullable', 'string', 'max:50'],
-                    'permanent_address.state' => ['nullable', 'string', 'max:50'],
-                    'permanent_address.pincode' => ['nullable', 'string', 'max:10', 'regex:/^\d{6}$/'],
-                    
                 ];
 
                 // Custom validation messages
@@ -545,26 +542,23 @@ class StudentController extends Controller
                     // Find the student
                     $student = Student::findOrFail($request->student_id);
 
-                    // Map JSON fields to database columns
+                    // Map fields to database columns - using direct array access for form data
                     $updateData = [
-                        // Permanent address fields (original fields)
-                        'address' => $request->permanent_address['address'],
-                        'area' => $request->permanent_address['area'],
-                        'landmark' => $request->permanent_address['landmark'],
-                        'city' => $request->permanent_address['city'],
-                        'state' => $request->permanent_address['state'],
-                        'pincode' => $request->permanent_address['pincode'],
+                        // Permanent address fields
+                        'address' => $request->input('permanent_address.address'),
+                        'area' => $request->input('permanent_address.area'),
+                        'landmark' => $request->input('permanent_address.landmark'),
+                        'city' => $request->input('permanent_address.city'),
+                        'state' => $request->input('permanent_address.state'),
+                        'pincode' => $request->input('permanent_address.pincode'),
                         
-                        // Current address fields (_2 fields)
-                        'address_2' => $request->current_address['address'],
-                        'area_2' => $request->current_address['area'],
-                        'landmark_2' => $request->current_address['landmark'],
-                        'city_2' => $request->current_address['city'],
-                        'state_2' => $request->current_address['state'],
-                        'pincode_2' => $request->current_address['pincode'],
-                        
-                        // Update timestamps
-                        'updated_at' => now(),
+                        // Current address fields
+                        'address_2' => $request->input('current_address.address'),
+                        'area_2' => $request->input('current_address.area'),
+                        'landmark_2' => $request->input('current_address.landmark'),
+                        'city_2' => $request->input('current_address.city'),
+                        'state_2' => $request->input('current_address.state'),
+                        'pincode_2' => $request->input('current_address.pincode'),
                     ];
 
                     // Update the student record
@@ -601,8 +595,7 @@ class StudentController extends Controller
                         'message' => "Step 3: $stepName3 failed. " . $e->getMessage(),
                         'data' => null,
                     ], 500);
-                }
-    
+                }    
                 case 'step_4': // Medical History
                 $stepName4 = "Medical History Record";
                 $medicalRules = [
