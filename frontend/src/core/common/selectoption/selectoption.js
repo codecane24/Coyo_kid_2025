@@ -434,6 +434,10 @@ export const allSection = [
   { value: "A", label: "A" },
   { value: "B", label: "B" },
 ];
+export const Class = [
+  { value: "A", label: "A" },
+  { value: "B", label: "B" },
+];
 export const suitableBatch = [
   { value: "morning", label: "morning" },
   { value: "nuoon", label: "noon" },

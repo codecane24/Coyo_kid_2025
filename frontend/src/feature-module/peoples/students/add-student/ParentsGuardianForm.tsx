@@ -3,32 +3,33 @@ import { Link } from "react-router-dom";
 
 const siblingOptions = ["STD2123", "STD4566", "STD7890"];
 
+
 interface Guardian {
   name: string;
   phone: string;
-  adhar: string;
+  aadhar: string;
   occupation: string;
   relation: string;
   profileImage?: File | null;
-  adharImage?: File | null;
+  aadharImage?: File | null;
 }
 
 export interface ParentInfo {
   fatherName: string;
   fatherPhone: string;
     fatherEmail?: string; 
-  fatherAdhar: string;
+  fatherAadhar: string;
   fatherOccupation: string;
   fatherProfileImage?: File | null;
-  fatherAdharImage?: File | null;
+  fatherAadharImage?: File | null;
 
   motherName: string;
     motherEmail?: string;
   motherPhone: string;
-  motherAdhar: string;
+  motherAadhar: string;
   motherOccupation: string;
   motherProfileImage?: File | null;
-  motherAdharImage?: File | null;
+  motherAadharImage?: File | null;
 
   siblingSameSchool: string;
 
@@ -76,11 +77,11 @@ const ParentsGuardianForm: React.FC<Props> = ({ parentInfo, setParentInfo }) => 
         {
           name: "",
           phone: "",
-          adhar: "",
+          aadhar: "",
           occupation: "",
           relation: "",
           profileImage: null,
-          adharImage: null,
+          aadharImage: null,
         },
       ],
     }));
@@ -110,24 +111,24 @@ const removeSibling = (index: number) => {
   setParentInfo((prev) => ({ ...prev, siblingStudentIds: updatedSiblings })); // ✅ corrected
 };
 
-
-const renderImageUploader  = (
+const renderImageUploader = (
   label: string,
   field: keyof ParentInfo,
   removeFn: () => void,
-  accept: string = "image/*"
+  accept: string = "image/*" // default is images only
 ) => (
   <div className="file-upload mb-2">
     <label className="block text-sm font-medium mb-1">{label}</label>
     <div className="d-flex align-items-center">
       <div className="drag-upload-btn mb-2">
         Upload
-        <input
-          type="file"
-          className="form-control image-sign"
-            accept="image/*,.pdf"
-          onChange={(e) => handleImageChange(e, field)}
-        />
+    <input
+  type="file"
+  className="form-control image-sign"
+  accept={accept} // ✅ now dynamic
+  onChange={(e) => handleImageChange(e, field)}
+/>
+
       </div>
       <Link to="#" className="btn btn-primary mb-2" onClick={removeFn}>
         Remove
@@ -178,22 +179,34 @@ const renderImageUploader  = (
         </div>
         <div className="col-xxl col-xl-3 col-md-6 mb-3">
           <label className="form-label">Aadhar</label>
-          <input type="text" name="fatherAdhar" value={parentInfo.fatherAdhar} onChange={handleInputChange} className="form-control" placeholder="Enter Aadhar" />
+          <input type="text" name="fatherAadhar" value={parentInfo.fatherAadhar} onChange={handleInputChange} className="form-control" placeholder="Enter Aadhar" />
         </div>
         <div className="col-xxl col-xl-3 col-md-6 mb-3">
           <label className="form-label">Occupation</label>
           <input type="text" name="fatherOccupation" value={parentInfo.fatherOccupation} onChange={handleInputChange} className="form-control" placeholder="Enter Occupation" />
         </div>
-        <div className="col-xxl col-xl-3 col-md-6 mb-3">
-          {renderImageUploader("Father's Profile Image", "fatherProfileImage", () =>
-            handleImageChange({ target: { files: null } } as any, "fatherProfileImage")
-          )}
-        </div>
-        <div className="col-xxl col-xl-3 col-md-6 mb-3">
-          {renderImageUploader("Father's Aadhar Image", "fatherAdharImage", () =>
-            handleImageChange({ target: { files: null } } as any, "fatherAdharImage")
-          )}
-        </div>
+    {/* Only Image — Father's Profile Image */}
+<div className="col-xxl col-xl-3 col-md-6 mb-3">
+  {renderImageUploader(
+    "Father's Profile Image",
+    "fatherProfileImage",
+    () =>
+      handleImageChange({ target: { files: null } } as any, "fatherProfileImage"),
+    "image/*" // ✅ Only allow images
+  )}
+</div>
+
+{/* Image + PDF — Father's Aadhar Image */}
+<div className="col-xxl col-xl-3 col-md-6 mb-3">
+  {renderImageUploader(
+    "Father's Aadhar Image",
+    "fatherAadharImage",
+    () =>
+      handleImageChange({ target: { files: null } } as any, "fatherAadharImage"),
+    "image/*,.pdf" // ✅ Allow images and PDFs
+  )}
+</div>
+
       </div>
     </div>
   </div>
@@ -232,21 +245,29 @@ const renderImageUploader  = (
 
         <div className="col-xxl col-xl-3 col-md-6 mb-3">
           <label className="form-label">Aadhar</label>
-          <input type="text" name="motherAdhar" value={parentInfo.motherAdhar} onChange={handleInputChange} className="form-control" placeholder="Enter Aadhar" />
+          <input type="text" name="motherAadhar" value={parentInfo.motherAadhar} onChange={handleInputChange} className="form-control" placeholder="Enter Aadhar" />
         </div>
         <div className="col-xxl col-xl-3 col-md-6 mb-3">
           <label className="form-label">Occupation</label>
           <input type="text" name="motherOccupation" value={parentInfo.motherOccupation} onChange={handleInputChange} className="form-control" placeholder="Enter Occupation" />
         </div>
         <div className="col-xxl col-xl-3 col-md-6 mb-3">
-          {renderImageUploader("Mother's Profile Image", "motherProfileImage", () =>
-            handleImageChange({ target: { files: null } } as any, "motherProfileImage")
-          )}
+       {renderImageUploader(
+  "Mother's Profile Image",
+  "motherProfileImage",
+  () => handleImageChange({ target: { files: null } } as any, "motherProfileImage"),
+  "image/*" // ← only image
+)}
+
         </div>
         <div className="col-xxl col-xl-3 col-md-6 mb-3">
-          {renderImageUploader("Mother's Aadhar Image", "motherAdharImage", () =>
-            handleImageChange({ target: { files: null } } as any, "motherAdharImage")
-          )}
+ {renderImageUploader(
+  "Mother's Aaadhar Image",
+  "motherAadharImage",
+  () => handleImageChange({ target: { files: null } } as any, "motherAadharImage"),
+  "image/*,.pdf" // ← allow both image & PDF
+)}
+
         </div>
       </div>
     </div>
@@ -301,8 +322,8 @@ const renderImageUploader  = (
               <input
                 type="text"
                 className="form-control"
-                value={guardian.adhar}
-                onChange={(e) => handleGuardianChange(index, "adhar", e.target.value)}
+                value={guardian.aadhar}
+                onChange={(e) => handleGuardianChange(index, "aadhar", e.target.value)}
                 placeholder="Enter Aadhar"
               />
             </div>
@@ -340,13 +361,15 @@ const renderImageUploader  = (
           <div className="col-xxl col-xl-3 col-md-6">
             <div className="mb-3">
               <label className="form-label">Profile Image</label>
-              <input
-                type="file"
-                className="form-control"
-                onChange={(e) =>
-                  handleGuardianImage(index, "profileImage", e.target.files?.[0] || null)
-                }
-              />
+          <input
+  type="file"
+  accept="image/*"
+  className="form-control"
+  onChange={(e) =>
+    handleGuardianImage(index, "profileImage", e.target.files?.[0] || null)
+  }
+/>
+
             </div>
           </div>
 
@@ -358,7 +381,7 @@ const renderImageUploader  = (
                 type="file"
                 className="form-control"
                 onChange={(e) =>
-                  handleGuardianImage(index, "adharImage", e.target.files?.[0] || null)
+                  handleGuardianImage(index, "aadharImage", e.target.files?.[0] || null)
                 }
               />
             </div>

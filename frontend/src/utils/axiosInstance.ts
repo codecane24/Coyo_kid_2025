@@ -4,7 +4,8 @@ import axios from "axios";
 const axiosInstance = axios.create({
   baseURL: "https://coyokid.abbangles.com/backend/api/v1/", // ✅ Laravel backend base URL
   headers: {
-    "Content-Type": "application/json",
+    "Content-Type": "application/json", // ✅ For JSON and file uploads
+     // ✅ For file uploads
   },
 });
 
