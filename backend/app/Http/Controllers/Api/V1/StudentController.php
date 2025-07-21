@@ -550,12 +550,12 @@ class StudentController extends Controller
                     $student->state=$request->input('current_address.state');
                     $student->pincode=$request->input('current_address.pincode');
 
-                    $student->address=$request->input('permanent_address.address');
-                    $student->area=$request->input('permanent_address.area');
-                    $student->landmark=$request->input('permanent_address.landmark');
-                    $student->city=$request->input('permanent_address.city');
-                    $student->state=$request->input('permanent_address.state');
-                    $student->pincode=$request->input('permanent_address.pincode');
+                    $student->address_2=$request->input('permanent_address.address');
+                    $student->area_2=$request->input('permanent_address.area');
+                    $student->landmark_2=$request->input('permanent_address.landmark');
+                    $student->city_2=$request->input('permanent_address.city');
+                    $student->state_2=$request->input('permanent_address.state');
+                    $student->pincode_2=$request->input('permanent_address.pincode');
                    
 
                     // Update the student record
