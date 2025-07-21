@@ -106,10 +106,9 @@ class StudentController extends Controller
             'caste' => ['nullable', 'string', 'max:100'],
             'mother_tongue' => ['nullable', Rule::in(['English', 'Spanish', 'Hindi', 'Gujarati', 'Marathi'])], // Added more common languages
             'languages_known' => ['nullable', 'array'],
-            'profile_image' => 'nullable|image|file|max:4096',
+            'profile_image' => ['nullable', 'file', 'image', 'max:4096'],
         ];
 
-        
         // Perform validation
         $validator = Validator::make($request->all(), $studentRules);
         if ($validator->fails()) {
@@ -281,20 +280,20 @@ class StudentController extends Controller
                     'father_name' => ['required', 'string', 'max:100'],
                     'father_phone' => ['nullable', 'string', 'max:15'],
                     'father_email' => ['nullable', 'email'],
-                    'father_adhar' => ['nullable', 'string', 'max:12'],
+                    'father_aadhar' => ['nullable', 'string', 'max:12'],
                     'father_occupation' => ['nullable', 'string', 'max:100'],
                     'father_qualification' => ['nullable', 'string', 'max:100'],
-                    'father_adhar_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'father_aadhar_image' => ['nullable', 'file', 'image', 'max:4096'],
                     'father_image' => ['nullable', 'file', 'image', 'max:4096'],
                     'father_itr_no' => ['nullable', 'string', 'max:50'],
                     'father_itr_file' => ['nullable', 'file', 'max:4096'],
                     'mother_name' => ['required', 'string', 'max:100'],
                     'mother_email' => ['nullable', 'email'],
                     'mother_phone' => ['nullable', 'string', 'max:15'],
-                    'mother_adhar' => ['nullable', 'string', 'max:12'],
+                    'mother_aadhar' => ['nullable', 'string', 'max:12'],
                     'mother_occupation' => ['nullable', 'string', 'max:100'],
                     'mother_qualification' => ['nullable', 'string', 'max:100'],
-                    'mother_adhar_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'mother_aadhar_image' => ['nullable', 'file', 'image', 'max:4096'],
                     'mother_image' => ['nullable', 'file', 'image', 'max:4096'],
                     'mother_itr_no' => ['nullable', 'string', 'max:50'],
                     'mother_itr_file' => ['nullable', 'file', 'max:4096'],
@@ -305,12 +304,12 @@ class StudentController extends Controller
                     'guardians.*.name' => ['required', 'string', 'max:100'],
                     'guardians.*.phone' => ['nullable', 'string', 'max:15'],
                     'guardians.*.email' => ['nullable', 'email'],
-                    'guardians.*.adhar' => ['nullable', 'string', 'max:12'],
+                    'guardians.*.aadhar' => ['nullable', 'string', 'max:12'],
                     'guardians.*.occupation' => ['nullable', 'string', 'max:100'],
                     'guardians.*.qualification' => ['nullable', 'string', 'max:100'],
                     'guardians.*.relation' => ['required', 'string', 'max:50'],
                     'guardians.*.profile_image' => ['nullable', 'file', 'image', 'max:4096'],
-                    'guardians.*.adhar_image' => ['nullable', 'file', 'image', 'max:4096'],
+                    'guardians.*.aadhar_image' => ['nullable', 'file', 'image', 'max:4096'],
                     'guardians.*.itr_no' => ['nullable', 'string', 'max:50'],
                     'guardians.*.itr_file' => ['nullable', 'file', 'max:4096'],
                 ];
@@ -348,7 +347,7 @@ class StudentController extends Controller
                         'name' => $request->input('father_name'),
                         'phone' => $request->input('father_phone'),
                         'email' => $request->input('father_email'),
-                        'adhar' => $request->input('father_adhar'),
+                        'aadhar' => $request->input('father_aadhar'),
                         'qualification' => $request->input('father_qualification') ?? '',
                         'occupation' => $request->input('father_occupation') ?? '',
                         'itr_no' => $request->input('father_itr_no') ?? null,
@@ -356,8 +355,8 @@ class StudentController extends Controller
                         'docfolder_name' => 'parent_documents_' . time(),
                     ];
 
-                    if ($request->hasFile('father_adhar_image')) {
-                        $fatherDetails['adhar_file'] = $request->file('father_adhar_image')->store('relation_profiles');
+                    if ($request->hasFile('father_aadhar_image')) {
+                        $fatherDetails['aadhar_file'] = $request->file('father_aadhar_image')->store('relation_profiles');
                     }
                     if ($request->hasFile('father_image')) {
                         $fatherDetails['image'] = $request->file('father_image')->store('relation_profiles');
@@ -368,13 +367,13 @@ class StudentController extends Controller
 
                     $father = StudentParent::firstOrNew([
                         'phone' => $fatherDetails['phone'],
-                        'adhar' => $fatherDetails['adhar'],
+                        'aadhar' => $fatherDetails['aadhar'],
                     ]);
 
                     if (!$father->exists && $fatherDetails['phone']) {
                         $father = StudentParent::firstOrNew(['phone' => $fatherDetails['phone']]);
-                    } elseif (!$father->exists && $fatherDetails['adhar']) {
-                        $father = StudentParent::firstOrNew(['adhar' => $fatherDetails['adhar']]);
+                    } elseif (!$father->exists && $fatherDetails['aadhar']) {
+                        $father = StudentParent::firstOrNew(['aadhar' => $fatherDetails['aadhar']]);
                     }
 
                     $father->fill($fatherDetails)->save();
@@ -386,7 +385,7 @@ class StudentController extends Controller
                         'name' => $request->input('mother_name'),
                         'phone' => $request->input('mother_phone'),
                         'email' => $request->input('mother_email'),
-                        'adhar' => $request->input('mother_adhar'),
+                        'aadhar' => $request->input('mother_aadhar'),
                         'qualification' => $request->input('mother_qualification') ?? '',
                         'occupation' => $request->input('mother_occupation') ?? '',
                         'itr_no' => $request->input('mother_itr_no') ?? null,
@@ -394,8 +393,8 @@ class StudentController extends Controller
                         'docfolder_name' => 'parent_documents_' . time(),
                     ];
 
-                    if ($request->hasFile('mother_adhar_image')) {
-                        $motherDetails['adhar_file'] = $request->file('mother_adhar_image')->store('relation_profiles');
+                    if ($request->hasFile('mother_aadhar_image')) {
+                        $motherDetails['aadhar_file'] = $request->file('mother_aadhar_image')->store('relation_profiles');
                     }
                     if ($request->hasFile('mother_image')) {
                         $motherDetails['image'] = $request->file('mother_image')->store('relation_profiles');
@@ -406,13 +405,13 @@ class StudentController extends Controller
 
                     $mother = StudentParent::firstOrNew([
                         'phone' => $motherDetails['phone'],
-                        'adhar' => $motherDetails['adhar'],
+                        'aadhar' => $motherDetails['aadhar'],
                     ]);
 
                     if (!$mother->exists && $motherDetails['phone']) {
                         $mother = StudentParent::firstOrNew(['phone' => $motherDetails['phone']]);
-                    } elseif (!$mother->exists && $motherDetails['adhar']) {
-                        $mother = StudentParent::firstOrNew(['adhar' => $motherDetails['adhar']]);
+                    } elseif (!$mother->exists && $motherDetails['aadhar']) {
+                        $mother = StudentParent::firstOrNew(['aadhar' => $motherDetails['aadhar']]);
                     }
 
                     $mother->fill($motherDetails)->save();
@@ -425,7 +424,7 @@ class StudentController extends Controller
                             'name' => $guardianData['name'],
                             'phone' => $guardianData['phone'] ?? null,
                             'email' => $guardianData['email'] ?? null,
-                            'adhar' => $guardianData['adhar'] ?? null,
+                            'aadhar' => $guardianData['aadhar'] ?? null,
                             'qualification' => $guardianData['qualification'] ?? '',
                             'occupation' => $guardianData['occupation'] ?? null,
                             'itr_no' => $guardianData['itr_no'] ?? null,
@@ -436,8 +435,8 @@ class StudentController extends Controller
                         if ($request->hasFile("guardians.{$index}.profile_image")) {
                             $guardianDetails['image'] = $request->file("guardians.{$index}.profile_image")->store('relation_profiles');
                         }
-                        if ($request->hasFile("guardians.{$index}.adhar_image")) {
-                            $guardianDetails['adhar_file'] = $request->file("guardians.{$index}.adhar_image")->store('relation_profiles');
+                        if ($request->hasFile("guardians.{$index}.aadhar_image")) {
+                            $guardianDetails['aadhar_file'] = $request->file("guardians.{$index}.aadhar_image")->store('relation_profiles');
                         }
                         if ($request->hasFile("guardians.{$index}.itr_file")) {
                             $guardianDetails['itr_file'] = $request->file("guardians.{$index}.itr_file")->store('relation_profiles');
@@ -445,13 +444,13 @@ class StudentController extends Controller
 
                         $guardian = StudentParent::firstOrNew([
                             'phone' => $guardianDetails['phone'],
-                            'adhar' => $guardianDetails['adhar'],
+                            'aadhar' => $guardianDetails['aadhar'],
                         ]);
 
                         if (!$guardian->exists && $guardianDetails['phone']) {
                             $guardian = StudentParent::firstOrNew(['phone' => $guardianDetails['phone']]);
-                        } elseif (!$guardian->exists && $guardianDetails['adhar']) {
-                            $guardian = StudentParent::firstOrNew(['adhar' => $guardianDetails['adhar']]);
+                        } elseif (!$guardian->exists && $guardianDetails['aadhar']) {
+                            $guardian = StudentParent::firstOrNew(['aadhar' => $guardianDetails['aadhar']]);
                         }
 
                         $guardian->fill($guardianDetails)->save();
