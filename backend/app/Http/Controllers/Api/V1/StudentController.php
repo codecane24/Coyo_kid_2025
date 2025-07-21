@@ -472,7 +472,9 @@ class StudentController extends Controller
                         foreach ($request->input('sibling_student_ids', []) as $siblingId) {
                             $siblingsToCreate[] = [
                                 'sibling_student_id' => $siblingId,
-                                'same_school' => true,
+                                //'same_school' => true,
+                                'student_id' =>$student->id,
+
                             ];
                         }
                     }
