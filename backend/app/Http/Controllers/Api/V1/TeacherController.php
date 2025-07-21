@@ -205,8 +205,7 @@ class TeacherController extends Controller
             'twitter_url' => 'nullable|url|max:255',
             'resume_file' => 'nullable|file|mimes:pdf|max:4096',
             'joining_letter_file' => 'nullable|file|mimes:pdf|max:4096',
-            'company_id' => 'required|integer|exists:companies,id',
-            'branch_id' => 'required|integer|exists:branches,id',
+           
         ]);
 
         if ($validator->fails()) {
