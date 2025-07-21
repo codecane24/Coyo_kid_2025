@@ -463,7 +463,7 @@ class StudentController extends Controller
                     ]);
 
                     // Sync guardians
-                    $student->guardians()->sync($guardiansToAttach);
+                    //$student->guardians()->sync($guardiansToAttach);
 
                     // Handle siblings
                     StudentSibling::where('student_id', $student->id)->delete();

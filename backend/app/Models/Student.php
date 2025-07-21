@@ -20,6 +20,10 @@ class Student extends Model
 		//
 	}
 
+	public function gaurdians(){
+		//
+	}
+
 	public function siblings(){
 		//
 	}
