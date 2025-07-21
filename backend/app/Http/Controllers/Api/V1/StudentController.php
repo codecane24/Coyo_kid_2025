@@ -351,7 +351,6 @@ class StudentController extends Controller
                         'qualification' => $request->input('father_qualification') ?? '',
                         'occupation' => $request->input('father_occupation') ?? '',
                         'itr_no' => $request->input('father_itr_no') ?? null,
-                        'status' => 'active',
                         'docfolder_name' => 'parent_documents_' . time(),
                     ];
 
@@ -389,7 +388,6 @@ class StudentController extends Controller
                         'qualification' => $request->input('mother_qualification') ?? '',
                         'occupation' => $request->input('mother_occupation') ?? '',
                         'itr_no' => $request->input('mother_itr_no') ?? null,
-                        'status' => 'active',
                         'docfolder_name' => 'parent_documents_' . time(),
                     ];
 
@@ -428,7 +426,6 @@ class StudentController extends Controller
                             'qualification' => $guardianData['qualification'] ?? '',
                             'occupation' => $guardianData['occupation'] ?? null,
                             'itr_no' => $guardianData['itr_no'] ?? null,
-                            'status' => 'active',
                             'docfolder_name' => 'guardian_documents_' . time(),
                         ];
 
