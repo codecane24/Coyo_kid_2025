@@ -451,9 +451,9 @@ class StudentController extends Controller
                         }
 
                         $guardian->fill($guardianDetails)->save();
-                        $guardiansToAttach[$guardian->id] = [
-                            'guardian_role' => $guardianData['relation'],
-                        ];
+                        // $guardiansToAttach[$guardian->id] = [
+                        //     'guardian_role' => $guardianData['relation'],
+                        // ];
                     }
 
                     // Update student with father and mother IDs
