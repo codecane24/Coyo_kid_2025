@@ -11,7 +11,7 @@ use App\Models\StudentParent;
 use App\Models\StudentSibling;
 use App\Models\StudentDocument;
 use App\Models\StudentMedicalHistory;
-use App\Models\StudentPreviousSchool; // Ensure this model exists and is used if previous school data is handled
+use App\Models\StudentPreviousEducation; // Ensure this model exists and is used if previous school data is handled
 use Illuminate\Support\Facades\Log; // Import Log facade for error logging
 use Illuminate\Support\Facades\Storage; // Import Storage facade for file uploads
 use Auth;
@@ -298,8 +298,8 @@ class StudentController extends Controller
                     'mother_itr_no' => ['nullable', 'string', 'max:50'],
                     'mother_itr_file' => ['nullable', 'file', 'max:4096'],
                     'sibling_same_school' => ['required', 'string', 'in:yes,no'],
-                    'sibling_student_ids' => ['nullable', 'array'],
-                    'sibling_student_ids.*' => ['string', 'max:50'],
+                 //   'sibling_student_ids' => ['nullable', 'array'],
+                 //   'sibling_student_ids.*' => ['string', 'max:50'],
                     'guardians' => ['nullable', 'array'],
                     'guardians.*.name' => ['required', 'string', 'max:100'],
                     'guardians.*.phone' => ['nullable', 'string', 'max:15'],
@@ -451,9 +451,9 @@ class StudentController extends Controller
                         }
 
                         $guardian->fill($guardianDetails)->save();
-                        $guardiansToAttach[$guardian->id] = [
-                            'guardian_role' => $guardianData['relation'],
-                        ];
+                        // $guardiansToAttach[$guardian->id] = [
+                        //     'guardian_role' => $guardianData['relation'],
+                        // ];
                     }
 
                     // Update student with father and mother IDs
@@ -463,7 +463,7 @@ class StudentController extends Controller
                     ]);
 
                     // Sync guardians
-                    $student->guardians()->sync($guardiansToAttach);
+                    //$student->guardians()->sync($guardiansToAttach);
 
                     // Handle siblings
                     StudentSibling::where('student_id', $student->id)->delete();
@@ -472,7 +472,9 @@ class StudentController extends Controller
                         foreach ($request->input('sibling_student_ids', []) as $siblingId) {
                             $siblingsToCreate[] = [
                                 'sibling_student_id' => $siblingId,
-                                'same_school' => true,
+                                //'same_school' => true,
+                                'student_id' =>$student->id,
+
                             ];
                         }
                     }
@@ -498,80 +500,102 @@ class StudentController extends Controller
                     ], 500);
                 }
 
+         
             case 'step_3': // Address and Transport/Hostel
                 $stepName3 = "Address and Transport/Hostel Details";
+                
+                // Validation rules for the address fields
                 $addressRules = [
-                    'address' => ['required','string','max:100'],
-                    'area'  => ['required','string','max:50'],
-                    'city_name' => ['nullable','string','max:50'],
-                    'city_id' => ['required','numeric'],
-                    'state_name' =>['nullable','string'],
-                    'state_id' =>['required','numeric'],
-                    'landmark' =>['nullable','string','max:50'],
-                    'address_2' => ['nullable','string','max:100'],
-                    'area_2'  => ['nullable','string','max:50'],
-                    'city_name_2' => ['nullable','string','max:50'],
-                    'city_id_2' => ['nullable','numeric'],
-                    'state_name_2' =>['nullable','string'],
-                    'state_id_2' =>['nullable','numeric'],
-                    'landmark_2' =>['nullable','max:50'],
-                    'country' => ['nullable','max:50'],
+                    'student_id' => ['required', 'numeric', 'exists:students,id'],
+                    'permanent_address.address' => ['required', 'string', 'max:255'],
+                    'permanent_address.area' => ['required', 'string', 'max:100'],
+                    'permanent_address.landmark' => ['required', 'string', 'max:100'],
+                    'permanent_address.city' => ['required', 'string', 'max:50'],
+                    'permanent_address.state' => ['required', 'string', 'max:50'],
+                    'permanent_address.pincode' => ['required', 'string', 'max:10', 'regex:/^\d{6}$/'],
+                    'current_address.address' => ['required', 'string', 'max:255'],
+                    'current_address.area' => ['required', 'string', 'max:100'],
+                    'current_address.landmark' => ['required', 'string', 'max:100'],
+                    'current_address.city' => ['required', 'string', 'max:50'],
+                    'current_address.state' => ['required', 'string', 'max:50'],
+                    'current_address.pincode' => ['required', 'string', 'max:10', 'regex:/^\d{6}$/'],
                 ];
 
-                $validator = Validator::make($request->all(), $addressRules);
+                // Custom validation messages
+                $messages = [
+                    'permanent_address.pincode.regex' => 'Permanent address pincode must be 6 digits',
+                    'current_address.pincode.regex' => 'Current address pincode must be 6 digits',
+                ];
+
+                $validator = Validator::make($request->all(), $addressRules, $messages);
+                
                 if ($validator->fails()) {
                     return response()->json([
                         'status' => 'error',
-                        'message' => 'Data Validation failed',
+                        'message' => 'Address validation failed',
                         'errors' => $validator->errors(),
                         'data' => null,
                     ], 422);
                 }
 
                 try {
+                    // Find the student
+                    $student = Student::findOrFail($request->student_id);
 
-                    $updateData=[
-                        'address' => $request->address,
-                        'area' => $request->area,
-                        'city_name' => $request->city_name,
-                        'city_id' =>$request->city_id,
-                        'state_id' =>$request->state_id,
-                        'state_name' =>$request->state_name,
-                        'landmark' =>$request->landmark,
-                        'address_2' => $request->address_2,
-                        'area_2' => $request->area_2,
-                        'city_name_2' => $request->city_name_2,
-                        'city_id_2' =>$request->city_id_2,
-                        'state_id_2' =>$request->state_id_2,
-                        'state_name_2' =>$request->state_name_2,
-                        'landmark' =>$request->landmark,
-                        'country' => $request->country,
-                    ];
+                    // Map fields to database columns - using direct array access for form data
+                    $student->address=$request->input('current_address.address');
+                    $student->area=$request->input('current_address.area');
+                    $student->landmark=$request->input('current_address.landmark');
+                    $student->city_name=$request->input('current_address.city');
+                    $student->state_name=$request->input('current_address.state');
+                    $student->pincode=$request->input('current_address.pincode');
 
-                    // Update student's address, transport, and hostel details
-                    $student->update($updateData);
+                    $student->address_2=$request->input('permanent_address.address');
+                    $student->area_2=$request->input('permanent_address.area');
+                    $student->city_name_2=$request->input('permanent_address.city');
+                    $student->state_name_2=$request->input('permanent_address.state');
+                    $student->pincode_2=$request->input('permanent_address.pincode');
+                   
+
+                    // Update the student record
+                   $student->save();
 
                     return response()->json([
                         'status' => 'success',
                         'message' => "Step 3: $stepName3 completed successfully",
                         'data' => [
                             'student_id' => $student->id,
+                            'current_address' => [
+                                'address' => $student->address,
+                                'area' => $student->area,
+                                'landmark' => $student->landmark,
+                                'city' => $student->city_name,
+                                'state' => $student->state_name,
+                                'pincode' => $student->pincode,
+                            ],
+                            'permanent_address' => [
+                                'address' => $student->address_2,
+                                'area' => $student->area_2,
+                                'city' => $student->city_name_2,
+                                'state' => $student->state_name_2,
+                                'pincode' => $student->pincode_2,
+                            ]
                         ],
                     ], 200);
 
                 } catch (\Exception $e) {
-                    Log::error("Student update (Step 3) failed: " . $e->getMessage());
+                    Log::error("Student address update failed: " . $e->getMessage());
                     return response()->json([
                         'status' => 'error',
                         'message' => "Step 3: $stepName3 failed. " . $e->getMessage(),
                         'data' => null,
                     ], 500);
-                }
+                } 
 
-            case 'step_4': // Medical History
+                case 'step_4': // Medical History
                 $stepName4 = "Medical History Record";
                 $medicalRules = [
-                    'medical_condition' => ['required', Rule::in(['Good', 'Bad', 'Others'])],
+                   // 'medical_condition' => ['required', Rule::in(['Good', 'Bad', 'Others'])],
                     'allergies' => ['nullable', 'array'],
                     'medications' => ['nullable', 'array'],
                 ];
@@ -587,13 +611,30 @@ class StudentController extends Controller
                 }
 
                 try {
+                    $student = Student::findOrFail($request->student_id);
+                   
                     // Update or create medical history record
                     StudentMedicalHistory::updateOrCreate(
                         ['student_id' => $student->id],
                         [
-                            'medical_condition' => $request->medical_condition,
+                            'serious_disease' => $request->serious_disease ?? 'NA',
+                            'medical_condition' => $request->medical_condition ?? 'Good',
+                            'serious_injuries' => $request->serious_injuries ? json_encode($request->serious_injuries) : null,
                             'allergies' => $request->allergies ? json_encode($request->allergies) : null,
                             'medications' => $request->medications ? json_encode($request->medications) : null,
+                        ]
+                    );
+
+                    $student->transport_allow = ($request->transport_service == 'yes') ? 1:0;
+                    $student->save();
+                    
+                    StudentPreviousEducation::updateOrCreate(
+                        ['student_id' =>$student->id],
+                        [
+                            'school_name' =>  $request->previous_school_name
+ ?? '',
+                            'address' =>  $request->previous_school_address
+ ?? '',
                         ]
                     );
 
@@ -617,9 +658,9 @@ class StudentController extends Controller
             case 'step_5': // Documents
                 $stepName5 = "Document Records";
                 $documentRules = [
-                    'medical_condition_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'], // Added image mimes
+                    'birth_certificate' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2096'], // Added image mimes
+                    'aadhar_card' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'], // Added image mimes
                     'transfer_certificate' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'], // Added image mimes
-                    // You might want to add other common documents like 'birth_certificate', 'marksheet', etc.
                 ];
 
                 $validator = Validator::make($request->all(), $documentRules);
@@ -633,23 +674,52 @@ class StudentController extends Controller
                 }
 
                 try {
+
+                $student = Student::findOrFail($request->student_id);
                     // Handle document uploads
-                    $medicalDocument = $request->hasFile('medical_condition_document')
-                        ? $this->upload_file('medical_condition_document', 'student_documents')
-                        : null;
-                    $transferCertificate = $request->hasFile('transfer_certificate')
-                        ? $this->upload_file('transfer_certificate', 'student_documents')
-                        : null;
+                    if($request->hasFile('birth_certificate')){
+                        $birthCertificate = $this->upload_file('birth_certificate', $student->docfolder_name)  ?? null;
+                    
+                        StudentDocument::updateOrCreate(
+                            [
+                                'student_id' =>$student->id,
+                                'doc_type' => 'birth_certificate'
+                            ],
+                            [
+                                'doc_file' =>  $birthCertificate,
+                            ]
+                        );
+                    }  
+                    
+                    if($request->hasFile('aadhar_card')){
+                        $aadharcard = $this->upload_file('aadhar_card', $student->docfolder_name)  ?? null;
+                    
+                        StudentDocument::updateOrCreate(
+                            [
+                                'student_id' =>$student->id,
+                                'doc_type' => 'aadhar_card'
+                            ],
+                            [
+                                'doc_file' =>  $aadharcard,
+                            ]
+                        );
+                    }
 
-                    // Update or create document record
-                    StudentDocument::updateOrCreate(
-                        ['student_id' => $student->id],
-                        [
-                            'medical_condition_document' => $medicalDocument,
-                            'transfer_certificate' => $transferCertificate,
-                        ]
-                    );
+                    if($request->hasFile('transfer_certificate')){
+                        $transfercertificate = $this->upload_file('transfer_certificate', $student->docfolder_name) ?? null;
+                    
+                        StudentDocument::updateOrCreate(
+                            [
+                                'student_id' =>$student->id,
+                                'doc_type' => 'tc'
+                            ],
+                            [
+                                'doc_file' =>  $transfercertificate,
+                            ]
+                        );
+                    }
 
+                   
                     return response()->json([
                         'status' => 'success',
                         'message' => "Step 5: $stepName5 completed successfully",
