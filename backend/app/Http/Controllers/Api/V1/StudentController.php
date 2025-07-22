@@ -260,7 +260,7 @@ class StudentController extends Controller
 
                 // Handle profile image upload
                 if($request->hasFile('profile_image')){
-                    $profileImage = $this->upload_file('profile_image', $student->docfolder_name);
+                    $profileImage = $this->upload_file('profile_image', $student->docfolder_name,$student->profile_image);
                     $student->profile_image = $profileImage;
                 }   
 
