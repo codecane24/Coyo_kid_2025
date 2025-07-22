@@ -102,7 +102,7 @@ class StudentController extends Controller
             'house' => ['nullable', 'string', 'max:100'],
             'religion' => ['nullable', Rule::in(['Christianity', 'Buddhism', 'Irreligion', 'Hinduism', 'Islam', 'Sikhism', 'Jainism'])], // Added more common religions
             'category' => ['nullable', Rule::in(['OBC', 'BC', 'General', 'SC', 'ST'])], // Added more common categories
-            'primary_contact' => ['required', 'numeric', 'max:15'], // Changed from 'phone' to match request
+            'primary_contact' => ['required', 'string', 'max:15'], // Changed from 'phone' to match request
             'email' => ['nullable', 'email', 'max:255', 'unique:students,email'],
             'caste' => ['nullable', 'string', 'max:100'],
             'mother_tongue' => ['nullable', Rule::in(['English', 'Spanish', 'Hindi', 'Gujarati', 'Marathi'])], // Added more common languages
@@ -829,7 +829,7 @@ class StudentController extends Controller
      * @param string $directory The storage directory (within 'public' disk).
      * @return string|null The stored file path relative to the storage disk, or null if no file.
      */
-    protected function upload_filell($field, $directory)
+    protected function upload_filehhh($field, $directory)
     {
         // Check if the request has a file for the given field
         if (request()->hasFile($field)) {
@@ -840,31 +840,22 @@ class StudentController extends Controller
         return null;
     }
 
-    protected function upload_file($field, $directory, $newFilename = null)
-    {
-        // Check if the request has a file for the given field
-        if (request()->hasFile($field)) {
-            $file = request()->file($field);
-            
-            // If a new filename is provided, use it (with the original extension)
-            if ($newFilename !== null) {
-                $extension = $file->getClientOriginalExtension();
-                $filename = $newFilename . '.' . $extension;
-                
-                // Store the file with the new name
-                return Storage::disk('public')->putFileAs(
-                    'uploads/' . $directory, 
-                    $file, 
-                    $filename
-                );
+
+        protected function upload_file($field, $directory, $oldFilePath = null)
+        {
+            // Delete old file if provided
+            if ($oldFilePath && Storage::disk('public')->exists($oldFilePath)) {
+                Storage::disk('public')->delete($oldFilePath);
+            }
+
+            // Check if new file exists in request
+            if (request()->hasFile($field)) {
+                $file = request()->file($field);
+                return Storage::disk('public')->putFile('uploads/' . $directory, $file);
             }
             
-            // Otherwise, use Laravel's default naming
-            return Storage::disk('public')->putFile('uploads/' . $directory, $file);
+            return null;
         }
-        return null;
-    }
-
     /**
      * Helper method to format student data for API responses, including relationships.
      *
