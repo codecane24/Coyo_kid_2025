@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { TagsInput } from "react-tag-input-component";
+import React from "react";
 
-interface TransportMedicalFormData {
+export type TransportMedicalFormData = {
   transportService: string;
   seriousDisease: string;
   seriousInjuries: string[];
@@ -9,198 +8,158 @@ interface TransportMedicalFormData {
   medications: string[];
   previousSchoolName: string;
   previousSchoolAddress: string;
-}
+};
 
-interface Props {
+type Props = {
   currentStep: number;
-  setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
-  isEdit?: boolean;
-  formData: any;
-}
+  setFormData: (prev: (data: any) => any) => void;
+  transportMedical: TransportMedicalFormData;
+  setTransportMedical: React.Dispatch<React.SetStateAction<TransportMedicalFormData>>;
+};
 
-const SchoolTransportMedicalForm: React.FC<Props> = ({
+const SchoolTransportMedicalForm = ({
   currentStep,
-  setCurrentStep,
   setFormData,
-  isEdit = false,
-  formData,
-}) => {
-  const [form, setForm] = useState<TransportMedicalFormData>({
-    transportService: "",
-    seriousDisease: "",
-    seriousInjuries: [],
-    allergies: [],
-    medications: [],
-    previousSchoolName: "",
-    previousSchoolAddress: "",
-  });
+  transportMedical,
+  setTransportMedical,
+}: Props) => {
+  // Sync full formData on each change to transportMedical
+  React.useEffect(() => {
+    setFormData((prev: any) => ({
+      ...prev,
+      transportMedical,
+    }));
+  }, [transportMedical]);
 
-  const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
-
-  useEffect(() => {
-    // prefill from parent data if editing
-    if (isEdit && formData?.transportMedical) {
-      setForm(formData.transportMedical);
-    }
-  }, [isEdit, formData]);
-
-  const handleInput = (field: keyof TransportMedicalFormData, value: any) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setTransportMedical((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  useEffect(() => {
-    if (currentStep === 4) {
-      const required = [
-        "transportService",
-        "seriousDisease",
-        "previousSchoolName",
-        "previousSchoolAddress",
-      ];
-      const newErrors: { [key: string]: boolean } = {};
-      required.forEach((field) => {
-        if (!form[field as keyof TransportMedicalFormData]) {
-          newErrors[field] = true;
-        }
-      });
+  const handleArrayChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    key: keyof TransportMedicalFormData
+  ) => {
+    const value = e.target.value;
+    setTransportMedical((prev) => ({
+      ...prev,
+      [key]: value.split(",").map((item) => item.trim()).filter(Boolean),
+    }));
+  };
 
-      setErrors(newErrors);
+  if (currentStep !== 4) return null;
 
-      if (Object.keys(newErrors).length === 0) {
-        console.log("✅ Step 4 Payload:", form);
-        setFormData((prev: any) => ({
-          ...prev,
-          transportMedical: form,
-        }));
-      }
-    }
-  }, [currentStep]);
-
-  return (
-    <>
-      {/* Transport Information */}
-      <div className="card">
-        <div className="card-header bg-light d-flex align-items-center">
-          <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-            <i className="ti ti-bus-stop fs-16" />
-          </span>
-          <h4 className="text-dark">Transport Information</h4>
-        </div>
-
-        <div className="mb-3 pl-3">
-          <label className="form-label">Avail Transport Service</label>
-          <div>
-            {["yes", "no"].map((val) => (
-              <div className="form-check form-check-inline" key={val}>
-                <input
-                  className="form-check-input"
-                  type="radio"
-                  name="transportService"
-                  id={`transport-${val}`}
-                  value={val}
-                  checked={form.transportService === val}
-                  onChange={(e) => handleInput("transportService", e.target.value)}
-                />
-                <label className="form-check-label" htmlFor={`transport-${val}`}>
-                  {val === "yes" ? "Yes" : "No"}
-                </label>
-              </div>
-            ))}
-          </div>
-          {errors.transportService && <small className="text-danger">This is required</small>}
-        </div>
+return (
+  <div className="card">
+    <div className="card-header bg-light">
+      <div className="d-flex align-items-center">
+        <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
+          <i className="ti ti-ambulance fs-16" />
+        </span>
+        <h4 className="text-dark">Transport & Medical Details</h4>
       </div>
+    </div>
 
-      {/* Medical History */}
-      <div className="card">
-        <div className="card-header bg-light">
-          <div className="d-flex align-items-center">
-            <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-              <i className="ti ti-medical-cross fs-16" />
-            </span>
-            <h4 className="text-dark">Medical History</h4>
+    <div className="card-body pb-1">
+      <div className="row mb-3">
+        <label className="form-label">Transport Service:</label>
+        <div className="d-flex align-items-center">
+          <div className="form-check me-3">
+            <input
+              className="form-check-input"
+              type="radio"
+              name="transportService"
+              value="yes"
+              checked={transportMedical.transportService === "yes"}
+              onChange={handleChange}
+            />
+            <label className="form-check-label">Yes</label>
           </div>
-        </div>
-        <div className="card-body pb-1">
-          <div className="mb-3">
-            <label className="form-label">Any serious disease in past?</label>
-            <div className="d-flex">
-              {["yes", "no"].map((val) => (
-                <div className="form-check me-3 mb-2" key={val}>
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="seriousDisease"
-                    id={`disease-${val}`}
-                    value={val}
-                    checked={form.seriousDisease === val}
-                    onChange={(e) => handleInput("seriousDisease", e.target.value)}
-                  />
-                  <label className="form-check-label" htmlFor={`disease-${val}`}>
-                    {val === "yes" ? "Yes" : "No"}
-                  </label>
-                </div>
-              ))}
-            </div>
-            {errors.seriousDisease && <small className="text-danger">This is required</small>}
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Any Serious Injury In Past?</label>
-            <TagsInput value={form.seriousInjuries} onChange={(val) => handleInput("seriousInjuries", val)} />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Allergies</label>
-            <TagsInput value={form.allergies} onChange={(val) => handleInput("allergies", val)} />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Medications</label>
-            <TagsInput value={form.medications} onChange={(val) => handleInput("medications", val)} />
+          <div className="form-check">
+            <input
+              className="form-check-input"
+              type="radio"
+              name="transportService"
+              value="no"
+              checked={transportMedical.transportService === "no"}
+              onChange={handleChange}
+            />
+            <label className="form-check-label">No</label>
           </div>
         </div>
       </div>
 
-      {/* Previous School Details */}
-      <div className="card">
-        <div className="card-header bg-light">
-          <div className="d-flex align-items-center">
-            <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-              <i className="ti ti-building fs-16" />
-            </span>
-            <h4 className="text-dark">Previous School Details</h4>
-          </div>
-        </div>
-        <div className="card-body pb-1">
-          <div className="row">
-            <div className="col-md-6">
-              <div className="mb-3">
-                <label className="form-label">School Name</label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.previousSchoolName ? "border border-danger" : ""}`}
-                  value={form.previousSchoolName}
-                  onChange={(e) => handleInput("previousSchoolName", e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="mb-3">
-                <label className="form-label">Address</label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.previousSchoolAddress ? "border border-danger" : ""}`}
-                  value={form.previousSchoolAddress}
-                  onChange={(e) => handleInput("previousSchoolAddress", e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="row mb-3">
+        <label className="form-label">Serious Disease:</label>
+        <input
+          type="text"
+          name="seriousDisease"
+          className="form-control"
+          value={transportMedical.seriousDisease}
+          onChange={handleChange}
+        />
       </div>
-    </>
-  );
+
+      <div className="row mb-3">
+        <label className="form-label">Serious Injuries (comma separated):</label>
+        <input
+          type="text"
+          className="form-control"
+          value={transportMedical.seriousInjuries.join(", ")}
+          onChange={(e) => handleArrayChange(e, "seriousInjuries")}
+        />
+      </div>
+
+      <div className="row mb-3">
+        <label className="form-label">Allergies (comma separated):</label>
+        <input
+          type="text"
+          className="form-control"
+          value={transportMedical.allergies.join(", ")}
+          onChange={(e) => handleArrayChange(e, "allergies")}
+        />
+      </div>
+
+      <div className="row mb-3">
+        <label className="form-label">Medications (comma separated):</label>
+        <input
+          type="text"
+          className="form-control"
+          value={transportMedical.medications.join(", ")}
+          onChange={(e) => handleArrayChange(e, "medications")}
+        />
+      </div>
+
+      <div className="row mb-3">
+        <label className="form-label">Previous School Name:</label>
+        <input
+          type="text"
+          name="previousSchoolName"
+          className="form-control"
+          value={transportMedical.previousSchoolName}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="row mb-3">
+        <label className="form-label">Previous School Address:</label>
+        <textarea
+          name="previousSchoolAddress"
+          className="form-control"
+          rows={3}
+          value={transportMedical.previousSchoolAddress}
+          onChange={handleChange}
+        />
+      </div>
+    </div>
+  </div>
+);
+
 };
 
 export default SchoolTransportMedicalForm;
