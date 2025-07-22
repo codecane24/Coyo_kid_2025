@@ -658,9 +658,9 @@ class StudentController extends Controller
             case 'step_5': // Documents
                 $stepName5 = "Document Records";
                 $documentRules = [
-                    'medical_condition_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'], // Added image mimes
+                    'birth_certificate' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2096'], // Added image mimes
+                    'aadhar_card' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'], // Added image mimes
                     'transfer_certificate' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'], // Added image mimes
-                    // You might want to add other common documents like 'birth_certificate', 'marksheet', etc.
                 ];
 
                 $validator = Validator::make($request->all(), $documentRules);
@@ -674,23 +674,52 @@ class StudentController extends Controller
                 }
 
                 try {
+
+                $student = Student::findOrFail($request->student_id);
                     // Handle document uploads
-                    $medicalDocument = $request->hasFile('medical_condition_document')
-                        ? $this->upload_file('medical_condition_document', 'student_documents')
-                        : null;
-                    $transferCertificate = $request->hasFile('transfer_certificate')
-                        ? $this->upload_file('transfer_certificate', 'student_documents')
-                        : null;
+                    if($request->hasFile('birth_certificate')){
+                        $birthCertificate = $this->upload_file('birth_certificate', $student->docfolder_name)  ?? null;
+                    
+                        StudentDocument::updateOrCreate(
+                            [
+                                'student_id' =>$student->id,
+                                'doc_type' => 'birth_certificate'
+                            ],
+                            [
+                                'doc_file' =>  $birthCertificate,
+                            ]
+                        );
+                    }  
+                    
+                    if($request->hasFile('aadhar_card')){
+                        $aadharcard = $this->upload_file('aadhar_card', $student->docfolder_name)  ?? null;
+                    
+                        StudentDocument::updateOrCreate(
+                            [
+                                'student_id' =>$student->id,
+                                'doc_type' => 'aadhar_card'
+                            ],
+                            [
+                                'doc_file' =>  $aadharcard,
+                            ]
+                        );
+                    }
 
-                    // Update or create document record
-                    StudentDocument::updateOrCreate(
-                        ['student_id' => $student->id],
-                        [
-                            'medical_condition_document' => $medicalDocument,
-                            'transfer_certificate' => $transferCertificate,
-                        ]
-                    );
+                    if($request->hasFile('transfer_certificate')){
+                        $transfercertificate = $this->upload_file('transfer_certificate', $student->docfolder_name) ?? null;
+                    
+                        StudentDocument::updateOrCreate(
+                            [
+                                'student_id' =>$student->id,
+                                'doc_type' => 'tc'
+                            ],
+                            [
+                                'doc_file' =>  $transfercertificate,
+                            ]
+                        );
+                    }
 
+                   
                     return response()->json([
                         'status' => 'success',
                         'message' => "Step 5: $stepName5 completed successfully",
