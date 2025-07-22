@@ -34,11 +34,12 @@ import MultiStepProgressBar from "../../../../core/common/MultiStepProgressBar";
 import PersonalInfoForm from "./PersonalInfoForm";
 import ParentsGuardianForm from "./ParentsGuardianForm";
 import AddressForm from "./AddressForm";
-import SchoolTransportMedicalForm from "./SchoolTransportMedicalForm";
+import SchoolTransportMedicalForm, { TransportMedicalFormData } from "./SchoolTransportMedicalForm";
 import DocumentsForm from "./DocumentsForm";
 import { FinancialInfoType } from "./FinancialDetailsForm";
 import { createStudent, updateStudent } from "../../../../services/StudentData";
 import { ParentInfo } from "./ParentsGuardianForm";
+import qs from "qs"; 
 type ClassItem = {
   id: string;
   name: string; 
@@ -203,6 +204,16 @@ const [parentImages, setParentImages] = useState<{
   guardianProfiles: [],
   guardianAadhars: [],
 });
+const [transportMedical, setTransportMedical] = useState<TransportMedicalFormData>({
+  transportService: "",
+  seriousDisease: "",
+  seriousInjuries: [],
+  allergies: [],
+  medications: [],
+  previousSchoolName: "",
+  previousSchoolAddress: "",
+});
+
 
 
 
@@ -210,7 +221,7 @@ const [parentImages, setParentImages] = useState<{
 
 const [addressInfo, setAddressInfo] = useState({
   permanent: {
-    houseNo: "",
+    address: "",
     area: "",
     landmark: "",
     city: "",
@@ -218,7 +229,7 @@ const [addressInfo, setAddressInfo] = useState({
     pincode: "",
   },
   current: {
-    houseNo: "",
+    address: "",
     area: "",
     landmark: "",
     city: "",
@@ -574,85 +585,132 @@ else if (currentStep === 2) {
 }
 
 
+if (currentStep === 3) {
 
 
+  const payload = {
+    step: "step_3",
+    studentId: studentId,
+    permanentAddress: addressInfo.permanent,
+    currentAddress: addressInfo.current,
+  };
 
+  const formData = new FormData();
 
+  const toSnakeCase = (str: string) =>
+    str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 
-  else if (currentStep === 3) {
-    const payload = {
-      permanentAddress: addressInfo.permanent,
-      currentAddress: addressInfo.current,
-    };
+  const appendFormData = (data: any, parentKey = "") => {
+    for (const [key, value] of Object.entries(data)) {
+      const snakeKey = toSnakeCase(key);
+      const formKey = parentKey ? `${parentKey}[${snakeKey}]` : snakeKey;
 
-    const finalPayload = {
-      step: "step_3",
-      student_id: studentId,
-      ...toSnakeCase(payload),
-    };
-
-    try {
-      await createStudent(finalPayload);
-    } catch (error) {
-      console.error("❌ Step 3 Submit Error:", error);
+      if (typeof value === "object" && value !== null) {
+        appendFormData(value, formKey); // 🔁 Recursively snake_case nested keys
+      } else {
+        formData.append(formKey, String(value ?? ""));
+      }
     }
+  };
 
-    console.log("✅ Step 3 Payload: Address Info", payload);
+  appendFormData(payload);
+
+  // Add _method only if needed (Laravel-style override)
+  formData.append("_method", "PUT");
+
+  try {
+    await updateStudent(studentId, formData); // ✅ Send as FormData
+    console.log("✅ Step 3 Payload sent as snake_case FormData");
     setFormData((prev) => ({ ...prev, addressInfo: payload }));
     setCurrentStep(4);
+  } catch (error) {
+    console.error("❌ Step 3 Submit Error:", error);
   }
+}
 
-  else if (currentStep === 4) {
-    // If needed, add backend call here too.
+
+
+
+else if (currentStep === 4) {
+  const payload = {
+    ...transportMedical,
+    step: "step_4",
+    studentId,
+  };
+
+  const toSnakeCase = (str: string) =>
+    str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+
+  const formData = new FormData();
+
+ for (const [key, value] of Object.entries(payload)) {
+  const snakeKey = toSnakeCase(key);
+
+  if (
+    Array.isArray(value) &&
+    ["seriousInjuries", "allergies", "medications"].includes(key)
+  ) {
+    value.forEach((v) => formData.append(`${snakeKey}[]`, v));
+  } else {
+    if (value instanceof Blob) {
+      formData.append(snakeKey, value);
+    } else if (typeof value === "object" && value !== null) {
+      formData.append(snakeKey, JSON.stringify(value));
+    } else {
+      formData.append(snakeKey, value ?? "");
+    }
+  }
+}
+
+
+  formData.append("_method", "PUT");
+
+  try {
+    await updateStudent(studentId, formData);
+    console.log("✅ Step 4 submitted");
     setCurrentStep(5);
+  } catch (error) {
+    console.error("❌ Error in Step 4 submission", error);
+  }
+}
+
+else if (currentStep === 5) {
+  const payload = {
+    ...documents, // 👈 documents should come from state shared via props
+    step: "step_5",
+    studentId,
+  };
+
+  const toSnakeCase = (str: string) =>
+    str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+
+  const formData = new FormData();
+
+  for (const [key, value] of Object.entries(payload)) {
+    const snakeKey = toSnakeCase(key);
+
+    if (value instanceof Blob) {
+      // ✅ File (PDF) upload
+      formData.append(snakeKey, value);
+    } else if (typeof value === "object" && value !== null) {
+      formData.append(snakeKey, JSON.stringify(value));
+    } else {
+      formData.append(snakeKey, value ?? "");
+    }
   }
 
-  else if (currentStep === 5) {
-    const payload = { ...documents };
+  formData.append("_method", "PUT");
 
-    const finalPayload = {
-      step: "step_5",
-      student_id: studentId,
-      ...toSnakeCase(payload),
-    };
-
-    try {
-      await createStudent(finalPayload);
-    } catch (error) {
-      console.error("❌ Step 5 Submit Error:", error);
-    }
-
-    console.log("✅ Step 5 Payload: Documents", payload);
-    setFormData((prev) => ({ ...prev, documents: payload }));
+  try {
+    await updateStudent(studentId, formData);
+    console.log("✅ Step 5 submitted");
     setCurrentStep(6);
+  } catch (error) {
+    console.error("❌ Error in Step 5 submission", error);
   }
+}
 
-  else if (currentStep === 6) {
-    const payload = financialData;
-
-    const finalPayload = {
-      step: "step_6",
-      student_id: studentId,
-      ...toSnakeCase({ financial_entries: payload }), // backend expects key wrapping
-    };
-
-    try {
-      await createStudent(finalPayload);
-    } catch (error) {
-      console.error("❌ Step 6 Submit Error:", error);
-    }
-
-    console.log("✅ Step 6 Payload: Financial Info", payload);
-    setFormData((prev) => ({
-      ...prev,
-      financialInfo: payload,
-    }));
-  }
-};
-
-
-
-
+}
 
   return (
     <>
@@ -722,25 +780,26 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
 )}
 
            
-      {currentStep === 4 && (
+{currentStep === 4 && (
   <SchoolTransportMedicalForm
     currentStep={currentStep}
-    setCurrentStep={setCurrentStep}
     setFormData={setFormData}
-    isEdit={isEdit}
-    formData={formData}
+    transportMedical={transportMedical}
+        setTransportMedical={setTransportMedical} // ✅ Add this line
   />
 )}
+
          
         {currentStep === 5 && (
-  <DocumentsForm
-    currentStep={currentStep}
-    setCurrentStep={setCurrentStep}
-    setFormData={setFormData}
-    documents={documents}
-    setDocuments={setDocuments}
-    isEdit={isEdit}
-  />
+ <DocumentsForm
+  currentStep={currentStep}
+  setCurrentStep={setCurrentStep}
+  setFormData={setFormData} // optional if unused
+  documents={documents}      // ✅ state in parent
+  setDocuments={setDocuments}
+  isEdit={isEdit}
+/>
+
 )}
 
 {currentStep === 6 && (

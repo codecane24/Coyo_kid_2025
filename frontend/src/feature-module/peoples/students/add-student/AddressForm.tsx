@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-type AddressFields = "houseNo" | "area" | "landmark" | "city" | "state" | "pincode";
+type AddressFields = "address" | "area" | "landmark" | "city" | "state" | "pincode";
 type AddressType = {
   [key in AddressFields]: string;
 };
@@ -32,13 +32,13 @@ const AddressForm: React.FC<Props> = ({
 
   const validateFields = () => {
     const requiredFields = [
-      "permanent.houseNo",
+      "permanent.address",
       "permanent.area",
       "permanent.landmark",
       "permanent.city",
       "permanent.state",
       "permanent.pincode",
-      "current.houseNo",
+      "current.address",
       "current.area",
       "current.landmark",
       "current.city",
@@ -105,7 +105,7 @@ const AddressForm: React.FC<Props> = ({
   );
 
   const addressFields: { field: AddressFields; label: string }[] = [
-    { field: "houseNo", label: "House No. & Colony Name" },
+    { field: "address", label: "House No. & Colony Name" },
     { field: "area", label: "Area" },
     { field: "landmark", label: "Landmark" },
     { field: "city", label: "City" },
@@ -115,6 +115,22 @@ const AddressForm: React.FC<Props> = ({
 
   return (
     <>
+      {/* Current Address */}
+      <div className="card">
+        <div className="card-header bg-light">
+          <div className="d-flex align-items-center">
+            <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
+              <i className="ti ti-map fs-16" />
+            </span>
+            <h4 className="text-dark">Current Address</h4>
+          </div>
+        </div>
+        <div className="card-body pb-1">
+          <div className="row">
+            {addressFields.map((f) => renderInput("current", f.label, f.field))}
+          </div>
+        </div>
+      </div>
       {/* Permanent Address */}
       <div className="card">
         <div className="card-header bg-light">
@@ -132,22 +148,7 @@ const AddressForm: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Current Address */}
-      <div className="card">
-        <div className="card-header bg-light">
-          <div className="d-flex align-items-center">
-            <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-              <i className="ti ti-map fs-16" />
-            </span>
-            <h4 className="text-dark">Current Address</h4>
-          </div>
-        </div>
-        <div className="card-body pb-1">
-          <div className="row">
-            {addressFields.map((f) => renderInput("current", f.label, f.field))}
-          </div>
-        </div>
-      </div>
+    
     </>
   );
 };
