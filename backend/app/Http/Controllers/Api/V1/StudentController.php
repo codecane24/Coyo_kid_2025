@@ -15,6 +15,7 @@ use App\Models\StudentPreviousEducation; // Ensure this model exists and is used
 use Illuminate\Support\Facades\Log; // Import Log facade for error logging
 use Illuminate\Support\Facades\Storage; // Import Storage facade for file uploads
 use Auth;
+use Illuminate\Support\Str;
 class StudentController extends Controller
 {
     /**
@@ -259,7 +260,7 @@ class StudentController extends Controller
 
                 // Handle profile image upload
                 if($request->hasFile('profile_image')){
-                    $profileImage = $this->upload_file('profile_image', $student->docfolder_name);
+                    $profileImage = $this->upload_file('profile_image', $student->docfolder_name,$student->profile_image);
                     $student->profile_image = $profileImage;
                 }   
 
@@ -355,13 +356,14 @@ class StudentController extends Controller
                     ];
 
                     if ($request->hasFile('father_aadhar_image')) {
-                        $fatherDetails['aadhar_file'] = $request->file('father_aadhar_image')->store('relation_profiles');
+                        $fatherDetails['aadhar_file'] = $this->upload_file('father_aadhar_image', $student->docfolder_name);
+                        //$request->file('father_aadhar_image')->store('relation_profiles');
                     }
                     if ($request->hasFile('father_image')) {
-                        $fatherDetails['image'] = $request->file('father_image')->store('relation_profiles');
+                        $fatherDetails['image'] = $this->upload_file('father_image', $student->docfolder_name);
                     }
                     if ($request->hasFile('father_itr_file')) {
-                        $fatherDetails['itr_file'] = $request->file('father_itr_file')->store('relation_profiles');
+                        $fatherDetails['itr_file'] = $this->upload_file('father_itr_file', $student->docfolder_name);
                     }
 
                     $father = StudentParent::firstOrNew([
@@ -392,13 +394,15 @@ class StudentController extends Controller
                     ];
 
                     if ($request->hasFile('mother_aadhar_image')) {
-                        $motherDetails['aadhar_file'] = $request->file('mother_aadhar_image')->store('relation_profiles');
+                        $motherDetails['aadhar_file'] = $this->upload_file('mother_aadhar_image', $student->docfolder_name);
+                        //$request->file('mother_aadhar_image')->store('relation_profiles');
                     }
                     if ($request->hasFile('mother_image')) {
-                        $motherDetails['image'] = $request->file('mother_image')->store('relation_profiles');
+                        $motherDetails['image'] = $this->upload_file('mother_image', $student->docfolder_name);
                     }
+
                     if ($request->hasFile('mother_itr_file')) {
-                        $motherDetails['itr_file'] = $request->file('mother_itr_file')->store('relation_profiles');
+                        $motherDetails['itr_file'] = $this->upload_file('mother_itr_file', $student->docfolder_name);
                     }
 
                     $mother = StudentParent::firstOrNew([
@@ -430,13 +434,16 @@ class StudentController extends Controller
                         ];
 
                         if ($request->hasFile("guardians.{$index}.profile_image")) {
-                            $guardianDetails['image'] = $request->file("guardians.{$index}.profile_image")->store('relation_profiles');
+                            $guardianDetails['image'] = $this->upload_file("guardians.{$index}.profile_image", $student->docfolder_name);
+                            //$request->file("guardians.{$index}.profile_image")->store('relation_profiles');
                         }
                         if ($request->hasFile("guardians.{$index}.aadhar_image")) {
-                            $guardianDetails['aadhar_file'] = $request->file("guardians.{$index}.aadhar_image")->store('relation_profiles');
+                            $guardianDetails['aadhar_file'] = $this->upload_file("guardians.{$index}.aadhar_image", $student->docfolder_name);
+                            //$request->file("guardians.{$index}.aadhar_image")->store('relation_profiles');
                         }
                         if ($request->hasFile("guardians.{$index}.itr_file")) {
-                            $guardianDetails['itr_file'] = $request->file("guardians.{$index}.itr_file")->store('relation_profiles');
+                            $guardianDetails['itr_file'] = $this->upload_file("guardians.{$index}.itr_file", $student->docfolder_name);
+                            //$request->file("guardians.{$index}.itr_file")->store('relation_profiles');
                         }
 
                         $guardian = StudentParent::firstOrNew([
@@ -631,10 +638,8 @@ class StudentController extends Controller
                     StudentPreviousEducation::updateOrCreate(
                         ['student_id' =>$student->id],
                         [
-                            'school_name' =>  $request->previous_school_name
- ?? '',
-                            'address' =>  $request->previous_school_address
- ?? '',
+                            'school_name' =>  $request->previous_school_name ?? '',
+                            'address' =>  $request->previous_school_address ?? '',
                         ]
                     );
 
@@ -824,7 +829,7 @@ class StudentController extends Controller
      * @param string $directory The storage directory (within 'public' disk).
      * @return string|null The stored file path relative to the storage disk, or null if no file.
      */
-    protected function upload_file($field, $directory)
+    protected function upload_filehhh($field, $directory)
     {
         // Check if the request has a file for the given field
         if (request()->hasFile($field)) {
@@ -835,6 +840,22 @@ class StudentController extends Controller
         return null;
     }
 
+
+        protected function upload_file($field, $directory, $oldFilePath = null)
+        {
+            // Delete old file if provided
+            if ($oldFilePath && Storage::disk('public')->exists($oldFilePath)) {
+                Storage::disk('public')->delete($oldFilePath);
+            }
+
+            // Check if new file exists in request
+            if (request()->hasFile($field)) {
+                $file = request()->file($field);
+                return Storage::disk('public')->putFile('uploads/' . $directory, $file);
+            }
+            
+            return null;
+        }
     /**
      * Helper method to format student data for API responses, including relationships.
      *
