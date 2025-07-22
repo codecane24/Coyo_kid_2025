@@ -13,6 +13,9 @@ class StudentMedicalHistory extends Model
 
     protected $fillable = [
         'student_id',
+        'serious_indury',
+        'serious_indury_detail',
+        'medical_condition',
         'disease_history',
         'disease_history_detail',
         'allergies',

@@ -298,8 +298,8 @@ class StudentController extends Controller
                     'mother_itr_no' => ['nullable', 'string', 'max:50'],
                     'mother_itr_file' => ['nullable', 'file', 'max:4096'],
                     'sibling_same_school' => ['required', 'string', 'in:yes,no'],
-                    'sibling_student_ids' => ['nullable', 'array'],
-                    'sibling_student_ids.*' => ['string', 'max:50'],
+                 //   'sibling_student_ids' => ['nullable', 'array'],
+                 //   'sibling_student_ids.*' => ['string', 'max:50'],
                     'guardians' => ['nullable', 'array'],
                     'guardians.*.name' => ['required', 'string', 'max:100'],
                     'guardians.*.phone' => ['nullable', 'string', 'max:15'],
@@ -590,11 +590,12 @@ class StudentController extends Controller
                         'message' => "Step 3: $stepName3 failed. " . $e->getMessage(),
                         'data' => null,
                     ], 500);
-                }    
+                } 
+
                 case 'step_4': // Medical History
                 $stepName4 = "Medical History Record";
                 $medicalRules = [
-                    'medical_condition' => ['required', Rule::in(['Good', 'Bad', 'Others'])],
+                   // 'medical_condition' => ['required', Rule::in(['Good', 'Bad', 'Others'])],
                     'allergies' => ['nullable', 'array'],
                     'medications' => ['nullable', 'array'],
                 ];
@@ -610,13 +611,30 @@ class StudentController extends Controller
                 }
 
                 try {
+                    $student = Student::findOrFail($request->student_id);
+                   
                     // Update or create medical history record
                     StudentMedicalHistory::updateOrCreate(
                         ['student_id' => $student->id],
                         [
-                            'medical_condition' => $request->medical_condition,
+                            'serious_disease' => $request->serious_disease ?? 'NA',
+                            'medical_condition' => $request->medical_condition ?? 'Good',
+                            'serious_injuries' => $request->serious_injuries ? json_encode($request->serious_injuries) : null,
                             'allergies' => $request->allergies ? json_encode($request->allergies) : null,
                             'medications' => $request->medications ? json_encode($request->medications) : null,
+                        ]
+                    );
+
+                    $student->transport_allow = ($request->transport_service == 'yes') ? 1:0;
+                    $student->save();
+                    
+                    StudentPreviousEducation::updateOrCreate(
+                        ['student_id' =>$student->id],
+                        [
+                            'school_name' =>  $request->previous_school_name
+ ?? '',
+                            'address' =>  $request->previous_school_address
+ ?? '',
                         ]
                     );
 
