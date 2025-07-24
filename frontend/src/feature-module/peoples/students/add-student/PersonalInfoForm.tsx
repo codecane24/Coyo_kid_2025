@@ -21,6 +21,7 @@ import {
   Class,
 } from "../../../../core/common/selectoption/selectoption";
 import { PersonalInfoType } from ".";
+import FileUploader from "../../../../utils/FileUploader";
 
 interface Props {
   personalInfo: any;
@@ -101,66 +102,19 @@ const PersonalInfoForm = forwardRef<PersonalInfoFormRef, Props>(
         <div className="card-body pb-1">
           <div className="row">
             <div className="col-md-12">
-              <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
-                <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
-                 {files.length > 0 ? (
-    <img
-      src={URL.createObjectURL(files[0])}
-      alt="preview"
-      style={{
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-        borderRadius: "8px",
-      }}
-    />
-  ) : (
-    <i className="ti ti-photo-plus fs-16" />
-  )}
-                </div>
-<div className="profile-upload">
-  <div className="profile-uploader d-flex align-items-center">
-    <div className="drag-upload-btn mb-3">
-      Upload
-<input
-  type="file"
-  accept="image/*"
-  onChange={(e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPersonalInfo((prev: PersonalInfoType) => ({
-        ...prev,
-        profileImage: file,
-      }));
-      setFiles([file]); // ✅ This enables image preview
-    }
+        <FileUploader
+         file={personalInfo.profileImage} 
+  fileTypes="image/*" // or "image/*,application/pdf" if you want both
+  previewType="image" // or "both" if using image + pdf
+  onFileChange={(file) => {
+    setPersonalInfo((prev: PersonalInfoType) => ({
+      ...prev,
+      profileImage: file,
+    }));
+    setFiles(file ? [file] : []);
   }}
 />
 
-
-    </div>
-<Link
-  to="#"
-  className="btn btn-primary mb-3"
-  onClick={() => {
-    setPersonalInfo({ ...personalInfo, profileImage: null });
-    setFiles([]); // ✅ Clear preview on remove
-  }}
->
-  Remove
-</Link>
-
-  </div>
-
-  <p className="fs-12">
-    Upload image size 4MB, Format JPG, PNG, SVG
-  </p>
-
-
-</div>
-
-
-              </div>
             </div>
           </div>
 

@@ -740,7 +740,12 @@ else if (currentStep === 5) {
               </nav>
             </div>
           </div>
-          <MultiStepProgressBar currentStep={currentStep} steps={steps} />
+        <MultiStepProgressBar
+  currentStep={currentStep}
+  steps={steps}
+  onStepClick={(step) => setCurrentStep(step)} // ✅ optional
+/>
+
 
           {/* /Page Header */}
           <div className="row">
