@@ -680,7 +680,7 @@ class StudentController extends Controller
 
                 try {
 
-                $student = Student::findOrFail($request->student_id);
+                    $student = Student::findOrFail($request->student_id);
                     // Handle document uploads
                     if($request->hasFile('birth_certificate')){
                         $birthCertificate = $this->upload_file('birth_certificate', $student->docfolder_name)  ?? null;
@@ -742,75 +742,10 @@ class StudentController extends Controller
                     ], 500);
                 }
 
-            case 'step_6': // Payment Details / Other Information
-                $stepName6 = "Payment Details and Other Information";
-                $otherRules = [
-                    'bank.name' => ['nullable', 'string', 'max:100'],
-                    'bank.branch' => ['nullable', 'string', 'max:100'],
-                    'bank.ifsc' => ['nullable', 'string', 'max:50'],
-                    'other_information' => ['nullable', 'string', 'max:1000'],
-                ];
-
-                $validator = Validator::make($request->all(), $otherRules);
-                if ($validator->fails()) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Data Validation failed',
-                        'errors' => $validator->errors(),
-                        'data' => null,
-                    ], 422);
-                }
-
-                try {
-                    // Update student's bank and other information
-                    $student->update([
-                        'bank_name' => $request->input('bank.name'),
-                        'bank_branch' => $request->input('bank.branch'),
-                        'bank_ifsc' => $request->input('bank.ifsc'),
-                        'other_information' => $request->other_information,
-                    ]);
-
-                    return response()->json([
-                        'status' => 'success',
-                        'message' => "Step 6: $stepName6 completed successfully",
-                        'data' => [
-                            'student_id' => $student->id,
-                        ],
-                    ], 200);
-
-                } catch (\Exception $e) {
-                    Log::error("Student update (Step 6) failed: " . $e->getMessage());
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => "Step 6: $stepName6 failed. " . $e->getMessage(),
-                        'data' => null,
-                    ], 500);
-                }
-
-            case 'step_7': // Finalize Process
-                $stepName7 = "Finalize Process";
-                try {
-                    // Update student status to active (1) or complete (if 2 is incomplete)
-                    // Assuming 1 means active/complete, adjust as per your status definitions
-                    $student->update(['status' => 1]);
-
-                    return response()->json([
-                        'status' => 'success',
-                        'message' => __('api.succ_student_created'), // Assuming this message implies final success
-                        'data' => [
-                            'student_id' => $student->id,
-                            'admission_number' => $student->admission_no,
-                            'final_status' => $student->status,
-                        ],
-                    ], 200);
-                } catch (\Exception $e) {
-                    Log::error("Student update (Step 7) failed: " . $e->getMessage());
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => "Step 7: $stepName7 failed. " . $e->getMessage(),
-                        'data' => null,
-                    ], 500);
-                }
+          
+            case 'step_6': // Finalize Process
+                $stepName6 = "Finalize Process";
+                
 
             default:
                 // Handle invalid step or missing step parameter
