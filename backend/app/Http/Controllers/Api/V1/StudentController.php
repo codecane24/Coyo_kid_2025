@@ -71,7 +71,7 @@ class StudentController extends Controller
             'status' => 'success',
             'message' => 'Student data retrieved successfully',
             'data' => [
-                'basic' => [
+                'step_1' => [
                     'academic_year' => $student->academic_year,
                     'admission_no' => $student->admission_no,
                     'roll_number' => $student->role_no,
@@ -92,7 +92,14 @@ class StudentController extends Controller
                     'languages_known' => json_decode($student->languages, true),
                     'profile_image' => $student->profile_image,
                 ],
-                'address' => [
+                'step_2' => [
+                    'father' => $student->father,
+                    'mother' => $student->mother,
+                    'guardians' => $student->guardians,
+                    'sibling_same_school' => count($student->siblings) > 0 ? 'yes' : 'no',
+                    'sibling_student_ids' => $student->siblings->pluck('sibling_student_id'),
+                ],
+                'step_3' => [
                     'current_address' => [
                         'address' => $student->address,
                         'area' => $student->area,
@@ -107,20 +114,30 @@ class StudentController extends Controller
                         'city' => $student->city_name_2,
                         'state' => $student->state_name_2,
                         'pincode' => $student->pincode_2,
-                    ],
+                    ]
                 ],
-                'parents' => [
-                    'father' => $student->father,
-                    'mother' => $student->mother,
-                    'guardians' => $student->guardians,
+                'step_4' => [
+                    'medical_condition' => $student->medicalHistory->medical_condition ?? null,
+                    'serious_disease' => $student->medicalHistory->serious_disease ?? null,
+                    'serious_injuries' => json_decode($student->medicalHistory->serious_injuries ?? '[]'),
+                    'allergies' => json_decode($student->medicalHistory->allergies ?? '[]'),
+                    'medications' => json_decode($student->medicalHistory->medications ?? '[]'),
+                    'transport_service' => $student->transport_allow ? 'yes' : 'no',
+                    'previous_school_name' => $student->previousEducation->school_name ?? null,
+                    'previous_school_address' => $student->previousEducation->address ?? null,
                 ],
-                'siblings' => $student->siblings,
-                'documents' => $student->documents->mapWithKeys(fn($doc) => [$doc->doc_type => $doc->doc_file]),
-                'medical_history' => $student->medicalHistory,
-                'previous_education' => $student->previousEducation,
+                'step_5' => [
+                    'documents' => $student->documents->mapWithKeys(function ($doc) {
+                        return [$doc->doc_type => $doc->doc_file];
+                    }),
+                ],
+                'step_6' => [
+                    'final_status' => $student->status, // e.g., 1 for completed
+                ]
             ],
         ], 200);
     }
+
 
 
     /**
