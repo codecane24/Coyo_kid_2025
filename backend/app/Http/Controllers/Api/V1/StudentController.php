@@ -49,30 +49,79 @@ class StudentController extends Controller
      */
     public function show($id)
     {
-        // Eager load all related models for a complete student profile.
         $student = Student::with([
-            'parent',
+            'father',
+            'mother',
+            'guardians',
             'siblings',
             'documents',
             'medicalHistory',
-            'previousSchool' // Ensure this relationship is defined in your Student model
+            'previousEducation',
         ])->find($id);
 
         if (!$student) {
             return response()->json([
                 'status' => 'error',
-                'message' => __('api.err_student_not_found'),
+                'message' => 'Student not found',
                 'data' => null,
-            ], 404); // 404 Not Found
+            ], 404);
         }
 
-        $studentData = $this->get_student_data($student);
         return response()->json([
             'status' => 'success',
-            'message' => __('api.succ_student_details'),
-            'data' => $studentData,
-        ], 200); // 200 OK
+            'message' => 'Student data retrieved successfully',
+            'data' => [
+                'basic' => [
+                    'academic_year' => $student->academic_year,
+                    'admission_no' => $student->admission_no,
+                    'roll_number' => $student->role_no,
+                    'admission_date' => $student->doj,
+                    'first_name' => $student->first_name,
+                    'last_name' => $student->last_name,
+                    'class_id' => $student->class_id,
+                    'gender' => $student->gender,
+                    'dob' => $student->dob,
+                    'blood_group' => $student->blood_group,
+                    'house' => $student->house,
+                    'religion' => $student->religion,
+                    'category' => $student->category,
+                    'caste' => $student->caste,
+                    'primary_contact' => $student->phone,
+                    'email' => $student->email,
+                    'mother_tongue' => $student->mother_tongue,
+                    'languages_known' => json_decode($student->languages, true),
+                    'profile_image' => $student->profile_image,
+                ],
+                'address' => [
+                    'current_address' => [
+                        'address' => $student->address,
+                        'area' => $student->area,
+                        'landmark' => $student->landmark,
+                        'city' => $student->city_name,
+                        'state' => $student->state_name,
+                        'pincode' => $student->pincode,
+                    ],
+                    'permanent_address' => [
+                        'address' => $student->address_2,
+                        'area' => $student->area_2,
+                        'city' => $student->city_name_2,
+                        'state' => $student->state_name_2,
+                        'pincode' => $student->pincode_2,
+                    ],
+                ],
+                'parents' => [
+                    'father' => $student->father,
+                    'mother' => $student->mother,
+                    'guardians' => $student->guardians,
+                ],
+                'siblings' => $student->siblings,
+                'documents' => $student->documents->mapWithKeys(fn($doc) => [$doc->doc_type => $doc->doc_file]),
+                'medical_history' => $student->medicalHistory,
+                'previous_education' => $student->previousEducation,
+            ],
+        ], 200);
     }
+
 
     /**
      * Store a newly created student (Step 1).
@@ -800,7 +849,7 @@ class StudentController extends Controller
     public function getStudentData($id)
     {
         // Find the student by ID, including related models
-        return $student = Student::with(['parent', 'siblings', 'documents', 'medicalHistory'])
+        $student = Student::with(['father','mother','parents','guardians', 'siblings', 'documents', 'medicalHistory','previousEducation'])
             ->findOrFail($id);
 
         // Return the student instance directly if needed
@@ -810,7 +859,7 @@ class StudentController extends Controller
         // and comment out the return $student line below.
   
         
-        return $student;
+      
         // Decode languages if it's stored as a JSON string in the database
         $languages = $student->languages ? json_decode($student->languages, true) : [];
 
