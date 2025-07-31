@@ -41,7 +41,6 @@ class FeesGroupControler extends Controller
             'id', 
             'code', 
             'name', 
-            'classmaster_id', 
             'section', 
             'room_no', 
             'status',
@@ -62,7 +61,6 @@ class FeesGroupControler extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:50',
-            'classmaster_id' => 'required|integer|exists:classes_master,id',
             'section' => 'nullable|string|max:50',
             'room_no' => 'nullable|string|max:50',
             'status' => 'required|boolean',
