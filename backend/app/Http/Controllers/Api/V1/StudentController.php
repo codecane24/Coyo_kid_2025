@@ -275,6 +275,12 @@ class StudentController extends Controller
         switch ($step) {
             case 'step_1': // update student information
                 $stepName1 = "Student Information update";
+
+                if (is_string($request->languages)) {
+                    $request->merge([
+                        'languages' => json_decode($request->languages, true)
+                    ]);
+                }
                 $studentRules = [
                     'academic_year' => ['nullable', 'string', 'max:50'],
                     'admission_no' => ['required', 'string', 'max:50', 'unique:students,admission_no,' . $id],
@@ -296,9 +302,11 @@ class StudentController extends Controller
                     'caste' => ['nullable', 'string', 'max:100'],
                     'mother_tongue' => ['nullable', Rule::in(['English', 'Spanish', 'Hindi', 'Gujarati', 'Marathi'])], // Added more common languages
                     'languages' => ['nullable', 'array'],
+                    'languages.*' => ['string'],
                     'profile_image' => ['nullable', 'file', 'image', 'max:4096'],
                 ];
 
+                
                 $validator = Validator::make($request->all(), $studentRules);
                 if ($validator->fails()) {
                     return response()->json([
