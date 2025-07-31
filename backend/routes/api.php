@@ -57,7 +57,7 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
 
     // Students API
     
-    Route::get('student/{id}/data', 'BranchApiController@getStudentData')
+    Route::get('student/{id}/data', 'StudentController@getStudentData')
         ->where('id', '[0-9]+')
         ->name('students.data');
     Route::apiResource('student', 'StudentController');
