@@ -160,7 +160,7 @@ class StudentController extends Controller
            // 'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])], // Assuming numeric status codes
             'first_name' => ['required', 'string', 'max:50'],
             'last_name' => ['required', 'string', 'max:50'],
-            'class_id' => ['required', 'max:50'], // Changed to string, adjust if it's an ID
+            'class_id' => ['nullable', 'max:50'], // Changed to string, adjust if it's an ID
            // 'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
             'dob' => ['required', 'date'],
@@ -275,7 +275,7 @@ class StudentController extends Controller
                 // 'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])], // Assuming numeric status codes
                     'first_name' => ['required', 'string', 'max:50'],
                     'last_name' => ['required', 'string', 'max:50'],
-                    'class_id' => ['required', 'max:50'], // Changed to string, adjust if it's an ID
+                    'class_id' => ['nullable', 'max:50'], // Changed to string, adjust if it's an ID
                 // 'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
                     'gender' => ['required', Rule::in(['male', 'female', 'other'])],
                     'dob' => ['required', 'date'],
