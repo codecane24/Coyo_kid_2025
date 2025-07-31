@@ -158,7 +158,7 @@ class StudentController extends Controller
                 'languages' => json_decode($request->languages, true)
             ]);
         }
-         return $request;
+        
         // Validation rules for Step 1
         $studentRules = [
             'academic_year' => ['nullable', 'string', 'max:50'],
