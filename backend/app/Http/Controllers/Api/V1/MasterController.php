@@ -134,7 +134,7 @@ class MasterController extends Controller
 
     //=== Board List API ===
     public function BoardList(){
-         $list = App\Models\Board::select('id','name','description','boad_type','status')->get();
+         $list = \App\Models\Board::select('id','name','description','boad_type','status')->get();
         return response()->json($list);
     }
 
