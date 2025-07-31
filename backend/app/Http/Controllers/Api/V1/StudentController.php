@@ -173,6 +173,7 @@ class StudentController extends Controller
             'caste' => ['nullable', 'string', 'max:100'],
             'mother_tongue' => ['nullable', Rule::in(['English', 'Spanish', 'Hindi', 'Gujarati', 'Marathi'])], // Added more common languages
             'languages' => ['nullable', 'array'],
+            'languages.*' => ['string'],
             'profile_image' => ['nullable', 'file', 'image', 'max:4096'],
         ];
 
