@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Board extends Model
 {
-	protected $table = 'education_boards';
+	protected $table = 'education_board';
 
 	protected $fillable = [
 		'name',

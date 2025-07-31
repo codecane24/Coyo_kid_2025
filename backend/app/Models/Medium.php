@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Medium extends Model
 {
-	protected $table = 'education_mediums';
+	protected $table = 'education_medium';
 
 	protected $fillable = [
 		'name',
