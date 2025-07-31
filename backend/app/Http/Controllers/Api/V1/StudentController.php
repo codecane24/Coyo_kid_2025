@@ -74,7 +74,7 @@ class StudentController extends Controller
                 'step_1' => [
                     'academic_year' => $student->academic_year,
                     'admission_no' => $student->admission_no,
-                    'roll_number' => $student->role_no,
+                    'roll_no' => $student->roll_no,
                     'admission_date' => $student->doj,
                     'first_name' => $student->first_name,
                     'last_name' => $student->last_name,
@@ -89,7 +89,7 @@ class StudentController extends Controller
                     'primary_contact' => $student->phone,
                     'email' => $student->email,
                     'mother_tongue' => $student->mother_tongue,
-                    'languages_known' => json_decode($student->languages, true),
+                    'languages' => json_decode($student->languages, true),
                     'profile_image' => $student->profile_image,
                 ],
                 'step_2' => [
@@ -155,12 +155,12 @@ class StudentController extends Controller
         $studentRules = [
             'academic_year' => ['nullable', 'string', 'max:50'],
             'admission_no' => ['required', 'string', 'max:50', 'unique:students,admission_no'],
-            'roll_number' => ['nullable', 'string', 'max:50'],
+            'roll_no' => ['nullable', 'string', 'max:50'],
             'admission_date' => ['required', 'date'],
            // 'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])], // Assuming numeric status codes
             'first_name' => ['required', 'string', 'max:50'],
             'last_name' => ['required', 'string', 'max:50'],
-            'class' => ['required', 'max:50'], // Changed to string, adjust if it's an ID
+            'class_id' => ['required', 'max:50'], // Changed to string, adjust if it's an ID
            // 'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
             'dob' => ['required', 'date'],
@@ -172,7 +172,7 @@ class StudentController extends Controller
             'email' => ['nullable', 'email', 'max:255', 'unique:students,email'],
             'caste' => ['nullable', 'string', 'max:100'],
             'mother_tongue' => ['nullable', Rule::in(['English', 'Spanish', 'Hindi', 'Gujarati', 'Marathi'])], // Added more common languages
-            'languages_known' => ['nullable', 'array'],
+            'languages' => ['nullable', 'array'],
             'profile_image' => ['nullable', 'file', 'image', 'max:4096'],
         ];
 
@@ -198,9 +198,9 @@ class StudentController extends Controller
             $student = new Student();
             $student->code = $stcode;
             $student->academic_year = $request->academic_year;
-            $student->admission_no = $request->admission_number;
+            $student->admission_no = $request->admission_no;
             $student->doj = $request->admission_date;
-            $student->role_no = $request->roll_number;
+            $student->roll_no = $request->roll_no;
             $student->status = 2; // Set to incomplete for multi-step registration
             $student->first_name = $request->first_name;
             $student->last_name = $request->last_name;
@@ -215,7 +215,7 @@ class StudentController extends Controller
             $student->phone = $request->primary_contact; // Ensure this matches your column name
             $student->email = $request->email;
             $student->mother_tongue = $request->mother_tongue;
-            $student->languages = $request->languages_known ? json_encode($request->languages_known) : null;
+            $student->languages = $request->languages ? json_encode($request->languages) : null;
             $student->profile_image = $profileImage;
             $student->added_by=$request->user_id ?? 0;
             $student->docfolder_name = getNewSerialNo('student');
@@ -270,12 +270,12 @@ class StudentController extends Controller
                 $studentRules = [
                     'academic_year' => ['nullable', 'string', 'max:50'],
                     'admission_no' => ['required', 'string', 'max:50', 'unique:students,admission_no,' . $id],
-                    'roll_number' => ['nullable', 'string', 'max:50'],
+                    'roll_no' => ['nullable', 'string', 'max:50'],
                     'admission_date' => ['required', 'date'],
                 // 'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])], // Assuming numeric status codes
                     'first_name' => ['required', 'string', 'max:50'],
                     'last_name' => ['required', 'string', 'max:50'],
-                    'class' => ['required', 'max:50'], // Changed to string, adjust if it's an ID
+                    'class_id' => ['required', 'max:50'], // Changed to string, adjust if it's an ID
                 // 'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
                     'gender' => ['required', Rule::in(['male', 'female', 'other'])],
                     'dob' => ['required', 'date'],
@@ -287,7 +287,7 @@ class StudentController extends Controller
                     'email' => ['nullable', 'email', 'max:255', 'unique:students,email,'.$id],
                     'caste' => ['nullable', 'string', 'max:100'],
                     'mother_tongue' => ['nullable', Rule::in(['English', 'Spanish', 'Hindi', 'Gujarati', 'Marathi'])], // Added more common languages
-                    'languages_known' => ['nullable', 'array'],
+                    'languages' => ['nullable', 'array'],
                     'profile_image' => ['nullable', 'file', 'image', 'max:4096'],
                 ];
 
@@ -304,9 +304,9 @@ class StudentController extends Controller
                 $student =Student::find($id);
 
                 $student->academic_year = $request->academic_year;
-                $student->admission_no = $request->admission_number;
+                $student->admission_no = $request->admission_no;
                 $student->doj = $request->admission_date;
-                $student->role_no = $request->roll_number;
+                $student->roll_no = $request->roll_no;
                 $student->status = 2; // Set to incomplete for multi-step registration
                 $student->first_name = $request->first_name;
                 $student->last_name = $request->last_name;
@@ -321,7 +321,7 @@ class StudentController extends Controller
                 $student->phone = $request->primary_contact; // Ensure this matches your column name
                 $student->email = $request->email;
                 $student->mother_tongue = $request->mother_tongue;
-                $student->languages = $request->languages_known ? json_encode($request->languages_known) : null;
+                $student->languages = $request->languages ? json_encode($request->languages) : null;
                 $student->added_by=$request->user_id ?? 0;
 
                 // Handle profile image upload
@@ -883,15 +883,15 @@ class StudentController extends Controller
         // Return a structured array of student data, including related models
         return [
             'student_id' => $student->id,
-            'admission_number' => $student->admission_no, // Corrected to match database column
+            'admission_no' => $student->admission_no, // Corrected to match database column
             'academic_year' => $student->academic_year,
             'admission_date' => $student->doj, // Corrected to match database column
-            'roll_number' => $student->role_no, // Corrected to match database column
+            'roll_no' => $student->roll_no, // Corrected to match database column
             'first_name' => $student->first_name,
             'last_name' => $student->last_name,
             'email' => $student->email,
             'primary_contact' => $student->phone, // Corrected to match database column
-            'class' => $student->class,
+            'class_id' => $student->class_id,
             'section' => $student->section,
             'gender' => $student->gender,
             'dob' => $student->dob, // Corrected to match database column
@@ -901,7 +901,7 @@ class StudentController extends Controller
             'category' => $student->category,
             'caste' => $student->caste,
             'mother_tongue' => $student->mother_tongue,
-            'languages_known' => $languages,
+            'languages' => $languages,
             // Generate full URL for profile image if it exists
             'profile_image' => $student->profile_image ? asset('storage/' . $student->profile_image) : null,
             'current_address' => $student->current_address,
@@ -951,7 +951,7 @@ class StudentController extends Controller
                     'name' => $sibling->name,
                     'roll_no' => $sibling->roll_no,
                     'admission_no' => $sibling->admission_no,
-                    'class' => $sibling->class,
+                    'class_id' => $sibling->class_id,
                 ];
             }),
             // Include documents data if the relationship is loaded

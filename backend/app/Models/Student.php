@@ -16,7 +16,7 @@ class Student extends Model
         'mother_id',
         'academic_year',
         'admission_no',
-        'role_no',
+        'roll_no',
         'doj',
         'status',
         'first_name',
