@@ -210,7 +210,8 @@ export const all_routes = {
   studentList: "/student/student-list",
   addStudent: "/student/add-student",
   inquiry:"/student/inquiry",
-  editStudent: "/student/edit-student",
+  editStudent: "/student/edit-student/:id",
+
   teacherDetails: "/teacher/teacher-details",
   teacherGrid: "/teacher/teacher-grid",
   teacherList: "/teacher/teacher-list",
@@ -234,6 +235,7 @@ export const all_routes = {
   feesAssign:"/management/fees-assign",
   feesCollectionReport:"/management/fees-collection-report",
   collectFees:"/management/collect-fees",
+  ManageFees:"/management/manage-fees",
   libraryMembers:"/management/library-members",
   libraryIssueBook:"/management/library-issue-book",
   libraryBooks:"/management/library-books",

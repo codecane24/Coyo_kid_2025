@@ -44,7 +44,7 @@
 }
 
 .step-circle.completed {
-  background-color: #198754;
+  background-color: #0d50b5; /* changed from #198754 to blue */
   color: white;
 }
 
@@ -68,9 +68,8 @@
 }
 
 .step-item .completed ~ .step-line {
-  background-color: #198754;
+  background-color: #0d50b5; /* changed from #198754 to blue */
 }
-
 /* Optional scrollbars for visibility */
 .stepper-container::-webkit-scrollbar {
   height: 6px;

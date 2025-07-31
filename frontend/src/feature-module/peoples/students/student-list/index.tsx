@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import { Studentlist } from "../../../../core/data/json/studentList";
@@ -44,7 +45,8 @@ const StudentList = () => {
 const [data, setData] = useState<any[]>([]);
 const [loading, setLoading] = useState(true);
  const [refreshKey, setRefreshKey] = useState(0);
-
+// Inside your component
+const navigate = useNavigate();
 
 useEffect(() => {
   const fetchStudents = async () => {
@@ -143,19 +145,24 @@ const columns = [
     dataIndex: "dob",
     render: (text: string) => text || "N/A",
   },
-  {
+// In your column definition:
+{
   title: "Actions",
   dataIndex: "actions",
   key: "actions",
-render: (_: unknown, record: any) => (
-
+  render: (_: unknown, record: any) => (
     <div className="flex gap-2">
-      <button className="btn btn-sm btn-primary">Edit</button>
+   <Link
+  className="btn btn-sm btn-primary"
+to={`/student/edit-student/${record.encryptid || record.id || record._id}`}
+
+>
+  Edit
+</Link>
       <button className="btn btn-sm btn-danger">Delete</button>
     </div>
   ),
-},
-
+}
 ];
 
 // Fuctions to work the tooltip Options

@@ -254,6 +254,7 @@ import CollectFees from "../management/feescollection/collectFees";
 import AddUser from "../userManagement/AddUser";
 import LoaderTwo from "../../core/common/loader/loaderTwo";
 import Unauthorized from "../common/Unauthorized";
+import FeesManagement from "../management/feescollection/FeesManagement";
 
 
 const routes = all_routes;
@@ -1028,6 +1029,10 @@ export const authRoutes = [
   {
     path: routes.collectFees,
     element: <CollectFees/>
+  },
+    {
+    path: routes.ManageFees,
+    element: <FeesManagement/>
   },
   {
     path: routes.libraryMembers,

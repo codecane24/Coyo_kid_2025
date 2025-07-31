@@ -7,6 +7,12 @@ export const getStudent = async () => {
   return response.data;
 };
 
+// Get single student by ID
+export const getStudentById = async (studentId: string) => {
+  const response = await axiosInstance.get(`/student/${studentId}`);
+  return response.data;
+};
+
 // Create student (handles JSON or FormData)
 export const createStudent = async (payload: any) => {
   const isFormData = payload instanceof FormData;

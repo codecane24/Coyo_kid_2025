@@ -1,20 +1,29 @@
-import React, { useState } from "react";
+import React from "react";
 import Link from "antd/es/typography/Link";
+import { buildImageUrl } from "./buildImageUrl";
 interface FileUploaderProps {
   fileTypes?: string;
   previewType?: "image" | "both";
   onFileChange: (file: File | null) => void;
-  file: File | null; // ✅ new prop
+  file: File | null;
+  imageUrl?: string; // ✅ for existing uploaded image path
 }
-
 
 const FileUploader: React.FC<FileUploaderProps> = ({
   fileTypes = "image/*",
   previewType = "image",
   onFileChange,
-  file, // ✅ use this
+  file,
+  imageUrl,
 }) => {
   const isImage = file?.type?.startsWith("image/");
+
+  // ✅ show preview: either new file blob or full image URL
+  const showImage = file
+    ? URL.createObjectURL(file)
+    : imageUrl
+    ? buildImageUrl(imageUrl)
+    : null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
@@ -24,16 +33,17 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   const handleRemove = () => {
     onFileChange(null);
   };
- return (
+
+  return (
     <div className="d-flex align-items-center">
-      {/* Larger Preview Box */}
+      {/* Preview Box */}
       <div
         className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames"
         style={{ borderRadius: "8px", width: "80px", height: "80px" }}
       >
-        {file && isImage ? (
+        {showImage ? (
           <img
-            src={URL.createObjectURL(file)}
+            src={showImage}
             alt="preview"
             style={{
               width: "100%",
@@ -60,7 +70,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             />
           </div>
 
-          <Link  className="btn btn-primary mb-2 ms-2" onClick={handleRemove}>
+          <Link className="btn btn-primary mb-2 ms-2" onClick={handleRemove}>
             Remove
           </Link>
         </div>
@@ -75,8 +85,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({
       </div>
     </div>
   );
-
 };
-
 
 export default FileUploader;

@@ -139,9 +139,6 @@ const renderImageUploader = (
     </p>
   </div>
 );
-
-  
-
   return (
 <div className="container-fluid py-3">
   
@@ -499,23 +496,13 @@ const renderImageUploader = (
     </button>
   </div>
 )}
-
-        </div>
+     </div>
       </div>
-
-    </div>
+  </div>
   </div>
 </div>
 
-
-
-
-
-
-
 </div>
-
-
 
 
   );

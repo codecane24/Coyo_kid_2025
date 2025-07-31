@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link,useParams  } from "react-router-dom";
 // import { feeGroup, feesTypes, paymentType } from '../../../core/common/selectoption/selectoption'
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
@@ -37,7 +37,7 @@ import AddressForm from "./AddressForm";
 import SchoolTransportMedicalForm, { TransportMedicalFormData } from "./SchoolTransportMedicalForm";
 import DocumentsForm from "./DocumentsForm";
 import { FinancialInfoType } from "./FinancialDetailsForm";
-import { createStudent, updateStudent } from "../../../../services/StudentData";
+import { createStudent, getStudentById, updateStudent } from "../../../../services/StudentData";
 import { ParentInfo } from "./ParentsGuardianForm";
 import qs from "qs"; 
 type ClassItem = {
@@ -76,21 +76,27 @@ export type PersonalInfoType = {
 
 const AddStudent = () => {
   const routes = all_routes;
+const { id } = useParams();
+const isEditMode = Boolean(id);
+const location = useLocation();
+  const [isEdit, setIsEdit] = useState<boolean>(false);
+const params = useParams();
+const { editstudentId } = useParams<{ editstudentId: string }>();
+
+
+const [editStudentData, setEditStudentData] = useState<any>(null);
+
+
 const [files, setFiles] = useState<File[]>([]);
-
-
     const { formData, setFormData } = useAdmissionForm();
     const personalInfoRef = useRef<any>(null);
+
 const [studentId, setStudentId] = useState<string>(""); // instead of string | null
+
 function camelToSnake(str: string) {
   return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 }
 
-const method = studentId ? 'put' : 'post';
-const url = studentId ? `/student/${studentId}` : `/student`;
-const updateStudentId = (id: string) => {
-  setStudentId(id);
-};
 const toSnakeCase = (obj: any): any => {
   if (Array.isArray(obj)) {
     return obj.map(toSnakeCase);
@@ -160,7 +166,7 @@ function toSnakeCaseTwo(obj: any): any {
   email: "",
   caste: "",
   suitableBatch: "",
-   languages: [] as string[], // ✅ force type
+  
   profileImage: null as File | null, // ✅ new field for image
 });
 const [parentInfo, setParentInfo] = useState<ParentInfo>({
@@ -178,7 +184,7 @@ const [parentInfo, setParentInfo] = useState<ParentInfo>({
   motherEmail: "", // 👈 add this
   motherProfileImage: null,
   motherAadharImage: null,
-  siblingSameSchool: "",
+  siblingSameSchool: "no", // default
   siblingStudentIds: [""],
   guardians: [
     {
@@ -263,14 +269,14 @@ const [showFinancialForm, setShowFinancialForm] = useState(false);
 
  const [allClass, setAllClass] = useState<{ label: string; value: string }[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isEdit, setIsEdit] = useState<boolean>(false);
-  const [owner, setOwner] = useState<string[]>(['English','Spanish']);
+
+  const [owner, setOwner] = useState<string[]>(['English','Hindi',]);
   const [owner1, setOwner1] = useState<string[]>([]);
   const [owner2, setOwner2] = useState<string[]>([]);
   const [defaultDate, setDefaultDate] = useState<dayjs.Dayjs | null>(null);
 
 
-  const location = useLocation();
+
 const [newContents, setNewContents] = useState([{ name: "", class: "", section: "", rollNo: "", admissionNo: "" }]);
 
 const totalSteps = 5;
@@ -332,10 +338,6 @@ const formatDate = (dateStr: string | undefined) => {
   const d = new Date(dateStr);
   return d.toISOString().split("T")[0]; // YYYY-MM-DD
 };
-
-
-
-
 
 const handleSubmitPersonalInfo = (e: React.FormEvent) => {
   e.preventDefault(); // 🔥 This prevents page refresh
@@ -433,62 +435,86 @@ const buildFormDataFromPayload2 = (payload: any): FormData => {
   return formData;
 };
 
+/**
+ * Step-1 submit handler — works for BOTH create and edit flows.
+ *
+ * @param finalPayload  the FormData you built
+ * @param studentId     (state)   id returned after a brand-new create (null until you get it)
+ * @param routeStudentId          id that comes from the URL when you’re editing
+ * @param setStudentId   setter to store a freshly-created id
+ * @param setFormData    lift state up to the wizard context
+ * @param setCurrentStep move to the next step in the wizard
+ */
 const handleStep1Submit = async (
   finalPayload: FormData,
   studentId: string | null,
-  setStudentId: (id: string) => void,
-  setFormData: (fn: (prev: any) => any) => void,
-  setCurrentStep: (step: number) => void
+  routeStudentId: string | undefined,
+  setStudentId: React.Dispatch<React.SetStateAction<string>>,
+  setFormData: React.Dispatch<React.SetStateAction<any>>,
+  setCurrentStep: React.Dispatch<React.SetStateAction<number>>
 ) => {
   try {
+    // ─────────────────────────────────────────────────────────
+    // 1️⃣ Decide whether this is CREATE (POST) or UPDATE (PUT)
+    // ─────────────────────────────────────────────────────────
+    const existingId = routeStudentId || studentId;      // ← use whichever exists
     let res;
 
-    if (studentId) {
-      res = await updateStudent(studentId, finalPayload); // PUT
+    if (existingId) {
+      // Edit mode → PUT
+      res = await updateStudent(existingId, finalPayload);
     } else {
-      console.log("=====> Test payload:", finalPayload.get("profile_image"));
-      res = await createStudent(finalPayload); // POST
+      // Create mode → POST
+      res = await createStudent(finalPayload);
     }
 
+    // ─────────────────────────────────────────────────────────
+    // 2️⃣ Handle possible validation errors from backend
+    // ─────────────────────────────────────────────────────────
     if (res?.data?.status === "false") {
       const validationErrors = res?.data?.errors;
-      const errorMessage = res?.data?.message || "Something went wrong";
+      const errorMessage     = res?.data?.message || "Something went wrong";
 
       if (validationErrors) {
         const allErrors = Object.entries(validationErrors)
-          .map(([field, messages]) => `${field}: ${(messages as string[]).join(", ")}`)
+          .map(([field, msgs]) => `${field}: ${(msgs as string[]).join(", ")}`)
           .join("\n");
         alert(`❌ Validation Failed:\n${allErrors}`);
       } else {
         alert(`❌ Error: ${errorMessage}`);
       }
-
-      return;
+      return; // stop here on error
     }
 
-    const newStudentId = res?.student_id;
-    if (!studentId && newStudentId) {
-      setStudentId(newStudentId);
+    // ─────────────────────────────────────────────────────────
+    // 3️⃣ If we just created, capture the new id for later steps
+    // ─────────────────────────────────────────────────────────
+    if (!existingId && res?.student_id) {
+      setStudentId(res.student_id);
     }
 
-    setFormData((prev) => ({
+    // ─────────────────────────────────────────────────────────
+    // 4️⃣ Persist this step’s data in the wizard context
+    // ─────────────────────────────────────────────────────────
+    setFormData((prev: any) => ({
       ...prev,
-      personalInfo: finalPayload, // This could be adjusted if needed
+      personalInfo: finalPayload,
     }));
 
+    // ─────────────────────────────────────────────────────────
+    // 5️⃣ Go to next step
+    // ─────────────────────────────────────────────────────────
     setCurrentStep(2);
   } catch (error: any) {
+    // generic server or network error handling
     const response = error?.response;
-
     if (response?.status === 422 && response?.data?.errors) {
       const validationErrors = response.data.errors;
-
       const allErrors = Object.entries(validationErrors)
-        .map(([field, messages]) =>
-          Array.isArray(messages) ? `${field}: ${messages.join(", ")}` : `${field}: ${messages}`
+        .map(([field, msgs]) =>
+          Array.isArray(msgs) ? `${field}: ${msgs.join(", ")}` : `${field}: ${msgs}`
         )
         .join("\n");
-
       alert(`❌ Validation Failed:\n${allErrors}`);
     } else {
       alert("❌ Server Error. Please try again later.");
@@ -498,20 +524,27 @@ const handleStep1Submit = async (
 
 
 
+
 const handleNextStep = async () => {
 if (currentStep === 1) {
-  const formData = buildFormDataFromPayload(personalInfo);
+     const finalData = {
+      ...personalInfo,
+      languagesKnown: owner, // ✅ ADD this line (use correct camelCase key)
+    };
+
+    const formData = buildFormDataFromPayload(finalData);
 
   console.log("✅ FormData to be sent:");
-//  formData.forEach((value, key) => {
-//   console.log(`${key}:`, value);
-// });
+ formData.forEach((value, key) => {
+  console.log(`${key}:`, value);
+});
 
 
   try {
     await handleStep1Submit(
       formData,
       studentId,
+        routeStudentId,
       setStudentId,
       setFormData,
       setCurrentStep
@@ -712,6 +745,143 @@ else if (currentStep === 5) {
 
 }
 
+const [studentData, setStudentData] = useState<any>(null);
+const { id: routeStudentId } = useParams();
+
+
+const isEditingMode = location.pathname.includes("/student/edit");
+
+console.log("routeStudentId:", routeStudentId);
+console.log("isEditingMode:", isEditingMode);
+
+useEffect(() => {
+  if (isEditingMode && routeStudentId) {
+    console.log("Editing student with ID:", routeStudentId);
+    getStudentById(routeStudentId)
+      .then((data) => {
+        console.log("Student fetched:", data);
+        setStudentData(data);
+      })
+      .catch((err) => console.error(err));
+  }
+}, [isEditingMode, routeStudentId]);
+
+
+// ✅ Second useEffect: Populate form when studentData is available
+
+useEffect(() => {
+   const loadImageAsFile = async (url: string) => {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const filename = url.split("/").pop() || "profile.jpg";
+    return new File([blob], filename, { type: blob.type });
+  };
+  if (isEditingMode && studentData?.data?.step_1) {
+    const s = studentData.data.step_1;
+
+    const updatedInfo = {
+      academicYear: s.academic_year || "",
+      admissionNo: s.admission_no || "",
+      admissionDate: s.admission_date || "",
+      rollNo: s.roll_number || "",
+      status: s.status || "",
+      firstName: s.first_name || "",
+      middleName: s.middle_name || "",
+      lastName: s.last_name || "",
+      class: s.class_id || "",
+      section: s.section_id || "",
+      gender: s.gender || "",
+      dob: s.dob || "",
+      bloodGroup: s.blood_group || "",
+      nationality: s.nationality || "",
+      motherTongue: s.mother_tongue || "",
+      birthPlace: s.birth_place || "",
+      religion: s.religion || "",
+      caste: s.caste || "",
+      subCaste: s.sub_caste || "",
+      category: s.category || "",
+      languages: s.languages || [],
+      house: s.house || "",
+      primaryContact: s.primary_contact || "",
+      email: s.email || "",
+      suitableBatch: s.suitable_batch || "",
+profileImage: null, // will update below
+
+    };
+
+    console.log("Setting personalInfo:", updatedInfo);
+    setPersonalInfo(updatedInfo);
+setOwner(s.languages || []);
+// Load profile image as File
+if (s.profile_image) {
+  const imageUrl = `${process.env.REACT_APP_BASE_URL}/${s.profile_image}`;
+
+  loadImageAsFile(imageUrl).then((file) => {
+    console.log("Fetched image file:", file); // ✅ DEBUG
+    setFiles([file]);
+    setPersonalInfo((prev) => ({ ...prev, profileImage: file }));
+  });
+}
+
+  
+  }
+}, [isEditingMode, studentData]);
+
+
+useEffect(() => {
+    console.log("studentData:", studentData);
+  if (isEditMode && studentData?.step_2) {
+    const step2 = studentData.step_2;
+
+    setParentInfo((prev) => ({
+      ...prev,
+      fatherName: step2.father?.name || "",
+      fatherPhone: step2.father?.phone || "",
+      fatherAadhar: step2.father?.aadhar || "",
+      fatherOccupation: step2.father?.occupation || "",
+      fatherEmail: step2.father?.email || "",
+      fatherProfileImage: step2.father?.profile_image || null,
+      fatherAadharImage: step2.father?.aadhar_image || null,
+
+      motherName: step2.mother?.name || "",
+      motherPhone: step2.mother?.phone || "",
+      motherAadhar: step2.mother?.aadhar || "",
+      motherOccupation: step2.mother?.occupation || "",
+      motherEmail: step2.mother?.email || "",
+      motherProfileImage: step2.mother?.profile_image || null,
+      motherAadharImage: step2.mother?.aadhar_image || null,
+
+      siblingSameSchool: step2.sibling_same_school || "",
+      siblingStudentIds: step2.sibling_student_ids?.length
+        ? step2.sibling_student_ids
+        : [""],
+
+      guardians: step2.guardians?.length
+        ? step2.guardians.map((g: any) => ({
+            name: g.name || "",
+            phone: g.phone || "",
+            aadhar: g.aadhar || "",
+            occupation: g.occupation || "",
+            relation: g.relation || "",
+            profileImage: g.profile_image || null,
+            aadharImage: g.aadhar_image || null,
+          }))
+        : [
+            {
+              name: "",
+              phone: "",
+              aadhar: "",
+              occupation: "",
+              relation: "",
+              profileImage: null,
+              aadharImage: null,
+            },
+          ],
+    }));
+  }
+}, [isEditMode, studentData]);
+
+
   return (
     <>
       {/* Page Wrapper */}
@@ -724,7 +894,23 @@ else if (currentStep === 5) {
           {/* Page Header */}
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
             <div className="my-auto mb-2">
-              <h3 className="mb-1">{isEdit?'Edit':'Add'} Student</h3>
+<div className="d-flex align-items-center mb-2">
+<h3 className="mb-0 me-2">{isEditingMode ? 'Edit' : 'Add'} Student</h3>
+
+  <div
+    className="px-2 py-1"
+    style={{
+      fontSize: "0.75rem",
+      color: "#333", // dark gray for better readability
+      backgroundColor: "#E6F0FA", // very light bluish
+      borderRadius: "6px",
+      width: "fit-content",
+    }}
+  >
+    : 123
+  </div>
+</div>
+
               <nav>
                 <ol className="breadcrumb mb-0">
                   <li className="breadcrumb-item">
@@ -740,11 +926,13 @@ else if (currentStep === 5) {
               </nav>
             </div>
           </div>
-        <MultiStepProgressBar
+<MultiStepProgressBar
   currentStep={currentStep}
   steps={steps}
-  onStepClick={(step) => setCurrentStep(step)} // ✅ optional
+  studentId={studentId} // required for click
+  onStepClick={(step) => setCurrentStep(step)}
 />
+
 
 
           {/* /Page Header */}
@@ -762,6 +950,8 @@ else if (currentStep === 5) {
   currentStep={currentStep}
   files={files}  
 setFiles={(val) => setFiles(val ? Array.from(val) : [])} 
+  // ✅ new prop
+  studentId={studentId} 
 />
 
 )}
