@@ -797,8 +797,20 @@ class StudentController extends Controller
      * @param \App\Models\Student $student The Student model instance.
      * @return array Formatted student data.
      */
-    private function getStudentData($student)
+    public function getStudentData($id)
     {
+        // Find the student by ID, including related models
+        return $student = Student::with(['parent', 'siblings', 'documents', 'medicalHistory'])
+            ->findOrFail($id);
+
+        // Return the student instance directly if needed
+        // return $student;
+
+        // If you need to return a structured array instead, uncomment the following lines
+        // and comment out the return $student line below.
+  
+        
+        return $student;
         // Decode languages if it's stored as a JSON string in the database
         $languages = $student->languages ? json_decode($student->languages, true) : [];
 
