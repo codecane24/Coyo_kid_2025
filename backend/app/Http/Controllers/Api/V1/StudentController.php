@@ -148,7 +148,9 @@ class StudentController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
-    {
+    {   
+        return $request;
+
         $stepName1 = "Student Information";
 
         // Validation rules for Step 1
