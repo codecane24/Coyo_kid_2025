@@ -150,8 +150,7 @@ class StudentController extends Controller
     public function store(Request $request)
     {   
        
-
-        $stepName1 = "Student Information";
+         $stepName1 = "Student Information";
 
         if (is_string($request->languages)) {
             $request->merge([
