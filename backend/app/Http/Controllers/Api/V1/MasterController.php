@@ -134,13 +134,13 @@ class MasterController extends Controller
 
     //=== Board List API ===
     public function BoardList(){
-         $list = Board::select('id','name','description','boad_type','status')->get();
+         $list = App\Models\Board::select('id','name','description','boad_type','status')->get();
         return response()->json($list);
     }
 
     //=== Medium List API ===
     public function MediumList(){
-         $list = Medium::select('id','name','description','status')->get();
+         $list = \App\Models\Medium::select('id','name','description','status')->get();
         return response()->json($list);
     }
 
