@@ -9,6 +9,7 @@ class FeesGroup extends Model
 	protected $fillable = [
 		'code',
 		'name',
+		'description',
 		'branch_id',
 		'company_id',
 		'created_by',
