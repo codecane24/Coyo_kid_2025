@@ -59,10 +59,14 @@ class FeesGroupControler extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:50',
-            'section' => 'nullable|string|max:50',
-            'room_no' => 'nullable|string|max:50',
+         $validator = Validator::make($request->all(), [
+            'code' => [
+                'nullable',
+                'string',
+                'max:50'
+            ],
+            'name' => 'required|string|max:100|unique:fees_group_master,name',
+            'description' => 'nullable|string|max:100',
             'status' => 'required|boolean',
         ]);
 
@@ -81,35 +85,24 @@ class FeesGroupControler extends Controller
             ], 422);
         }
 
-        // check if combination of classmaster_id,sectin, room_no, and company_id already exists
-        $exists = FeesGroup::where('classmaster_id', $request->classmaster_id)
-            ->where('section', $request->section)
-            ->where('branch_id', $request->branch_id ?? null) // Allow null branch_id
-            ->where('company_id', $request->company_id ?? null) // Allow null company_id
-            ->exists(); 
-        if ($exists) {
-            return response()->json([   
-                'status' => false,
-                'message' => 'Class with the same class, section  already exists.'
-            ], 422);
-        }
+      
         // Create the class
-        $code=getNewSerialNo('class');
-        $request->merge([
-            'code' => $code, // Ensure code is uppercase
-            'company_id' => $request->company_id ?? 1, // Decrypt company_id
-            'branch_id' => $request->branch_id ?? 1 // Decrypt branch_id
-        ]);
+        //$code=getNewSerialNo('feegroup');
+       // $request->merge([
+          //  'code' => $code, // Ensure code is uppercase
+          //  'company_id' => $request->company_id ?? 1, // Decrypt company_id
+          //  'branch_id' => $request->branch_id ?? 1 // Decrypt branch_id
+        //]);
 
-        $class = FeesGroup::create($request->all());
+        $feeGroup = FeesGroup::create($request->all());
 
         // increase class code 
-         increaseSerialNo('class'); 
+         //increaseSerialNo('feegroup'); 
 
         return response()->json([
             'status' => true,
-            'message' => 'Class created successfully',
-            'data' => $class
+            'message' => 'Fee Group created successfully',
+            'data' => $feeGroup
         ], 201);
     }
 
@@ -123,7 +116,7 @@ class FeesGroupControler extends Controller
     public function update(Request $request, $id)
     {
       
-        $class = FeesGroup::findOrFail($id);
+        $feeGroup = FeesGroup::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
             'code' => [
@@ -131,7 +124,7 @@ class FeesGroupControler extends Controller
                 'string',
                 'max:50'
             ],
-            'name' => 'required|string|max:100',
+            'name' => 'required|string|max:100|unique:fees_group_master,name,' . $feeGroup->id,
             'description' => 'nullable|string|max:100',
             'status' => 'required|boolean',
         ]);
@@ -143,12 +136,12 @@ class FeesGroupControler extends Controller
             ], 422);
         }
 
-        $class->update($request->all());
+        $feeGroup->update($request->all());
 
         return response()->json([
             'success' => true,
             'message' => 'Class updated successfully',
-            'data' => $class
+            'data' => $feeGroup
         ]);
     }
 

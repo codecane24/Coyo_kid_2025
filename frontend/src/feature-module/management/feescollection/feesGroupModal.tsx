@@ -107,8 +107,10 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
         description: addFormData.description,
         status: addFormData.status ? "1" : "0"
       });
+      
       refreshData();
       onAddClose();
+      toast.success('Data created successfully');
       setAddFormData({ name: '', description: '', status: false });
     } catch (error) {
       console.error('Add failed:', error);
@@ -126,6 +128,7 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
       await deleteFeesGroup(feeGroupToEdit.id);
       refreshData();
       onDeleteClose();
+      toast.success('Deleted successfully');
     } catch (error) {
       console.error('Delete failed:', error);
       toast.error('Failed to delete fees group. Please try again.');
