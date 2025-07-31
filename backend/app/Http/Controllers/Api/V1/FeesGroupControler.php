@@ -122,6 +122,7 @@ class FeesGroupControler extends Controller
      */
     public function update(Request $request, $id)
     {
+       return  $request;
         $class = FeesGroup::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
@@ -131,7 +132,6 @@ class FeesGroupControler extends Controller
                 'max:50'
             ],
             'name' => 'required|string|max:100',
-            'code' => 'nullable|string|max:20',
             'description' => 'nullable|string|max:100',
             'status' => 'required|boolean',
         ]);

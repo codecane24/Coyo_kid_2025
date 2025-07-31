@@ -84,13 +84,13 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
       setIsLoading(true);
       setError(null);
       
-      await updateFeesGroup(feeGroupToEdit.id, {
+      const response = await updateFeesGroup(feeGroupToEdit.id, {
         name: editFormData.name,
         description: editFormData.description,
         status: editFormData.status ? "1" : "0"
       });
-      
-      refreshData();
+      console.log('updateFeesGroup response:', response);
+      //refreshData();
       onClose();
     } catch (error) {
       console.error('Update.. failed:', error);
