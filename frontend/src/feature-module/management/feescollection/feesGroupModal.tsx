@@ -85,8 +85,8 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
       setError(null);
       
       const response = await updateFeesGroup(feeGroupToEdit.id, {
-        name: editFormData.name,
-        description: editFormData.description,
+        name: editFormData.name || feeGroupToEdit.name || '',
+        description: editFormData.description || feeGroupToEdit.description || '',
         status: editFormData.status ? "1" : "0"
       });
       console.log('updateFeesGroup response:', response);
