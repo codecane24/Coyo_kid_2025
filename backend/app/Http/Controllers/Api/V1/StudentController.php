@@ -797,7 +797,7 @@ class StudentController extends Controller
      * @param \App\Models\Student $student The Student model instance.
      * @return array Formatted student data.
      */
-    private function get_student_data($student)
+    private function getStudentData($student)
     {
         // Decode languages if it's stored as a JSON string in the database
         $languages = $student->languages ? json_decode($student->languages, true) : [];
