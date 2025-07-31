@@ -93,7 +93,7 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
       refreshData();
       onClose();
     } catch (error) {
-      console.error('Update failed:', error);
+      console.error('Update.. failed:', error);
       setError('Failed to update fees group. Please try again.');
     } finally {
       setIsLoading(false);

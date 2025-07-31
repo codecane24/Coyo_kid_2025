@@ -128,16 +128,12 @@ class FeesGroupControler extends Controller
             'code' => [
                 'required',
                 'string',
-                'max:50',
-                Rule::unique('classes')->ignore($class->id)
+                'max:50'
             ],
-            'name' => 'required|string|max:255',
-            'classmaster_id' => 'required|integer|exists:classmasters,id',
-            'section' => 'nullable|string|max:100',
-            'room_no' => 'nullable|string|max:50',
+            'name' => 'required|string|max:100',
+            'code' => 'nullable|string|max:20',
+            'description' => 'nullable|string|max:100',
             'status' => 'required|boolean',
-            'company_id' => 'required|integer|exists:companies,id',
-            'branch_id' => 'required|integer|exists:branches,id',
         ]);
 
         if ($validator->fails()) {
