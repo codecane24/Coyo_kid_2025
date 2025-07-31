@@ -16,6 +16,8 @@ class Cors
             'https://localhost:3000',
             'https://coyokid.abbangles.com',
             'http://coyokid.abbangles.com:3000',
+            'https://coyokid.abbangles.com/storage/uploads',
+            'http://coyokid.abbangles.com/storage/uploads',
         ];
 
         // Get the origin from the request

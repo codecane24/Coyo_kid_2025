@@ -132,5 +132,17 @@ class MasterController extends Controller
         return response()->json($sections);
     }
 
+    //=== Board List API ===
+    public function BoardList(){
+         $list = \App\Models\Board::select('id','name','description','boad_type','status')->get();
+        return response()->json($list);
+    }
+
+    //=== Medium List API ===
+    public function MediumList(){
+         $list = \App\Models\Medium::select('id','name','description','status')->get();
+        return response()->json($list);
+    }
+
    
 }

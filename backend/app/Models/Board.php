@@ -2,14 +2,14 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
-class FeesGroup extends Model
+class Board extends Model
 {
-	protected $table = 'fees_group_master';
+	protected $table = 'education_board';
 
 	protected $fillable = [
-		'code',
 		'name',
 		'description',
+		'board_type',
 		'branch_id',
 		'company_id',
 		'created_by',

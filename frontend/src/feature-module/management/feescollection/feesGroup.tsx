@@ -22,19 +22,27 @@ const FeesGroup = () => {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
-  useEffect(() => {
-    const fetchFeesGroup = async () => {
-      try {
-        const res = await getFeesGroupList();
-        setData(res?.data || []);
-      } catch (err) {
-        console.error("Failed to fetch fees groups:", err);
-        setData([]);
-      }
-    };
-    
-    fetchFeesGroup();
-  }, []);
+    // In parent component
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
+
+  const refreshData = () => {
+    setRefreshTrigger(prev => !prev);
+  };
+
+
+ useEffect(() => {
+  const fetchFeesGroup = async () => {
+    try {
+      const res = await getFeesGroupList();
+      setData(res?.data || []);
+    } catch (err) {
+      console.error("Failed to fetch fees groups:", err);
+      setData([]);
+    }
+  };
+  
+  fetchFeesGroup();
+}, [refreshTrigger]);
 
   const handleApplyClick = () => {
     setShowFilterDropdown(false);
@@ -292,6 +300,7 @@ const FeesGroup = () => {
         onAddClose={() => setShowAddModal(false)}
         showDeleteModal={showDeleteModal}
         onDeleteClose={() => setShowDeleteModal(false)}
+        refreshData={refreshData}
       />
     </>
   );

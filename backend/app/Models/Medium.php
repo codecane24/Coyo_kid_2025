@@ -2,12 +2,11 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
-class FeesGroup extends Model
+class Medium extends Model
 {
-	protected $table = 'fees_group_master';
+	protected $table = 'education_medium';
 
 	protected $fillable = [
-		'code',
 		'name',
 		'description',
 		'branch_id',
