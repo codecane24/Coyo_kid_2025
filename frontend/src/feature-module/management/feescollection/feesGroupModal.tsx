@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 import { 
   createFeesGroup, 
   updateFeesGroup, 
@@ -44,7 +45,7 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
     status: false
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Removed error state, use Toasts for errors
 
   useEffect(() => {
     if (feeGroupToEdit) {
@@ -64,7 +65,7 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
       } else {
         setAddFormData(prev => ({ ...prev, [name]: value }));
       }
-      setError(null); // Clear error when user makes changes
+      // Error handled by Toasts
     };
 
   const handleStatusChange = (form: 'edit' | 'add') => 
@@ -82,19 +83,17 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
     
     try {
       setIsLoading(true);
-      setError(null);
-      
       const response = await updateFeesGroup(feeGroupToEdit.id, {
         name: editFormData.name || feeGroupToEdit.name || '',
         description: editFormData.description || feeGroupToEdit.description || '',
         status: editFormData.status ? "1" : "0"
       });
-      console.log('updateFeesGroup response:', response);
-      //refreshData();
+      refreshData();
       onClose();
+      toast.success('Data updated successfully');
     } catch (error) {
       console.error('Update.. failed:', error);
-      setError('Failed to update fees group. Please try again.');
+      toast.error('Failed to update fees group. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -103,20 +102,17 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
   const handleAdd = async () => {
     try {
       setIsLoading(true);
-      setError(null);
-      
       await createFeesGroup({
         name: addFormData.name,
         description: addFormData.description,
         status: addFormData.status ? "1" : "0"
       });
-      
       refreshData();
       onAddClose();
       setAddFormData({ name: '', description: '', status: false });
     } catch (error) {
       console.error('Add failed:', error);
-      setError('Failed to create fees group. Please try again.');
+      toast.error('Failed to create fees group. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -127,15 +123,12 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
     
     try {
       setIsLoading(true);
-      setError(null);
-      
       await deleteFeesGroup(feeGroupToEdit.id);
-      
       refreshData();
       onDeleteClose();
     } catch (error) {
       console.error('Delete failed:', error);
-      setError('Failed to delete fees group. Please try again.');
+      toast.error('Failed to delete fees group. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -160,9 +153,7 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
                   ></button>
                 </div>
                 <div className="modal-body">
-                  {error && (
-                    <div className="alert alert-danger mb-3">{error}</div>
-                  )}
+                  {/* Error Toasts handled globally */}
                   <div className="row">
                     <div className="col-md-12">
                       <div className="mb-3">
@@ -249,9 +240,7 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
                   ></button>
                 </div>
                 <div className="modal-body">
-                  {error && (
-                    <div className="alert alert-danger mb-3">{error}</div>
-                  )}
+                  {/* Error Toasts handled globally */}
                   <div className="row">
                     <div className="col-md-12">
                       <div className="mb-3">
@@ -329,9 +318,7 @@ const FeesGroupModal: React.FC<FeesGroupModalProps> = ({
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
                 <div className="modal-body text-center">
-                  {error && (
-                    <div className="alert alert-danger mb-3">{error}</div>
-                  )}
+                  {/* Error Toasts handled globally */}
                   <span className="delete-icon">
                     <i className="ti ti-trash-x" />
                   </span>

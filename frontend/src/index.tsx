@@ -1,4 +1,6 @@
 import React from "react";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 import ReactDOM from "react-dom/client";
@@ -28,9 +30,10 @@ root.render(
   <React.StrictMode>
     <Provider store={store}>
       <BrowserRouter basename={base_path}>
- <AppProviders>
-             <ALLRoutes />
- </AppProviders>
+        <AppProviders>
+          <ALLRoutes />
+          <ToastContainer />
+        </AppProviders>
       </BrowserRouter>
     </Provider>
   </React.StrictMode>
