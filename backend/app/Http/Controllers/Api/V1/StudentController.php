@@ -149,10 +149,16 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {   
-        return $request;
+       
 
         $stepName1 = "Student Information";
 
+        if (is_string($request->languages)) {
+            $request->merge([
+                'languages' => json_decode($request->languages, true)
+            ]);
+        }
+         return $request;
         // Validation rules for Step 1
         $studentRules = [
             'academic_year' => ['nullable', 'string', 'max:50'],
