@@ -127,7 +127,7 @@ class FeesGroupControler extends Controller
 
         $validator = Validator::make($request->all(), [
             'code' => [
-                'required',
+                'nullable',
                 'string',
                 'max:50'
             ],
