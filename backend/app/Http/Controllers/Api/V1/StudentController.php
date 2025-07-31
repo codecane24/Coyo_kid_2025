@@ -349,9 +349,7 @@ class StudentController extends Controller
             // Create a new Student instance and fill its attributes
                 $student->save();
                  
-                if($student->profile_image){
-                    $student->profile_image = Storage::url($student->profile_image);
-                }
+              
                 return response()->json([
                     'status' => 'success',
                     'message' => "Step 1: $stepName1 completed successfully",
