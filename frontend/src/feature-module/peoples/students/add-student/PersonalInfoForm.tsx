@@ -26,7 +26,7 @@ import {
 } from "../../../../core/common/selectoption/selectoption";
 import { PersonalInfoType } from ".";
 import FileUploader from "../../../../utils/FileUploader";
-
+import { buildImageUrl } from "../../../../utils/buildImageUrl";
 interface Props {
   personalInfo: any;
   setPersonalInfo: (val: any) => void;
@@ -130,6 +130,7 @@ useEffect(() => {
 }, [studentId]);
 console.log("BASE_URL:", process.env.REACT_APP_BASE_URL);
 
+console.log(personalInfo.profileImage); // What does it log?
 
 return (
   <div className="card">
@@ -146,21 +147,25 @@ return (
       <div className="row">
         <div className="col-md-12">
 <FileUploader
-  file={personalInfo.profileImage instanceof File ? personalInfo.profileImage : null}
-  imageUrl={
-    typeof personalInfo.profileImage === "string"
-      ? personalInfo.profileImage
-      : undefined
-  }
+file={
+  typeof personalInfo.profileImage === "string"
+    ? buildImageUrl(personalInfo.profileImage)
+    : personalInfo.profileImage  // this is a File only when uploading
+}
+
   fileTypes="image/*"
   previewType="image"
   onFileChange={(file) => {
     setPersonalInfo((prev: PersonalInfoType) => ({
       ...prev,
-      profileImage: file,
+      profileImage: file, // save File object until upload
     }));
+    setFiles(file ? [file] : []);
   }}
 />
+
+
+
 
         </div>
       </div>
