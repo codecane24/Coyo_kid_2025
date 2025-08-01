@@ -144,5 +144,11 @@ class MasterController extends Controller
         return response()->json($list);
     }
 
+     //=== Subject List API ===
+    public function SubjectList(){
+         $list = \App\Models\Subject::select('id','code','name','subject_code','subject_type','status')->get();
+        return response()->json($list);
+    }
+
    
 }

@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { createTeacher, updateTeacher } from "../../../../services/TeacherServices";
 import { Link } from "react-router-dom";
 // import { feeGroup, feesTypes, paymentType } from '../../../core/common/selectoption/selectoption'
 import { DatePicker } from "antd";
@@ -19,40 +21,132 @@ import {
   roomNO,
   route,
   status,
+  getSubject,
 } from "../../../../core/common/selectoption/selectoption";
 import { TagsInput } from "react-tag-input-component";
 import CommonSelect from "../../../../core/common/commonSelect";
 import { useLocation } from "react-router-dom";
+import { requiredFields, getMissingFields } from "./teacherFormValidation";
+import { getClassesList } from "../../../../services/ClassData";
+
+
 
 const TeacherForm = () => {
   const routes = all_routes;
-
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [owner, setOwner] = useState<string[]>([]);
   const [owner1, setOwner1] = useState<string[]>([]);
   const [owner2, setOwner2] = useState<string[]>([]);
   const [defaultDate, setDefaultDate] = useState<dayjs.Dayjs | null>(null);
+  const [formData, setFormData] = useState<any>({});
+  const [fieldErrors, setFieldErrors] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [classOptions, setClassOptions] = useState<any[]>([]);
+  const [subjectOptions, setSubjectOptions] = useState<any[]>([]);
   const location = useLocation();
 
   useEffect(() => {
     if (location.pathname === routes.editTeacher) {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, "0"); // Month is zero-based, so we add 1
-      const day = String(today.getDate()).padStart(2, "0");
-      const formattedDate = `${month}-${day}-${year}`;
-      const defaultValue = dayjs(formattedDate);
       setIsEdit(true);
-      setOwner(["English"]);
-      setOwner1(["Medecine Name"]);
-      setOwner2(["Allergy", "Skin Allergy"]);
-      setDefaultDate(defaultValue);
-      console.log(formattedDate, 11);
+      // You may want to fetch teacher data here and setFormData
     } else {
       setIsEdit(false);
-      setDefaultDate(null);
+      setFormData({});
     }
   }, [location.pathname]);
+
+  // Fetch class list for dropdown
+  useEffect(() => {
+    async function fetchClasses() {
+      try {
+        const classes = await getClassesList();
+        const formatted = Array.isArray(classes)
+          ? classes.map((cls: any) => ({
+              label: `${cls.name}${cls.section ? ` (${cls.section})` : ''}`,
+              value: cls.id
+            }))
+          : [];
+        setClassOptions(formatted);
+      } catch (error) {
+        toast.error("Failed to load classes");
+      }
+    }
+    fetchClasses();
+  }, []);
+
+  useEffect(() => {
+    async function fetchSubjects() {
+      try {
+        const subjects = await getSubject();
+        setSubjectOptions(Array.isArray(subjects) ? subjects : []);
+      } catch (error) {
+        toast.error("Failed to load subjects");
+      }
+    }
+    fetchSubjects();
+  }, []);
+
+  // Handle input change for all fields
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
+    // Remove error indication for this field if corrected
+    if (fieldErrors.includes(name)) {
+      if (value && value.toString().trim() !== "") {
+        setFieldErrors(prev => prev.filter(f => f !== name));
+      }
+    }
+  };
+
+  // Handle select change for CommonSelect
+  const handleSelectChange = (name: string, value: any) => {
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
+    // Remove error indication for this field if corrected
+    if (fieldErrors.includes(name)) {
+      if (value && value.toString().trim() !== "") {
+        setFieldErrors(prev => prev.filter(f => f !== name));
+      }
+    }
+  };
+
+  // Handle date change
+  const handleDateChange = (name: string, value: any) => {
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
+    // Remove error indication for this field if corrected
+    if (fieldErrors.includes(name)) {
+      if (value && value.toString().trim() !== "") {
+        setFieldErrors(prev => prev.filter(f => f !== name));
+      }
+    }
+  };
+
+  // Submit handler
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Use centralized validation
+    const missingFields = getMissingFields(formData);
+    if (missingFields.length > 0) {
+      setFieldErrors(missingFields);
+      toast.error(`Please fill all compulsory fields: ${missingFields.join(", ")}`);
+      return;
+    } else {
+      setFieldErrors([]);
+    }
+    setLoading(true);
+    try {
+      if (isEdit) {
+        await updateTeacher(formData.id, formData);
+        toast.success("Teacher updated successfully");
+      } else {
+        await createTeacher(formData);
+        toast.success("Teacher added successfully");
+      }
+    } catch (error) {
+      toast.error("Failed to submit teacher data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -81,7 +175,7 @@ const TeacherForm = () => {
           {/* /Page Header */}
           <div className="row">
             <div className="col-md-12">
-              <form>
+              <form onSubmit={handleSubmit}>
                 <>
                   {/* Personal Information */}
                   <div className="card">
@@ -125,164 +219,170 @@ const TeacherForm = () => {
                         </div>
                       </div>
                       <div className="row row-cols-xxl-5 row-cols-md-6">
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Teacher ID</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              defaultValue={isEdit ? "T849126" : undefined}
-                            />
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">First Name</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              defaultValue={isEdit ? "Teresa" : undefined}
-                            />
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Last Name</label>
-                            <input type="text" className="form-control" />
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Class</label>
-                            <CommonSelect
-                              className="select"
-                              options={allClass}
-                              defaultValue={isEdit ? allClass[0] : undefined}
-                            />
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Subject</label>
-                            <CommonSelect
-                              className="select"
-                              options={allSubject}
-                              defaultValue={isEdit ? allSubject[0] : undefined}
-                            />
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Gender</label>
-                            <CommonSelect
-                              className="select"
-                              options={gender}
-                              defaultValue={isEdit ? gender[0] : undefined}
-                            />
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Primary Contact Number
-                            </label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              defaultValue={
-                                isEdit ? "+1 46548 84498" : undefined
-                              }
-                            />
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Email Address</label>
-                            <input
-                              type="email"
-                              className="form-control"
-                              defaultValue={
-                                isEdit ? "jan@example.com" : undefined
-                              }
-                            />
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Blood Group</label>
-                            <CommonSelect
-                              className="select"
-                              options={bloodGroup}
-                              defaultValue={isEdit ? bloodGroup[0] : undefined}
-                            />
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Date of Joining
-                            </label>
-                            <div className="input-icon position-relative">
-                              <span className="input-icon-addon">
-                                <i className="ti ti-calendar" />
-                              </span>
-                              <input
-                                type="text"
-                                className="form-control datetimepicker"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Father’s Name</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              defaultValue={
-                                isEdit ? "Francis Saviour" : undefined
-                              }
-                            />
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Mother’s Name</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              defaultValue={isEdit ? "Stella Bruce" : undefined}
-                            />
-                          </div>
-                        </div>
-                        <div className="col-xxl col-xl-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Date of Birth</label>
-                            <div className="input-icon position-relative">
-                              {isEdit? <DatePicker
-                                className="form-control datetimepicker"
-                                format={{
-                                  format: "DD-MM-YYYY",
-                                  type: "mask",
-                                }}
-                                value={defaultDate}
-                                placeholder="Select Date"
-                              /> : <DatePicker
-                              className="form-control datetimepicker"
-                              format={{
-                                format: "DD-MM-YYYY",
-                                type: "mask",
-                              }}
-                              defaultValue=""
-                              placeholder="Select Date"
-                            />}
-                              
-                              <span className="input-icon-addon">
-                                <i className="ti ti-calendar" />
-                              </span>
-                            </div>
-                          </div>
-                        </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">Teacher ID</label>
+                    <input
+                      type="text"
+                      className={`form-control${fieldErrors.includes("id") ? " is-invalid" : ""}`}
+                      name="id"
+                      value={formData.id || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">First Name</label>
+                    <input
+                      type="text"
+                      className={`form-control${fieldErrors.includes("first_name") ? " is-invalid" : ""}`}
+                      name="first_name"
+                      value={formData.first_name || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">Last Name</label>
+                    <input
+                      type="text"
+                      className={`form-control${fieldErrors.includes("last_name") ? " is-invalid" : ""}`}
+                      name="last_name"
+                      value={formData.last_name || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">Class</label>
+                    <CommonSelect
+                      className={`select${fieldErrors.includes("class") ? " is-invalid" : ""}`}
+                      options={classOptions}
+                      value={formData.class || ""}
+                      onChange={(value: any) => handleSelectChange("class", value)}
+                    />
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">Subject</label>
+                    <CommonSelect
+                      className={`select${fieldErrors.includes("subject") ? " is-invalid" : ""}`}
+                      options={subjectOptions}
+                      value={formData.subject || ""}
+                      onChange={(value: any) => handleSelectChange("subject", value)}
+                    />
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">Gender</label>
+                    <CommonSelect
+                      className={`select${fieldErrors.includes("gender") ? " is-invalid" : ""}`}
+                      options={gender}
+                      value={formData.gender || ""}
+                      onChange={(value: any) => handleSelectChange("gender", value)}
+                    />
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">
+                      Primary Contact Number
+                    </label>
+                    <input
+                      type="text"
+                      className={`form-control${fieldErrors.includes("phone") ? " is-invalid" : ""}`}
+                      name="phone"
+                      value={formData.phone || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">Email Address</label>
+                    <input
+                      type="email"
+                      className={`form-control${fieldErrors.includes("email") ? " is-invalid" : ""}`}
+                      name="email"
+                      value={formData.email || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">Blood Group</label>
+                    <CommonSelect
+                      className="select"
+                      options={bloodGroup}
+                      value={formData.blood_group || ""}
+                      onChange={(value: any) => handleSelectChange("blood_group", value)}
+                    />
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">Date of Joining</label>
+                    <div className="input-icon position-relative">
+                      <DatePicker
+                        className={`form-control datetimepicker${fieldErrors.includes("date_of_joining") ? " is-invalid" : ""}`}
+                        format={{ format: "DD-MM-YYYY", type: "mask" }}
+                        value={formData.date_of_joining ? dayjs(formData.date_of_joining) : null}
+                        onChange={date => handleDateChange("date_of_joining", date ? date.format("YYYY-MM-DD") : "")}
+                        placeholder="Select Date"
+                      />
+                      <span className="input-icon-addon">
+                        <i className="ti ti-calendar" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">Father’s Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="father_name"
+                      value={formData.father_name || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">Mother’s Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="mother_name"
+                      value={formData.mother_name || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-xxl col-xl-3 col-md-6">
+                  <div className="mb-3">
+                    <label className="form-label">Date of Birth</label>
+                    <div className="input-icon position-relative">
+                      <DatePicker
+                        className={`form-control datetimepicker${fieldErrors.includes("date_of_birth") ? " is-invalid" : ""}`}
+                        format={{ format: "DD-MM-YYYY", type: "mask" }}
+                        value={formData.date_of_birth ? dayjs(formData.date_of_birth) : null}
+                        onChange={date => handleDateChange("date_of_birth", date ? date.format("YYYY-MM-DD") : "")}
+                        placeholder="Select Date"
+                      />
+                      <span className="input-icon-addon">
+                        <i className="ti ti-calendar" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
                         <div className="col-xxl col-xl-3 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Marital Status</label>
@@ -936,12 +1036,12 @@ const TeacherForm = () => {
                 </>
 
                 <div className="text-end">
-                  <button type="button" className="btn btn-light me-3">
+                  <button type="button" className="btn btn-light me-3" disabled={loading}>
                     Cancel
                   </button>
-                  <Link to={routes.teacherList} className="btn btn-primary">
-                    Add Teacher
-                  </Link>
+                  <button type="submit" className="btn btn-primary" disabled={loading}>
+                    {isEdit ? "Update Teacher" : "Add Teacher"}
+                  </button>
                 </div>
               </form>
             </div>
