@@ -1,49 +1,43 @@
 import React, { useEffect, useState } from "react";
-import Link from "antd/es/typography/Link";
 import { buildImageUrl } from "./buildImageUrl";
+import { Link } from "react-router-dom";
 
-interface FileUploaderProps {
+type FileUploaderProps = {
+  file: File | string | null;
   fileTypes?: string;
-  previewType?: "image" | "both";
+  previewType?: "image";
   onFileChange: (file: File | null) => void;
-  file: File | null;
-  imageUrl?: string; // ✅ for existing uploaded image path
-}
+};
 
 const FileUploader: React.FC<FileUploaderProps> = ({
-  fileTypes = "image/*",
+  file,
+  fileTypes,
   previewType = "image",
   onFileChange,
-  file,
-  imageUrl,
 }) => {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
 
   useEffect(() => {
-    // ✅ If a new file is selected locally
-    if (file) {
-      const objectUrl = URL.createObjectURL(file);
-      setPreviewUrl(objectUrl);
+    if (!file) {
+      setPreviewUrl("");
+      return;
+    }
+
+    if (typeof file === "string") {
+      setPreviewUrl(buildImageUrl(file));
+    } else {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
 
       return () => {
-        URL.revokeObjectURL(objectUrl); // Clean up blob url
+        URL.revokeObjectURL(url);
       };
     }
-
-    // ✅ If coming from API (stored image)
-    if (imageUrl) {
-      const fullUrl = buildImageUrl(imageUrl);
-      setPreviewUrl(fullUrl);
-    } else {
-      setPreviewUrl(null);
-    }
-  }, [file, imageUrl]);
-
-  const isImage = file?.type?.startsWith("image/");
+  }, [file]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0] || null;
-    onFileChange(selected);
+    const selectedFile = e.target.files?.[0] || null;
+    onFileChange(selectedFile);
   };
 
   const handleRemove = () => {
@@ -51,54 +45,47 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   };
 
   return (
-    <div className="d-flex align-items-center">
-      {/* Preview Box */}
-      <div
-        className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames"
-        style={{ borderRadius: "8px", width: "80px", height: "80px" }}
-      >
-        {previewUrl ? (
-          <img
-            src={previewUrl}
-            alt="preview"
+    <div className="profile-upload">
+      <div className="profile-uploader d-flex align-items-center">
+        <div className="drag-upload-btn mb-3 position-relative">
+          Upload
+          <input
+            type="file"
+            className="form-control image-sign"
+            accept={fileTypes || "image/*"}
+            onChange={handleChange}
             style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              opacity: 0,
               width: "100%",
               height: "100%",
-              objectFit: "cover",
-              borderRadius: "8px",
+              cursor: "pointer",
             }}
           />
-        ) : (
-          <i className="ti ti-photo-plus fs-16" />
-        )}
-      </div>
-
-      {/* Upload + Remove */}
-      <div className="profile-upload">
-        <div className="profile-uploader d-flex align-items-center">
-          <div className="drag-upload-btn mb-2">
-            Upload
-            <input
-              type="file"
-              className="form-control image-sign"
-              accept={fileTypes}
-              onChange={handleChange}
-            />
-          </div>
-
-          <Link className="btn btn-primary mb-2 ms-2" onClick={handleRemove}>
-            Remove
-          </Link>
         </div>
-
-        {file && previewType === "both" && !isImage && (
-          <p className="text-muted fs-12 mt-1">{file.name}</p>
-        )}
-
-        <p className="fs-12 text-sm text-gray-500 mb-0">
-          Max 4MB. Allowed: JPG, PNG{fileTypes.includes("pdf") && ", PDF"}
-        </p>
+        <Link
+          to="#"
+          className="btn btn-primary mb-3"
+          onClick={handleRemove}
+        >
+          Remove
+        </Link>
       </div>
+
+      {previewType === "image" && previewUrl && (
+        <img
+          src={previewUrl}
+          alt="preview"
+          className="img-thumbnail mb-2"
+          style={{ maxWidth: "200px", height: "auto" }}
+        />
+      )}
+
+      <p className="fs-12">
+        Upload image size 4MB, Format JPG, PNG, SVG
+      </p>
     </div>
   );
 };
