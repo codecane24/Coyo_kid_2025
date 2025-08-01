@@ -284,7 +284,6 @@ class StudentController extends Controller
                 }
                 $studentRules = [
                     'academic_year' => ['nullable', 'string', 'max:50'],
-                    'admission_no' => ['required', 'string', 'max:50', 'unique:students,admission_no,' . $id],
                     'roll_no' => ['nullable', 'string', 'max:50'],
                     'admission_date' => ['required', 'date'],
                 // 'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])], // Assuming numeric status codes
