@@ -360,8 +360,9 @@ export const religion = [
   { value: "Irreligion", label: "Irreligion" },
 ];
 export const cast = [
-  { value: "BC", label: "BC" },
-  { value: "OC", label: "OC" },
+  { value: "open", label: "open" },
+  { value: "obc", label: "Obc" },
+  { value: "St/Sc", label: "St/Sc" },
 ];
 export const mothertongue = [
   { value: "English", label: "English" },
@@ -435,8 +436,10 @@ export const allSection = [
   { value: "B", label: "B" },
 ];
 export const Class = [
-  { value: "A", label: "A" },
-  { value: "B", label: "B" },
+  { value: "1", label: "1" },
+  { value: "2", label: "2" },
+    { value: "3", label: "3" },
+      { value: "4", label: "4" },
 ];
 export const suitableBatch = [
   { value: "morning", label: "morning" },

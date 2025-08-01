@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "antd/es/typography/Link";
 import { buildImageUrl } from "./buildImageUrl";
+
 interface FileUploaderProps {
   fileTypes?: string;
   previewType?: "image" | "both";
@@ -16,14 +17,25 @@ const FileUploader: React.FC<FileUploaderProps> = ({
   file,
   imageUrl,
 }) => {
-  const isImage = file?.type?.startsWith("image/");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // ✅ show preview: either new file blob or full image URL
-  const showImage = file
-    ? URL.createObjectURL(file)
-    : imageUrl
-    ? buildImageUrl(imageUrl)
-    : null;
+  // ✅ Update preview when file or imageUrl changes
+  useEffect(() => {
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+
+      return () => {
+        URL.revokeObjectURL(objectUrl); // clean up
+      };
+    } else if (imageUrl) {
+      setPreviewUrl(buildImageUrl(imageUrl));
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [file, imageUrl]);
+
+  const isImage = file?.type?.startsWith("image/");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
@@ -41,9 +53,9 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames"
         style={{ borderRadius: "8px", width: "80px", height: "80px" }}
       >
-        {showImage ? (
+        {previewUrl ? (
           <img
-            src={showImage}
+            src={previewUrl}
             alt="preview"
             style={{
               width: "100%",

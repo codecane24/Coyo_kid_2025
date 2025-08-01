@@ -163,24 +163,26 @@ return (
       <div className="row row-cols-xxl-5 row-cols-md-6">
         {[
           { label: "Academic Year", type: "select", key: "academicYear", options: academicYear },
-          { label: "Admission Number", type: "text", key: "admissionNo" },
+          // { label: "Admission Number", type: "text", key: "admissionNo" },
           { label: "Admission Date", type: "date", key: "admissionDate" },
           { label: "Roll Number", type: "text", key: "rollNo" },
-          { label: "Status", type: "select", key: "status", options: status },
+          // { label: "Status", type: "select", key: "status", options: status },
           { label: "First Name", type: "text", key: "firstName" },
           { label: "Middle Name", type: "text", key: "middleName" },
           { label: "Last Name", type: "text", key: "lastName" },
+                    { label: "Email Address", type: "text", key: "email" },
           { label: "Class", type: "select", key: "class", options: Class },
-          { label: "Section", type: "select", key: "section", options: allSection },
+          // { label: "Section", type: "select", key: "section", options: allSection },
           { label: "Gender", type: "select", key: "gender", options: gender },
           { label: "Date of Birth", type: "date", key: "dob" },
           { label: "Blood Group", type: "select", key: "bloodGroup", options: bloodGroup },
           { label: "House", type: "select", key: "house", options: house },
           { label: "Religion", type: "select", key: "religion", options: religion },
+           { label: "Caste", type: "text", key: "caste" },
           { label: "Category", type: "select", key: "category", options: cast },
           { label: "Primary Contact Number", type: "text", key: "primaryContact" },
-          { label: "Email Address", type: "text", key: "email" },
-          { label: "Caste", type: "text", key: "caste" },
+
+         
           { label: "Suitable Batch", type: "select", key: "suitableBatch", options: mothertongue },
         ].map((field, idx) => (
           <div className="col-xxl col-xl-3 col-md-6" key={idx}>
