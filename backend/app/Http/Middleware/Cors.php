@@ -25,7 +25,7 @@ class Cors
 
         // Check if the request's origin is allowed
         $corsOrigin = in_array($origin, $allowedOrigins) ? $origin : null;
-
+        
         // Build the response
         $response = $next($request);
 

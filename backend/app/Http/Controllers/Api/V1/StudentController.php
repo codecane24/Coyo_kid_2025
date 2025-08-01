@@ -73,10 +73,10 @@ class StudentController extends Controller
             'data' => [
                 'step_1' => [
                     'academic_year' => $student->academic_year,
-                    'admission_no' => $student->admission_no,
                     'roll_no' => $student->roll_no,
                     'admission_date' => $student->doj,
                     'first_name' => $student->first_name,
+                    'middle_name' => $student->middle_name,
                     'last_name' => $student->last_name,
                     'class_id' => $student->class_id,
                     'gender' => $student->gender,
@@ -161,12 +161,12 @@ class StudentController extends Controller
         // Validation rules for Step 1
         $studentRules = [
             'academic_year' => ['nullable', 'string', 'max:50'],
-            'admission_no' => ['required', 'string', 'max:50', 'unique:students,admission_no'],
             'roll_no' => ['nullable', 'string', 'max:50'],
             'admission_date' => ['required', 'date'],
            // 'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])], // Assuming numeric status codes
             'first_name' => ['required', 'string', 'max:50'],
-            'last_name' => ['required', 'string', 'max:50'],
+            'middle_name' => ['nullable', 'string', 'max:50'],
+            'last_name' => ['nullable', 'string', 'max:50'],
             'class_id' => ['nullable', 'max:50'], // Changed to string, adjust if it's an ID
            // 'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
@@ -211,6 +211,7 @@ class StudentController extends Controller
             $student->roll_no = $request->roll_no;
             $student->status = 2; // Set to incomplete for multi-step registration
             $student->first_name = $request->first_name;
+            $student->middle_name = $request->middle_name;
             $student->last_name = $request->last_name;
             $student->class_id = $request->class_id;
             $student->gender = $request->gender;
@@ -283,12 +284,12 @@ class StudentController extends Controller
                 }
                 $studentRules = [
                     'academic_year' => ['nullable', 'string', 'max:50'],
-                    'admission_no' => ['required', 'string', 'max:50', 'unique:students,admission_no,' . $id],
                     'roll_no' => ['nullable', 'string', 'max:50'],
                     'admission_date' => ['required', 'date'],
                 // 'status' => ['required', Rule::in([0, 1, 2, 3, 4, 5])], // Assuming numeric status codes
                     'first_name' => ['required', 'string', 'max:50'],
-                    'last_name' => ['required', 'string', 'max:50'],
+                    'middle_name' => ['nullable', 'string', 'max:50'],
+                    'last_name' => ['nullable', 'string', 'max:50'],
                     'class_id' => ['nullable', 'max:50'], // Changed to string, adjust if it's an ID
                 // 'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
                     'gender' => ['required', Rule::in(['male', 'female', 'other'])],
@@ -325,6 +326,7 @@ class StudentController extends Controller
                 $student->roll_no = $request->roll_no;
                 $student->status = 2; // Set to incomplete for multi-step registration
                 $student->first_name = $request->first_name;
+                $student->middle_name = $request->middle_name;
                 $student->last_name = $request->last_name;
                 $student->class_id = $request->class_id;
                 $student->gender = $request->gender;
