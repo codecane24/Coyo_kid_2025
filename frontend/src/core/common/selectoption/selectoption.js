@@ -1276,12 +1276,13 @@ export const studentsnumber = [
 //=== By Vikram==
 
 
-// Returns a promise for formatted class options: { value, label }
+
+// Returns a promise for formatted subject options: { value, label }
 export async function getSubject() {
   try {
-    const classes = await getSubjectList();
-    return Array.isArray(classes)
-      ? classes.map(data => ({
+    const subjects = await getSubjectList();
+    return Array.isArray(subjects)
+      ? subjects.map(data => ({
           value: data.id,
           label: `${data.name}`
         }))
@@ -1290,3 +1291,10 @@ export async function getSubject() {
     return [];
   }
 }
+
+// Utility for Ant Design Select multiple mode
+export const antSelectMultipleProps = {
+  mode: 'multiple',
+  allowClear: true,
+  placeholder: 'Select subjects',
+};

@@ -72,6 +72,7 @@ class StudentController extends Controller
             'message' => 'Student data retrieved successfully',
             'data' => [
                 'step_1' => [
+                    'code' => $student->code,
                     'academic_year' => $student->academic_year,
                     'roll_no' => $student->roll_no,
                     'admission_date' => $student->doj,
