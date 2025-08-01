@@ -40,6 +40,7 @@ import { FinancialInfoType } from "./FinancialDetailsForm";
 import { createStudent, getStudentById, updateStudent } from "../../../../services/StudentData";
 import { ParentInfo } from "./ParentsGuardianForm";
 import qs from "qs"; 
+import { getAllId } from "../../../../services/GetAllId";
 type ClassItem = {
   id: string;
   name: string; 
@@ -75,6 +76,7 @@ export type PersonalInfoType = {
 
 
 const AddStudent = () => {
+
   const routes = all_routes;
 const { id } = useParams();
 const isEditMode = Boolean(id);
@@ -745,6 +747,9 @@ else if (currentStep === 5) {
 
 }
 
+
+
+
 const [studentData, setStudentData] = useState<any>(null);
 const { id: routeStudentId } = useParams();
 
@@ -783,7 +788,7 @@ useEffect(() => {
       academicYear: s.academic_year || "",
       admissionNo: s.admission_no || "",
       admissionDate: s.admission_date || "",
-      rollNo: s.roll_number || "",
+      rollNo: s.roll_no || "",
       status: s.status || "",
       firstName: s.first_name || "",
       middleName: s.middle_name || "",
@@ -903,6 +908,19 @@ useEffect(() => {
     );
   }
 }, [isEditMode, studentData]);
+const [serialId, setSerialId] = useState<string>("");
+
+const StudentEditCode = studentData?.data?.step_1?.code || null;
+
+useEffect(() => {
+  const loadId = async () => {
+    const id = await getAllId("student", StudentEditCode);
+    console.log(id)
+    setSerialId(id); // ✅ This is correct
+  };
+
+  loadId();
+}, [studentData]);
 
 
   return (
@@ -920,18 +938,26 @@ useEffect(() => {
 <div className="d-flex align-items-center mb-2">
 <h3 className="mb-0 me-2">{isEditingMode ? 'Edit' : 'Add'} Student</h3>
 
-  <div
-    className="px-2 py-1"
-    style={{
-      fontSize: "0.75rem",
-      color: "#333", // dark gray for better readability
-      backgroundColor: "#E6F0FA", // very light bluish
-      borderRadius: "6px",
-      width: "fit-content",
-    }}
-  >
-    : 123
-  </div>
+    <div
+      className="px-2 py-1"
+      style={{
+        fontSize: "0.75rem",
+        color: "#333",
+        backgroundColor: "#E6F0FA",
+        borderRadius: "6px",
+        width: "fit-content",
+      }}
+    >
+<div>
+{serialId? (
+  <p>Student Code: {serialId}</p>
+) : (
+  <p>Loading...</p>
+)}
+
+</div>
+
+    </div>
 </div>
 
               <nav>
