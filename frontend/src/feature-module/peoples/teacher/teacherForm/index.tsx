@@ -25,6 +25,7 @@ import {
 } from "../../../../core/common/selectoption/selectoption";
 import { TagsInput } from "react-tag-input-component";
 import CommonSelect from "../../../../core/common/commonSelect";
+import CommonSelectMulti from "../../../../core/common/commonSelectMulti";
 import { useLocation } from "react-router-dom";
 import { requiredFields, getMissingFields } from "./teacherFormValidation";
 import { getClassesList } from "../../../../services/ClassData";
@@ -141,8 +142,9 @@ const TeacherForm = () => {
         await createTeacher(formData);
         toast.success("Teacher added successfully");
       }
-    } catch (error) {
-      toast.error("Failed to submit teacher data");
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.message || error?.message || "Failed to submit teacher data";
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -269,11 +271,12 @@ const TeacherForm = () => {
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
                     <label className="form-label">Subject</label>
-                    <CommonSelect
+                    <CommonSelectMulti
                       className={`select${fieldErrors.includes("subject") ? " is-invalid" : ""}`}
                       options={subjectOptions}
-                      value={formData.subject || ""}
+                      value={formData.subject || []}
                       onChange={(value: any) => handleSelectChange("subject", value)}
+                      placeholder="Select subjects"
                     />
                   </div>
                 </div>
