@@ -160,7 +160,7 @@ class TeacherController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'code' => 'required|string|unique:teachers,code|max:50',
+            //'code' => 'nullable|string|unique:teachers,code|max:50',
             'first_name' => 'required|string|max:50',
             'last_name' => 'nullable|string|max:50',
             'class_id' => 'nullable|integer|exists:classes,id',
@@ -210,7 +210,6 @@ class TeacherController extends Controller
             'twitter_url' => 'nullable|url|max:255',
             'resume_file' => 'nullable|file|mimes:pdf|max:4096',
             'joining_letter_file' => 'nullable|file|mimes:pdf|max:4096',
-           
         ]);
 
         if ($validator->fails()) {
