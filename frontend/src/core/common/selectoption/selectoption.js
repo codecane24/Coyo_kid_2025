@@ -1,4 +1,4 @@
-
+import { getSubjectList } from "../../../services/SubjectData";
 
 export const options1 = [
   { value: 'Select a View', label: 'Select a View' },
@@ -1272,3 +1272,21 @@ export const studentsnumber = [
   { value: "35", label: "35" },
   { value: "40", label: "40" },
 ]
+
+//=== By Vikram==
+
+
+// Returns a promise for formatted class options: { value, label }
+export async function getSubject() {
+  try {
+    const classes = await getSubjectList();
+    return Array.isArray(classes)
+      ? classes.map(data => ({
+          value: data.id,
+          label: `${data.name}`
+        }))
+      : [];
+  } catch (error) {
+    return [];
+  }
+}

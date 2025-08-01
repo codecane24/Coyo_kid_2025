@@ -1,6 +1,4 @@
 import React from "react";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 import ReactDOM from "react-dom/client";
@@ -23,6 +21,9 @@ import "../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 import { AuthProvider } from "./context/AuthContext";
 import { AdmissionFormProvider } from "./context/AdmissionFormContext";
 import { AppProviders } from "./context/AppProviders";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
@@ -32,7 +33,7 @@ root.render(
       <BrowserRouter basename={base_path}>
         <AppProviders>
           <ALLRoutes />
-          <ToastContainer />
+          <ToastContainer position="top-right" autoClose={3000} />
         </AppProviders>
       </BrowserRouter>
     </Provider>
