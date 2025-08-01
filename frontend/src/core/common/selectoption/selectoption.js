@@ -360,9 +360,10 @@ export const religion = [
   { value: "Irreligion", label: "Irreligion" },
 ];
 export const cast = [
-  { value: "open", label: "open" },
-  { value: "obc", label: "Obc" },
-  { value: "St/Sc", label: "St/Sc" },
+  { value: "General", label: "General" },
+  { value: "OBC", label: "OBC" },
+  { value: "Sc", label: "Sc" },
+    { value: "St", label: "St" },
 ];
 export const mothertongue = [
   { value: "English", label: "English" },
