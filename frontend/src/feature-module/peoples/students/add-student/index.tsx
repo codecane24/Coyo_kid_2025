@@ -827,57 +827,80 @@ if (s.profile_image) {
   }
 }, [isEditingMode, studentData]);
 
-
 useEffect(() => {
-    console.log("studentData:", studentData);
-  if (isEditMode && studentData?.step_2) {
-    const step2 = studentData.step_2;
+  const loadImageAsFile = async (url: string) => {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const filename = url.split("/").pop() || "image.jpg";
+    return new File([blob], filename, { type: blob.type });
+  };
 
-    setParentInfo((prev) => ({
-      ...prev,
-      fatherName: step2.father?.name || "",
-      fatherPhone: step2.father?.phone || "",
-      fatherAadhar: step2.father?.aadhar || "",
-      fatherOccupation: step2.father?.occupation || "",
-      fatherEmail: step2.father?.email || "",
-      fatherProfileImage: step2.father?.profile_image || null,
-      fatherAadharImage: step2.father?.aadhar_image || null,
+  if (!isEditMode || !studentData?.data?.step_2) return;
 
-      motherName: step2.mother?.name || "",
-      motherPhone: step2.mother?.phone || "",
-      motherAadhar: step2.mother?.aadhar || "",
-      motherOccupation: step2.mother?.occupation || "",
-      motherEmail: step2.mother?.email || "",
-      motherProfileImage: step2.mother?.profile_image || null,
-      motherAadharImage: step2.mother?.aadhar_image || null,
+  const { father, mother, guardians, sibling_same_school, sibling_student_ids } = studentData.data.step_2;
 
-      siblingSameSchool: step2.sibling_same_school || "",
-      siblingStudentIds: step2.sibling_student_ids?.length
-        ? step2.sibling_student_ids
-        : [""],
+  const updatedParentInfo = {
+    fatherName: father?.name || "",
+    fatherPhone: father?.phone || "",
+    fatherEmail: father?.email || "",
+    fatherAadhar: father?.aadhar || "",
+    fatherQualification: father?.qualiffication || "",
+    fatherOccupation: father?.occupation || "",
+    fatherItrNo: father?.itr_no || "",
+    fatherProfileImage: null,
+    fatherAadharImage: null,
 
-      guardians: step2.guardians?.length
-        ? step2.guardians.map((g: any) => ({
-            name: g.name || "",
-            phone: g.phone || "",
-            aadhar: g.aadhar || "",
-            occupation: g.occupation || "",
-            relation: g.relation || "",
-            profileImage: g.profile_image || null,
-            aadharImage: g.aadhar_image || null,
-          }))
-        : [
-            {
-              name: "",
-              phone: "",
-              aadhar: "",
-              occupation: "",
-              relation: "",
-              profileImage: null,
-              aadharImage: null,
-            },
-          ],
-    }));
+    motherName: mother?.name || "",
+    motherPhone: mother?.phone || "",
+    motherEmail: mother?.email || "",
+    motherAadhar: mother?.aadhar || "",
+    motherQualification: mother?.qualiffication || "",
+    motherOccupation: mother?.occupation || "",
+    motherItrNo: mother?.itr_no || "",
+    motherProfileImage: null,
+    motherAadharImage: null,
+
+    siblingSameSchool: sibling_same_school || "",
+    siblingStudentIds: sibling_student_ids?.filter(Boolean) || [""],
+
+    guardians: guardians?.length
+      ? guardians.map((g: any) => ({
+          name: g.name || "",
+          phone: g.phone || "",
+          aadhar: g.aadhar || "",
+          occupation: g.occupation || "",
+          relation: g.relation || "",
+          profileImage: null,
+          aadharImage: null,
+        }))
+      : [
+          {
+            name: "",
+            phone: "",
+            aadhar: "",
+            occupation: "",
+            relation: "",
+            profileImage: null,
+            aadharImage: null,
+          },
+        ],
+  };
+
+  setParentInfo(updatedParentInfo);
+
+  // Load images
+  if (father?.image) {
+    const imageUrl = `${process.env.REACT_APP_BASE_URL}/${father.image}`;
+    loadImageAsFile(imageUrl).then((file) =>
+      setParentInfo((prev) => ({ ...prev, fatherProfileImage: file }))
+    );
+  }
+
+  if (mother?.image) {
+    const imageUrl = `${process.env.REACT_APP_BASE_URL}/${mother.image}`;
+    loadImageAsFile(imageUrl).then((file) =>
+      setParentInfo((prev) => ({ ...prev, motherProfileImage: file }))
+    );
   }
 }, [isEditMode, studentData]);
 
