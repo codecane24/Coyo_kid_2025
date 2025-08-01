@@ -147,23 +147,26 @@ return (
       <div className="row">
         <div className="col-md-12">
 <FileUploader
-file={
-  typeof personalInfo.profileImage === "string"
-    ? buildImageUrl(personalInfo.profileImage)
-    : personalInfo.profileImage  // this is a File only when uploading
-}
-
+  file={
+    typeof personalInfo.profileImage === "string"
+      ? null // No file in edit mode
+      : personalInfo.profileImage // File or null for uploads
+  }
+  imageUrl={
+    typeof personalInfo.profileImage === "string"
+      ? personalInfo.profileImage // API path in edit mode
+      : undefined
+  }
   fileTypes="image/*"
   previewType="image"
   onFileChange={(file) => {
     setPersonalInfo((prev: PersonalInfoType) => ({
       ...prev,
-      profileImage: file, // save File object until upload
+      profileImage: file, // Save File or null
     }));
-    setFiles(file ? [file] : []);
+    setFiles(file ? [file] : []); // Update files for upload
   }}
 />
-
 
 
 
