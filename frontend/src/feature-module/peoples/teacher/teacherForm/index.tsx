@@ -129,6 +129,15 @@ const TeacherForm = () => {
     if (missingFields.length > 0) {
       setFieldErrors(missingFields);
       toast.error(`Please fill all compulsory fields: ${missingFields.join(", ")}`);
+      // Focus the first error field
+      setTimeout(() => {
+        const firstError = missingFields[0];
+        // Try input, textarea, and select
+        const el = document.querySelector(`[name='${firstError}']`);
+        if (el && typeof (el as HTMLElement).focus === "function") {
+          (el as HTMLElement).focus();
+        }
+      }, 100);
       return;
     } else {
       setFieldErrors([]);
@@ -136,10 +145,13 @@ const TeacherForm = () => {
     setLoading(true);
     try {
       if (isEdit) {
-        await updateTeacher(formData.id, formData);
+         const res = await updateTeacher(formData.id, formData);
+  
         toast.success("Teacher updated successfully");
       } else {
-        await createTeacher(formData);
+        
+        const res = await createTeacher(formData);
+        console.log("Submitting form data:", res);
         toast.success("Teacher added successfully");
       }
     } catch (error: any) {
