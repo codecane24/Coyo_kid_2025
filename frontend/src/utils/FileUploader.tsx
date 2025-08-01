@@ -19,17 +19,21 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // ✅ Update preview when file or imageUrl changes
   useEffect(() => {
+    // ✅ If a new file is selected locally
     if (file) {
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
 
       return () => {
-        URL.revokeObjectURL(objectUrl); // clean up
+        URL.revokeObjectURL(objectUrl); // Clean up blob url
       };
-    } else if (imageUrl) {
-      setPreviewUrl(buildImageUrl(imageUrl));
+    }
+
+    // ✅ If coming from API (stored image)
+    if (imageUrl) {
+      const fullUrl = buildImageUrl(imageUrl);
+      setPreviewUrl(fullUrl);
     } else {
       setPreviewUrl(null);
     }

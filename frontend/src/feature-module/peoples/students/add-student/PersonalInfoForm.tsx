@@ -145,18 +145,23 @@ return (
     <div className="card-body pb-1">
       <div className="row">
         <div className="col-md-12">
-          <FileUploader
-            file={personalInfo.profileImage}
-            fileTypes="image/*"
-            previewType="image"
-            onFileChange={(file) => {
-              setPersonalInfo((prev: PersonalInfoType) => ({
-                ...prev,
-                profileImage: file,
-              }));
-              setFiles(file ? [file] : []);
-            }}
-          />
+<FileUploader
+  file={personalInfo.profileImage instanceof File ? personalInfo.profileImage : null}
+  imageUrl={
+    typeof personalInfo.profileImage === "string"
+      ? personalInfo.profileImage
+      : undefined
+  }
+  fileTypes="image/*"
+  previewType="image"
+  onFileChange={(file) => {
+    setPersonalInfo((prev: PersonalInfoType) => ({
+      ...prev,
+      profileImage: file,
+    }));
+  }}
+/>
+
         </div>
       </div>
 
