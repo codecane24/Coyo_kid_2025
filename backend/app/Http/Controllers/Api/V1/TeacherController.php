@@ -172,7 +172,7 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        return $request;
+       
         $validator = Validator::make($request->all(), [
             //'code' => 'nullable|string|unique:teachers,code|max:50',
             'first_name' => 'required|string|max:50',
