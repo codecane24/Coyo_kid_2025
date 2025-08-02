@@ -44,26 +44,18 @@ const TeacherForm = () => {
   const [loading, setLoading] = useState(false);
   const [classOptions, setClassOptions] = useState<any[]>([]);
   const [subjectOptions, setSubjectOptions] = useState<any[]>([]);
+  // File upload states
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [joiningLetterFile, setJoiningLetterFile] = useState<File | null>(null);
   const location = useLocation();
 
-  useEffect(() => {
-    if (location.pathname === routes.editTeacher) {
-      setIsEdit(true);
-      // You may want to fetch teacher data here and setFormData
-    } else {
-      setIsEdit(false);
-      setFormData({});
-    }
-  }, [location.pathname]);
-
-  // Fetch class list for dropdown
   useEffect(() => {
     async function fetchClasses() {
       try {
         const classes = await getClassesList();
         const formatted = Array.isArray(classes)
           ? classes.map((cls: any) => ({
-              label: `${cls.name}${cls.section ? ` (${cls.section})` : ''}`,
+              label: cls.name,
               value: cls.id
             }))
           : [];
@@ -143,15 +135,47 @@ const TeacherForm = () => {
       setFieldErrors([]);
     }
     setLoading(true);
+    // Transform select fields to submit only their values
+    const transformedData = { ...formData };
+    // For multi-select subject
+    if (Array.isArray(transformedData.subject)) {
+      transformedData.subject = transformedData.subject.map((opt: any) => opt.value);
+    }
+    // For single-select fields (example: class, gender, blood_group, status)
+    ["class", "gender", "blood_group", "status"].forEach(field => {
+      if (transformedData[field] && typeof transformedData[field] === "object" && "value" in transformedData[field]) {
+        transformedData[field] = transformedData[field].value;
+      }
+    });
+    // Prepare FormData for file upload
+    const formPayload = new FormData();
+    // Append all transformed fields
+    Object.entries(transformedData).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        // For arrays, append each value as string
+        value.forEach((v, idx) => {
+          formPayload.append(`${key}[${idx}]`, typeof v === 'object' ? JSON.stringify(v) : String(v));
+        });
+      } else if (value instanceof Blob) {
+        formPayload.append(key, value);
+      } else {
+        formPayload.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
+      }
+    });
+    // Append files if present
+    if (resumeFile) {
+      formPayload.append("resume", resumeFile);
+    }
+    if (joiningLetterFile) {
+      formPayload.append("joining_letter", joiningLetterFile);
+    }
     try {
       if (isEdit) {
-         const res = await updateTeacher(formData.id, formData);
-  
+        const res = await updateTeacher(transformedData.id, formPayload);
         toast.success("Teacher updated successfully");
       } else {
-        
-        const res = await createTeacher(formData);
-        console.log("Submitting form data:", res);
+        const res = await createTeacher(formPayload);
+        console.log("Submitting form data:", transformedData);
         toast.success("Teacher added successfully");
       }
     } catch (error: any) {
@@ -204,38 +228,105 @@ const TeacherForm = () => {
                     <div className="card-body pb-1">
                       <div className="row">
                         <div className="col-md-12">
-                          <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
-                            <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
-                              <i className="ti ti-photo-plus fs-16" />
-                            </div>
-                            <div className="profile-upload">
-                              <div className="profile-uploader d-flex align-items-center">
-                                <div className="drag-upload-btn mb-3">
-                                  Upload
-                                  <input
-                                    type="file"
-                                    className="form-control image-sign"
-                                    multiple
-                                  />
-                                </div>
-                                <Link
-                                  to="#"
-                                  className="btn btn-primary mb-3"
-                                >
-                                  Remove
-                                </Link>
-                              </div>
-                              <p className="fs-12">
-                                Upload image size 4MB, Format JPG, PNG, SVG
-                              </p>
-                            </div>
+                <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
+                  <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
+                    <i className="ti ti-photo-plus fs-16" />
+                  </div>
+                  <div className="profile-upload">
+                    <div className="profile-uploader d-flex align-items-center">
+                      <div className="drag-upload-btn mb-3">
+                        Upload Resume
+                        <input
+                          type="file"
+                          className="form-control image-sign"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={e => {
+                            if (e.target.files && e.target.files[0]) {
+                              setResumeFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                        {/* Preview for selected resume file */}
+                        {resumeFile && (
+                          <div className="mt-2">
+                            <span className="fs-12 text-success">Resume: {resumeFile.name}</span>
+                            {resumeFile.type.startsWith('image/') ? (
+                              <img src={URL.createObjectURL(resumeFile)} alt="Resume Preview" style={{maxWidth:100, maxHeight:100, display:'block', marginTop:4}} />
+                            ) : (
+                              <span className="fs-12">(PDF or other file)</span>
+                            )}
                           </div>
+                        )}
+                        {/* Preview for edit mode: existing resume file */}
+                        {!resumeFile && isEdit && formData.resume_url && (
+                          <div className="mt-2">
+                            <span className="fs-12 text-info">Current Resume:</span>
+                            {formData.resume_url.match(/\.(jpg|jpeg|png)$/i) ? (
+                              <img src={formData.resume_url} alt="Resume Preview" style={{maxWidth:100, maxHeight:100, display:'block', marginTop:4}} />
+                            ) : (
+                              <a href={formData.resume_url} target="_blank" rel="noopener noreferrer">View Resume</a>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="drag-upload-btn mb-3 ms-2">
+                        Upload Joining Letter
+                        <input
+                          type="file"
+                          className="form-control image-sign"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={e => {
+                            if (e.target.files && e.target.files[0]) {
+                              setJoiningLetterFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                        {/* Preview for selected joining letter file */}
+                        {joiningLetterFile && (
+                          <div className="mt-2">
+                            <span className="fs-12 text-success">Joining Letter: {joiningLetterFile.name}</span>
+                            {joiningLetterFile.type.startsWith('image/') ? (
+                              <img src={URL.createObjectURL(joiningLetterFile)} alt="Joining Letter Preview" style={{maxWidth:100, maxHeight:100, display:'block', marginTop:4}} />
+                            ) : (
+                              <span className="fs-12">(PDF or other file)</span>
+                            )}
+                          </div>
+                        )}
+                        {/* Preview for edit mode: existing joining letter file */}
+                        {!joiningLetterFile && isEdit && formData.joining_letter_url && (
+                          <div className="mt-2">
+                            <span className="fs-12 text-info">Current Joining Letter:</span>
+                            {formData.joining_letter_url.match(/\.(jpg|jpeg|png)$/i) ? (
+                              <img src={formData.joining_letter_url} alt="Joining Letter Preview" style={{maxWidth:100, maxHeight:100, display:'block', marginTop:4}} />
+                            ) : (
+                              <a href={formData.joining_letter_url} target="_blank" rel="noopener noreferrer">View Joining Letter</a>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <Link
+                        to="#"
+                        className="btn btn-primary mb-3 ms-2"
+                        onClick={e => {
+                          e.preventDefault();
+                          setResumeFile(null);
+                          setJoiningLetterFile(null);
+                        }}
+                      >
+                        Remove All
+                      </Link>
+                    </div>
+                    <p className="fs-12">
+                      Upload image size 4MB, Format JPG, PNG, PDF
+                    </p>
+                  </div>
+                </div>
                         </div>
                       </div>
                       <div className="row row-cols-xxl-5 row-cols-md-6">
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Teacher ID</label>
+                    <label className="form-label">Teacher ID <span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className={`form-control${fieldErrors.includes("id") ? " is-invalid" : ""}`}
@@ -247,7 +338,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">First Name</label>
+                    <label className="form-label">First Name <span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className={`form-control${fieldErrors.includes("first_name") ? " is-invalid" : ""}`}
@@ -259,7 +350,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Last Name</label>
+                    <label className="form-label">Last Name <span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className={`form-control${fieldErrors.includes("last_name") ? " is-invalid" : ""}`}
@@ -271,7 +362,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Class</label>
+                    <label className="form-label">Class <span className="text-danger ms-1">*</span></label>
                     <CommonSelect
                       className={`select${fieldErrors.includes("class") ? " is-invalid" : ""}`}
                       options={classOptions}
@@ -282,7 +373,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Subject</label>
+                    <label className="form-label">Subject <span className="text-danger ms-1">*</span></label>
                     <CommonSelectMulti
                       className={`select${fieldErrors.includes("subject") ? " is-invalid" : ""}`}
                       options={subjectOptions}
@@ -294,7 +385,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Gender</label>
+                    <label className="form-label">Gender <span className="text-danger ms-1">*</span></label>
                     <CommonSelect
                       className={`select${fieldErrors.includes("gender") ? " is-invalid" : ""}`}
                       options={gender}
@@ -305,9 +396,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">
-                      Primary Contact Number
-                    </label>
+                    <label className="form-label">Primary Contact Number <span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className={`form-control${fieldErrors.includes("phone") ? " is-invalid" : ""}`}
@@ -319,7 +408,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Email Address</label>
+                    <label className="form-label">Email Address <span className="text-danger ms-1">*</span></label>
                     <input
                       type="email"
                       className={`form-control${fieldErrors.includes("email") ? " is-invalid" : ""}`}
@@ -331,7 +420,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Blood Group</label>
+                    <label className="form-label">Blood Group <span className="text-danger ms-1">*</span></label>
                     <CommonSelect
                       className="select"
                       options={bloodGroup}
@@ -342,7 +431,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Date of Joining</label>
+                    <label className="form-label">Date of Joining <span className="text-danger ms-1">*</span></label>
                     <div className="input-icon position-relative">
                       <DatePicker
                         className={`form-control datetimepicker${fieldErrors.includes("date_of_joining") ? " is-invalid" : ""}`}
@@ -383,7 +472,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Date of Birth</label>
+                    <label className="form-label">Date of Birth <span className="text-danger ms-1">*</span></label>
                     <div className="input-icon position-relative">
                       <DatePicker
                         className={`form-control datetimepicker${fieldErrors.includes("date_of_birth") ? " is-invalid" : ""}`}

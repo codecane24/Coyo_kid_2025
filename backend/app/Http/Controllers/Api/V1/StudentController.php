@@ -92,6 +92,8 @@ class StudentController extends Controller
                     'mother_tongue' => $student->mother_tongue,
                     'languages' => json_decode($student->languages, true),
                     'profile_image' => $student->profile_image,
+                    'father_id' => $student->father_id,
+                    'mother_id' => $student->mother_id,
                 ],
                 'step_2' => [
                     'father' => $student->father,
