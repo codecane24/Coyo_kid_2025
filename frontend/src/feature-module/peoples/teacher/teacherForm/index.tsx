@@ -493,7 +493,8 @@ const TeacherForm = () => {
                             <CommonSelect
                               className="select"
                               options={Marital}
-                              defaultValue={isEdit ? Marital[0] : undefined}
+                              value={formData.marital_status || ""}
+                              onChange={value => handleSelectChange("marital_status", value)}
                             />
                           </div>
                         </div>
@@ -501,9 +502,8 @@ const TeacherForm = () => {
                           <div className="mb-3">
                             <label className="form-label">Language Known</label>
                             <TagsInput
-                              // className="input-tags form-control"
-                              value={owner}
-                              onChange={setOwner}
+                              value={formData.language_known || []}
+                              onChange={value => setFormData((prev: any) => ({ ...prev, language_known: value }))}
                             />
                           </div>
                         </div>
@@ -513,7 +513,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "MBA" : undefined}
+                              name="qualification"
+                              value={formData.qualification || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -525,7 +527,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "2  Years" : undefined}
+                              name="work_experience"
+                              value={formData.work_experience || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -537,9 +541,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "Oxford Matriculation, USA" : undefined
-                              }
+                              name="previous_school"
+                              value={formData.previous_school || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -551,11 +555,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit
-                                  ? "1852 Barnes Avenue, Cincinnati, OH 45202"
-                                  : undefined
-                              }
+                              name="previous_school_address"
+                              value={formData.previous_school_address || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -567,9 +569,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "+1 35676 45556" : undefined
-                              }
+                              name="previous_school_phone"
+                              value={formData.previous_school_phone || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -579,11 +581,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit
-                                  ? "3495 Red Hawk Road, Buffalo Lake, MN 55314"
-                                  : undefined
-                              }
+                              name="address"
+                              value={formData.address || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -595,11 +595,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit
-                                  ? "3495 Red Hawk Road, Buffalo Lake, MN 55314"
-                                  : undefined
-                              }
+                              name="permanent_address"
+                              value={formData.permanent_address || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -611,7 +609,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "343445954908" : undefined}
+                              name="pan_number"
+                              value={formData.pan_number || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -621,7 +621,8 @@ const TeacherForm = () => {
                             <CommonSelect
                               className="select"
                               options={status}
-                              defaultValue={isEdit ? status[0] : undefined}
+                              value={formData.status || ""}
+                              onChange={value => handleSelectChange("status", value)}
                             />
                           </div>
                         </div>
@@ -630,13 +631,11 @@ const TeacherForm = () => {
                             <label className="form-label">Notes</label>
                             <textarea
                               className="form-control"
+                              name="notes"
                               placeholder="Other Information"
                               rows={4}
-                              defaultValue={
-                                isEdit
-                                  ? "Depending on the specific needs of your organization or system, additional information may be collected or tracked. Its important to ensure that any data collected complies with privacy regulations and policies to protect students sensitive information"
-                                  : undefined
-                              }
+                              value={formData.notes || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -665,7 +664,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "34234345" : undefined}
+                              name="epf_no"
+                              value={formData.epf_no || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -675,7 +676,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "150000" : undefined}
+                              name="basic_salary"
+                              value={formData.basic_salary || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -685,7 +688,8 @@ const TeacherForm = () => {
                             <CommonSelect
                               className="select"
                               options={Contract}
-                              defaultValue={isEdit ? Contract[0] : undefined}
+                              value={formData.contract_type || ""}
+                              onChange={value => handleSelectChange("contract_type", value)}
                             />
                           </div>
                         </div>
@@ -695,7 +699,8 @@ const TeacherForm = () => {
                             <CommonSelect
                               className="select"
                               options={Shift}
-                              defaultValue={isEdit ? Shift[0] : undefined}
+                              value={formData.work_shift || ""}
+                              onChange={value => handleSelectChange("work_shift", value)}
                             />
                           </div>
                         </div>
@@ -705,7 +710,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "2nd Floor" : undefined}
+                              name="work_location"
+                              value={formData.work_location || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -715,23 +722,13 @@ const TeacherForm = () => {
                               Date of Leaving
                             </label>
                             <div className="input-icon position-relative">
-                            {isEdit? <DatePicker
+                              <DatePicker
                                 className="form-control datetimepicker"
-                                format={{
-                                  format: "DD-MM-YYYY",
-                                  type: "mask",
-                                }}
-                                value={defaultDate}
+                                format={{ format: "DD-MM-YYYY", type: "mask" }}
+                                value={formData.date_of_leaving ? dayjs(formData.date_of_leaving) : null}
+                                onChange={date => handleDateChange("date_of_leaving", date ? date.format("YYYY-MM-DD") : "")}
                                 placeholder="Select Date"
-                              /> : <DatePicker
-                              className="form-control datetimepicker"
-                              format={{
-                                format: "DD-MM-YYYY",
-                                type: "mask",
-                              }}
-                              defaultValue=""
-                              placeholder="Select Date"
-                            />}
+                              />
                               <span className="input-icon-addon">
                                 <i className="ti ti-calendar" />
                               </span>
@@ -760,7 +757,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "01" : undefined}
+                              name="medical_leaves"
+                              value={formData.medical_leaves || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -770,7 +769,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "02" : undefined}
+                              name="casual_leaves"
+                              value={formData.casual_leaves || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -782,7 +783,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "20" : undefined}
+                              name="maternity_leaves"
+                              value={formData.maternity_leaves || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -792,7 +795,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "02" : undefined}
+                              name="sick_leaves"
+                              value={formData.sick_leaves || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -818,7 +823,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "Teresa" : undefined}
+                              name="account_name"
+                              value={formData.account_name || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -828,7 +835,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "0126784900" : undefined}
+                              name="account_number"
+                              value={formData.account_number || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -838,9 +847,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "Bank of America" : undefined
-                              }
+                              name="bank_name"
+                              value={formData.bank_name || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -850,7 +859,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "BOA83209832" : undefined}
+                              name="ifsc_code"
+                              value={formData.ifsc_code || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -860,7 +871,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "Cincinnati" : undefined}
+                              name="branch_name"
+                              value={formData.branch_name || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -889,36 +902,39 @@ const TeacherForm = () => {
                   </div>
                   <div className="card-body pb-1">
                     <div className="row">
-                      <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Route</label>
-                          <CommonSelect
-                            className="select"
-                            options={route}
-                            defaultValue={isEdit ? route[0] : undefined}
-                          />
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Route</label>
+                            <CommonSelect
+                              className="select"
+                              options={route}
+                              value={formData.route || ""}
+                              onChange={value => handleSelectChange("route", value)}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Vehicle Number</label>
-                          <CommonSelect
-                            className="select"
-                            options={VehicleNumber}
-                            defaultValue={isEdit ? VehicleNumber[0] : undefined}
-                          />
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Vehicle Number</label>
+                            <CommonSelect
+                              className="select"
+                              options={VehicleNumber}
+                              value={formData.vehicle_number || ""}
+                              onChange={value => handleSelectChange("vehicle_number", value)}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Pickup Point</label>
-                          <CommonSelect
-                            className="select"
-                            options={PickupPoint}
-                            defaultValue={isEdit ? PickupPoint[0] : undefined}
-                          />
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Pickup Point</label>
+                            <CommonSelect
+                              className="select"
+                              options={PickupPoint}
+                              value={formData.pickup_point || ""}
+                              onChange={value => handleSelectChange("pickup_point", value)}
+                            />
+                          </div>
                         </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -942,26 +958,28 @@ const TeacherForm = () => {
                   </div>
                   <div className="card-body pb-1">
                     <div className="row">
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Hostel</label>
-                          <CommonSelect
-                            className="select"
-                            options={Hostel}
-                            defaultValue={isEdit ? Hostel[0] : undefined}
-                          />
+                        <div className="col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Hostel</label>
+                            <CommonSelect
+                              className="select"
+                              options={Hostel}
+                              value={formData.hostel || ""}
+                              onChange={value => handleSelectChange("hostel", value)}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Room No</label>
-                          <CommonSelect
-                            className="select"
-                            options={roomNO}
-                            defaultValue={isEdit ? roomNO[0] : undefined}
-                          />
+                        <div className="col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Room No</label>
+                            <CommonSelect
+                              className="select"
+                              options={roomNO}
+                              value={formData.room_no || ""}
+                              onChange={value => handleSelectChange("room_no", value)}
+                            />
+                          </div>
                         </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -985,9 +1003,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "www.facebook.com" : undefined
-                              }
+                              name="facebook"
+                              value={formData.facebook || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -997,9 +1015,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "www.instagram.com" : undefined
-                              }
+                              name="instagram"
+                              value={formData.instagram || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -1009,9 +1027,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "www.Linkedin.com" : undefined
-                              }
+                              name="linkedin"
+                              value={formData.linkedin || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -1021,9 +1039,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "www.youtube.com" : undefined
-                              }
+                              name="youtube"
+                              value={formData.youtube || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -1033,9 +1051,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "www.twitter.com" : undefined
-                              }
+                              name="twitter"
+                              value={formData.twitter || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
