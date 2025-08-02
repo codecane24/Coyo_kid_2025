@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log; // Import Log facade for error logging
 use Illuminate\Support\Facades\Storage; // Import Storage facade for file uploads
 use Auth;
 use Illuminate\Support\Str;
+use DB;
 class StudentController extends Controller
 {
     /**
