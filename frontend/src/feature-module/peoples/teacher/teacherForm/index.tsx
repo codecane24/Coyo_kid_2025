@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { createTeacher, updateTeacher } from "../../../../services/TeacherServices";
+import { getAllId } from "../../../../services/GetAllId";
 import { Link } from "react-router-dom";
 // import { feeGroup, feesTypes, paymentType } from '../../../core/common/selectoption/selectoption'
 import { DatePicker } from "antd";
@@ -35,6 +36,7 @@ import { getClassesList } from "../../../../services/ClassData";
 const TeacherForm = () => {
   const routes = all_routes;
   const [isEdit, setIsEdit] = useState<boolean>(false);
+  const [teacherId, setTeacherId] = useState<string>("");
   const [owner, setOwner] = useState<string[]>([]);
   const [owner1, setOwner1] = useState<string[]>([]);
   const [owner2, setOwner2] = useState<string[]>([]);
@@ -49,15 +51,28 @@ const TeacherForm = () => {
   const [joiningLetterFile, setJoiningLetterFile] = useState<File | null>(null);
   const location = useLocation();
 
+
+  useEffect(() => {
+    // Fetch new Teacher ID if not editing
+    if (!isEdit) {
+      getAllId("teacher").then(id => {
+        setTeacherId(id);
+        setFormData((prev: any) => ({ ...prev, id }));
+      });
+    } else if (formData.id) {
+      setTeacherId(formData.id);
+    }
+  }, [isEdit, formData.id]);
+
   useEffect(() => {
     async function fetchClasses() {
       try {
         const classes = await getClassesList();
         const formatted = Array.isArray(classes)
           ? classes.map((cls: any) => ({
-              label: cls.name,
-              value: cls.id
-            }))
+            label: `${cls.name} (${cls.section})`,
+            value: cls.id
+          }))
           : [];
         setClassOptions(formatted);
       } catch (error) {
@@ -135,31 +150,44 @@ const TeacherForm = () => {
       setFieldErrors([]);
     }
     setLoading(true);
-    // Transform select fields to submit only their values
-    const transformedData = { ...formData };
-    // For multi-select subject
-    if (Array.isArray(transformedData.subject)) {
-      transformedData.subject = transformedData.subject.map((opt: any) => opt.value);
-    }
-    // For single-select fields (example: class, gender, blood_group, status)
-    ["class", "gender", "blood_group", "status"].forEach(field => {
-      if (transformedData[field] && typeof transformedData[field] === "object" && "value" in transformedData[field]) {
-        transformedData[field] = transformedData[field].value;
+    // List all fields to submit (add any missing fields here)
+    const allFields = [
+      "id", "first_name", "last_name", "class", "subject", "gender", "phone", "email", "blood_group", "date_of_joining", "father_name", "mother_name", "marital_status", "date_of_birth", "qualification", "work_experience", "previous_school", "previous_school_address", "previous_school_phone", "address", "permanent_address", "pan_number", "status", "notes", "epf_no", "basic_salary", "contract_type", "work_shift", "work_location", "date_of_leaving", "medical_leaves", "casual_leaves", "maternity_leaves", "sick_leaves", "account_name", "account_number", "bank_name", "ifsc_code", "branch_name", "route", "vehicle_number", "pickup_point", "hostel", "room_no", "facebook", "instagram", "linkedin", "youtube", "twitter", "language_known"
+    ];
+
+    // Helper: flatten select fields to value
+    const flattenValue = (val: any) => {
+      if (val && typeof val === "object" && "value" in val) return val.value;
+      return val;
+    };
+
+    // Transform data for all fields
+    const transformedData: any = {};
+    allFields.forEach(field => {
+      let value = formData[field];
+      // Multi-select fields
+      if (field === "subject" && Array.isArray(value)) {
+        transformedData[field] = value.map((opt: any) => flattenValue(opt));
+      } else if (field === "language_known" && Array.isArray(value)) {
+        transformedData[field] = value;
+      } else if (["class", "gender", "blood_group", "status", "marital_status", "contract_type", "work_shift", "route", "vehicle_number", "pickup_point", "hostel", "room_no"].includes(field)) {
+        transformedData[field] = flattenValue(value) || "";
+      } else {
+        transformedData[field] = value !== undefined && value !== null ? value : "";
       }
     });
+
     // Prepare FormData for file upload
     const formPayload = new FormData();
-    // Append all transformed fields
     Object.entries(transformedData).forEach(([key, value]) => {
       if (Array.isArray(value)) {
-        // For arrays, append each value as string
         value.forEach((v, idx) => {
           formPayload.append(`${key}[${idx}]`, typeof v === 'object' ? JSON.stringify(v) : String(v));
         });
       } else if (value instanceof Blob) {
         formPayload.append(key, value);
       } else {
-        formPayload.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
+        formPayload.append(key, String(value));
       }
     });
     // Append files if present
@@ -194,7 +222,15 @@ const TeacherForm = () => {
           {/* Page Header */}
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
             <div className="my-auto mb-2">
-              <h3 className="mb-1">{isEdit ? "Edit" : "Add"} Teacher</h3>
+              <h3 className="mb-1">
+                {isEdit ? "Edit" : "Add"} Teacher
+                {!isEdit && teacherId && (
+                  <span className="badge bg-primary ms-3">Teacher ID: {teacherId}</span>
+                )}
+                {isEdit && teacherId && (
+                  <span className="badge bg-info ms-3">Teacher ID: {teacherId}</span>
+                )}
+              </h3>
               <nav>
                 <ol className="breadcrumb mb-0">
                   <li className="breadcrumb-item">
@@ -333,6 +369,7 @@ const TeacherForm = () => {
                       name="id"
                       value={formData.id || ""}
                       onChange={handleInputChange}
+                      readOnly={!isEdit}
                     />
                   </div>
                 </div>
