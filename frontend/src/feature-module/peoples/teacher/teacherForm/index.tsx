@@ -51,25 +51,94 @@ const TeacherForm = () => {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [joiningLetterFile, setJoiningLetterFile] = useState<File | null>(null);
   const location = useLocation();
-  useEffect(() => {
-    if (id) {
-      setIsEdit(true);
-      // Fetch teacher data by id and setFormData
-      (async () => {
-        try {
-          const teacherData = await getTeacherById(id);
-          if (teacherData && teacherData.data) {
-            setFormData(teacherData.data);
-            setTeacherId(teacherData.data.id || id);
-          }
-        } catch (err) {
-          // Optionally show error
+
+// Helper to map API data to form fields (for edit mode)
+const mapApiDataToForm = (data: any, classOptions: any[], subjectOptions: any[]) => {
+  const findOption = (options: any[], value: any) => options.find(opt => String(opt.value) === String(value)) || value || "";
+  return {
+    ...data,
+    id: data.id || data.code || "",
+    code: data.code || "",
+    first_name: data.first_name || "",
+    last_name: data.last_name || "",
+    class: data.class_id ? findOption(classOptions, data.class_id) : "",
+    subject: data.subject_id ? [findOption(subjectOptions, data.subject_id)] : [],
+    gender: data.gender ? findOption(gender, data.gender) : "",
+    phone: data.phone || "",
+    email: data.email || "",
+    blood_group: data.blood_group ? findOption(bloodGroup, data.blood_group) : "",
+    date_of_joining: data.date_of_joining ? dayjs(data.date_of_joining) : null,
+    father_name: data.father_name || "",
+    mother_name: data.mother_name || "",
+    marital_status: data.marital_status ? findOption(Marital, data.marital_status) : "",
+    date_of_birth: data.dob ? dayjs(data.dob) : null,
+    qualification: data.qualification || "",
+    work_experience: data.work_experience || "",
+    previous_school: data.previous_school || "",
+    previous_school_address: data.previous_school_address || "",
+    previous_school_phone: data.previous_school_phone || "",
+    address: data.address || "",
+    permanent_address: data.permanent_address || "",
+    pan_number: data.pan_number || "",
+    status: typeof data.status === 'boolean' ? (data.status ? findOption(status, 'Active') : findOption(status, 'Inactive')) : (data.status ? findOption(status, data.status) : ""),
+    notes: data.notes || "",
+    epf_no: data.epf_no || "",
+    basic_salary: data.basic_salary || "",
+    contract_type: data.contract_type ? findOption(Contract, data.contract_type) : "",
+    work_shift: data.work_shift ? findOption(Shift, data.work_shift) : "",
+    work_location: data.work_location || "",
+    date_of_leaving: data.date_of_leaving ? dayjs(data.date_of_leaving) : null,
+    medical_leaves: data.medical_leaves || "",
+    casual_leaves: data.casual_leaves || "",
+    maternity_leaves: data.maternity_leaves || "",
+    sick_leaves: data.sick_leaves || "",
+    account_name: data.account_name || "",
+    account_number: data.account_number || "",
+    bank_name: data.bank_name || "",
+    ifsc_code: data.ifsc_code || "",
+    branch_name: data.branch_name || "",
+    route: data.route ? findOption(route, data.route) : "",
+    vehicle_number: data.vehicle_number ? findOption(VehicleNumber, data.vehicle_number) : "",
+    pickup_point: data.pickup_point ? findOption(PickupPoint, data.pickup_point) : "",
+    hostel: data.hostel ? findOption(Hostel, data.hostel) : "",
+    room_no: data.room_no ? findOption(roomNO, data.room_no) : "",
+    facebook: data.facebook || "",
+    instagram: data.instagram || "",
+    linkedin: data.linkedin || "",
+    youtube: data.youtube || "",
+    twitter: data.twitter || "",
+    // Map API 'languages_known' to form 'language_known'
+    language_known: Array.isArray(data.languages_known) ? data.languages_known : (data.languages_known ? [data.languages_known] : []),
+  };
+};
+
+// Fetch teacher data and map to form fields after options are loaded
+useEffect(() => {
+  if (id && classOptions.length > 0 && subjectOptions.length > 0) {
+    setIsEdit(true);
+    (async () => {
+      try {
+        console.log('Calling getTeacherById with id:', id);
+        const teacherData = await getTeacherById(id);
+        console.log('Raw teacherData response:', teacherData);
+        console.log('teacherData.data:', teacherData.data);
+        if (teacherData && teacherData.data) {
+          const mapped = mapApiDataToForm(teacherData.data, classOptions, subjectOptions);
+          console.log('API teacherData:', teacherData.data);
+          console.log('Mapped formData:', mapped);
+          setFormData(mapped);
+          setTeacherId(teacherData.data.id || id);
+        } else {
+          console.warn('teacherData.data is missing or falsy:', teacherData.data);
         }
-      })();
-    } else {
-      setIsEdit(false);
-    }
-  }, [id]);
+      } catch (err) {
+        console.error('Error fetching teacher by id:', err);
+      }
+    })();
+  } else if (!id) {
+    setIsEdit(false);
+  }
+}, [id, classOptions, subjectOptions]);
 
 
 useEffect(() => {
@@ -84,38 +153,6 @@ useEffect(() => {
   }
 }, [isEdit, formData.code, formData.id]);
 
-// Map API data to form field values for edit mode (selects, multi-selects, dates)
-useEffect(() => {
-  if (isEdit && formData && Object.keys(formData).length > 0) {
-    const findOption = (options: any[], value: any) => options.find(opt => opt.value === value) || value || "";
-    setFormData((prev: any) => ({
-      ...prev,
-      class: prev.class ? findOption(classOptions, prev.class) : "",
-      gender: prev.gender ? findOption(gender, prev.gender) : "",
-      blood_group: prev.blood_group ? findOption(bloodGroup, prev.blood_group) : "",
-      status: prev.status ? findOption(status, prev.status) : "",
-      marital_status: prev.marital_status ? findOption(Marital, prev.marital_status) : "",
-      contract_type: prev.contract_type ? findOption(Contract, prev.contract_type) : "",
-      work_shift: prev.work_shift ? findOption(Shift, prev.work_shift) : "",
-      route: prev.route ? findOption(route, prev.route) : "",
-      vehicle_number: prev.vehicle_number ? findOption(VehicleNumber, prev.vehicle_number) : "",
-      pickup_point: prev.pickup_point ? findOption(PickupPoint, prev.pickup_point) : "",
-      hostel: prev.hostel ? findOption(Hostel, prev.hostel) : "",
-      room_no: prev.room_no ? findOption(roomNO, prev.room_no) : "",
-      // Multi-select subjects
-      subject: Array.isArray(prev.subject)
-        ? prev.subject.map((subj: any) => findOption(subjectOptions, subj))
-        : prev.subject,
-      // Dates: convert to YYYY-MM-DD string for DatePicker
-      date_of_joining: prev.date_of_joining ? prev.date_of_joining : "",
-      date_of_birth: prev.date_of_birth ? prev.date_of_birth : "",
-      date_of_leaving: prev.date_of_leaving ? prev.date_of_leaving : "",
-      // Language known (array)
-      language_known: Array.isArray(prev.language_known) ? prev.language_known : (prev.language_known ? [prev.language_known] : []),
-    }));
-  }
-  // eslint-disable-next-line
-}, [isEdit, classOptions, subjectOptions]);
 
   useEffect(() => {
     async function fetchClasses() {

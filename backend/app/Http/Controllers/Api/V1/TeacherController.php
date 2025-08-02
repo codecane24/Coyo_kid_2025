@@ -148,7 +148,20 @@ class TeacherController extends Controller
             'branch_id'
         )->findOrFail($id);
 
-        return response()->json($teacher);
+         if (!$student) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Teacher not found',
+                'data' => null,
+            ], 404);
+        }
+
+         return response()->json([
+            'status' => 'success',
+            'data' => $teachers,
+            'message' => 'Teacher retrieved successfully.',
+        ], 200);    
+        
     }
 
     /**
