@@ -989,7 +989,7 @@ useEffect(() => {
             <div className="col-md-12">
               <form onSubmit={(e) => e.preventDefault()}>
    
-{currentStep === 1 && (
+{currentStep === 6 && (
 <PersonalInfoForm
   personalInfo={personalInfo}
   setPersonalInfo={setPersonalInfo}
@@ -1046,7 +1046,7 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
 
 )}
 
-{currentStep === 6 && (
+{currentStep === 1 && (
 <FinancialDetailsForm
   financialData={financialData}
   setFinancialData={setFinancialData}
