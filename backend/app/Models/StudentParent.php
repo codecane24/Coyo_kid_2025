@@ -20,7 +20,8 @@ class StudentParent extends Model
 		'itr_file',
 		'image',
 		'docfolder_name',
-		'status'
+		'status',
+		'student_id',
 	];
 
 	protected $hidden = [

@@ -439,6 +439,7 @@ class StudentController extends Controller
 
                         // Handle Father
                         $fatherDetails = [
+                            'student_id' => $student->id,
                             'relation' => 'father',
                             'name' => $request->input('father_name'),
                             'phone' => $request->input('father_phone'),
@@ -468,6 +469,7 @@ class StudentController extends Controller
 
                         // Handle Mother
                         $motherDetails = [
+                            'student_id' => $student->id,
                             'relation' => 'mother',
                             'name' => $request->input('mother_name'),
                             'phone' => $request->input('mother_phone'),
@@ -499,6 +501,7 @@ class StudentController extends Controller
                         $guardiansToAttach = [];
                         foreach ($request->input('guardians', []) as $index => $guardianData) {
                             $guardianDetails = [
+                                'student_id' => $student->id,
                                 'relation' => $guardianData['relation'],
                                 'name' => $guardianData['name'],
                                 'phone' => $guardianData['phone'] ?? null,
@@ -513,7 +516,6 @@ class StudentController extends Controller
                             // Try to find existing guardian for this student
                             $existingGuardian = $student->guardians()
                                 ->where('name', $guardianDetails['name'])
-                                ->orWhere('phone', $guardianDetails['phone'])
                                 ->orWhere('aadhar', $guardianDetails['aadhar'])
                                 ->first();
 
