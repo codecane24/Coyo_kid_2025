@@ -541,7 +541,7 @@ class StudentController extends Controller
                         ]);
 
                         // Sync guardians (detach all and attach new ones)
-                        $student->guardians()->sync($guardiansToAttach);
+                        //$student->guardians()->sync($guardiansToAttach);
 
                         // Handle siblings
                         StudentSibling::where('student_id', $student->id)->delete();
