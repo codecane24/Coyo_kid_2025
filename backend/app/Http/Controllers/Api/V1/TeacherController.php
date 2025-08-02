@@ -91,7 +91,7 @@ class TeacherController extends Controller
      */
     public function show($id)
     {
-        $teacher = Teacher::select(
+        $teachers = Teacher::select(
             'id',
             'code',
             'first_name',
