@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { createTeacher, updateTeacher } from "../../../../services/TeacherServices";
+import { createTeacher, updateTeacher, getTeacherById } from "../../../../services/TeacherServices";
 import { getAllId } from "../../../../services/GetAllId";
 import { Link } from "react-router-dom";
 // import { feeGroup, feesTypes, paymentType } from '../../../core/common/selectoption/selectoption'
@@ -57,8 +57,7 @@ const TeacherForm = () => {
       // Fetch teacher data by id and setFormData
       (async () => {
         try {
-          const res = await import("../../../../services/TeacherServices");
-          const teacherData = await res.getTeacherById(id);
+          const teacherData = await getTeacherById(id);
           if (teacherData && teacherData.data) {
             setFormData(teacherData.data);
             setTeacherId(teacherData.data.id || id);
@@ -73,17 +72,50 @@ const TeacherForm = () => {
   }, [id]);
 
 
-  useEffect(() => {
-    // Fetch new Teacher ID if not editing
-    if (!isEdit) {
-      getAllId("teacher").then(id => {
-        setTeacherId(id);
-        setFormData((prev: any) => ({ ...prev, id }));
-      });
-    } else if (formData.id) {
-      setTeacherId(formData.id);
-    }
-  }, [isEdit, formData.id]);
+useEffect(() => {
+  // Fetch new Teacher ID if not editing
+  if (!isEdit) {
+    getAllId("teacher").then(id => {
+      setTeacherId(id);
+      setFormData((prev: any) => ({ ...prev, id }));
+    });
+  } else if (formData.code || formData.id) {
+    setTeacherId(formData.code || formData.id);
+  }
+}, [isEdit, formData.code, formData.id]);
+
+// Map API data to form field values for edit mode (selects, multi-selects, dates)
+useEffect(() => {
+  if (isEdit && formData && Object.keys(formData).length > 0) {
+    const findOption = (options: any[], value: any) => options.find(opt => opt.value === value) || value || "";
+    setFormData((prev: any) => ({
+      ...prev,
+      class: prev.class ? findOption(classOptions, prev.class) : "",
+      gender: prev.gender ? findOption(gender, prev.gender) : "",
+      blood_group: prev.blood_group ? findOption(bloodGroup, prev.blood_group) : "",
+      status: prev.status ? findOption(status, prev.status) : "",
+      marital_status: prev.marital_status ? findOption(Marital, prev.marital_status) : "",
+      contract_type: prev.contract_type ? findOption(Contract, prev.contract_type) : "",
+      work_shift: prev.work_shift ? findOption(Shift, prev.work_shift) : "",
+      route: prev.route ? findOption(route, prev.route) : "",
+      vehicle_number: prev.vehicle_number ? findOption(VehicleNumber, prev.vehicle_number) : "",
+      pickup_point: prev.pickup_point ? findOption(PickupPoint, prev.pickup_point) : "",
+      hostel: prev.hostel ? findOption(Hostel, prev.hostel) : "",
+      room_no: prev.room_no ? findOption(roomNO, prev.room_no) : "",
+      // Multi-select subjects
+      subject: Array.isArray(prev.subject)
+        ? prev.subject.map((subj: any) => findOption(subjectOptions, subj))
+        : prev.subject,
+      // Dates: convert to YYYY-MM-DD string for DatePicker
+      date_of_joining: prev.date_of_joining ? prev.date_of_joining : "",
+      date_of_birth: prev.date_of_birth ? prev.date_of_birth : "",
+      date_of_leaving: prev.date_of_leaving ? prev.date_of_leaving : "",
+      // Language known (array)
+      language_known: Array.isArray(prev.language_known) ? prev.language_known : (prev.language_known ? [prev.language_known] : []),
+    }));
+  }
+  // eslint-disable-next-line
+}, [isEdit, classOptions, subjectOptions]);
 
   useEffect(() => {
     async function fetchClasses() {

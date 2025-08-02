@@ -696,8 +696,8 @@ class StudentController extends Controller
                     StudentMedicalHistory::updateOrCreate(
                         ['student_id' => $student->id],
                         [
-                            'serious_disease' => $request->serious_disease ?? 'NA',
-                            'medical_condition' => $request->medical_condition ?? 'Good',
+                            'serious_disease' => $request->serious_disease ? json_encode($request->serious_disease) : null,
+                            //'medical_condition' => $request->medical_condition ?? 'Good',
                             'serious_injuries' => $request->serious_injuries ? json_encode($request->serious_injuries) : null,
                             'allergies' => $request->allergies ? json_encode($request->allergies) : null,
                             'medications' => $request->medications ? json_encode($request->medications) : null,
