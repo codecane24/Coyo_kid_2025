@@ -27,7 +27,7 @@ import {
 import { TagsInput } from "react-tag-input-component";
 import CommonSelect from "../../../../core/common/commonSelect";
 import CommonSelectMulti from "../../../../core/common/commonSelectMulti";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { requiredFields, getMissingFields } from "./teacherFormValidation";
 import { getClassesList } from "../../../../services/ClassData";
 
@@ -35,7 +35,8 @@ import { getClassesList } from "../../../../services/ClassData";
 
 const TeacherForm = () => {
   const routes = all_routes;
-  const [isEdit, setIsEdit] = useState<boolean>(false);
+  const { id } = useParams();
+  const [isEdit, setIsEdit] = useState<boolean>(!!id);
   const [teacherId, setTeacherId] = useState<string>("");
   const [owner, setOwner] = useState<string[]>([]);
   const [owner1, setOwner1] = useState<string[]>([]);
@@ -50,6 +51,26 @@ const TeacherForm = () => {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [joiningLetterFile, setJoiningLetterFile] = useState<File | null>(null);
   const location = useLocation();
+  useEffect(() => {
+    if (id) {
+      setIsEdit(true);
+      // Fetch teacher data by id and setFormData
+      (async () => {
+        try {
+          const res = await import("../../../../services/TeacherServices");
+          const teacherData = await res.getTeacherById(id);
+          if (teacherData && teacherData.data) {
+            setFormData(teacherData.data);
+            setTeacherId(teacherData.data.id || id);
+          }
+        } catch (err) {
+          // Optionally show error
+        }
+      })();
+    } else {
+      setIsEdit(false);
+    }
+  }, [id]);
 
 
   useEffect(() => {

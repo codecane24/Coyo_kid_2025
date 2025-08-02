@@ -123,7 +123,7 @@ const TeacherList = () => {
     {
       title: "Action",
       dataIndex: "action",
-      render: () => (
+      render: (_: any, record: any) => (
         <>
           <div className="d-flex align-items-center">
             <div className="dropdown">
@@ -148,7 +148,7 @@ const TeacherList = () => {
                 <li>
                   <Link
                     className="dropdown-item rounded-1"
-                    to={routes.editTeacher}
+                    to={routes.editTeacher.replace(":id", record.id)}
                   >
                     <i className="ti ti-edit-circle me-2" />
                     Edit

@@ -909,7 +909,7 @@ export const authRoutes = [
     element: <TeacherForm />,
   },
   {
-    path: routes.editTeacher,
+    path: "/teacher/edit-teacher/:id",
     element: <TeacherForm />,
   },
   {

@@ -264,7 +264,7 @@ class StudentController extends Controller
     public function update(Request $request, $id)
     {
         // Retrieve the student instance
-        return $request;
+    
         $student = Student::find($id);
 
         if (!$student) {
