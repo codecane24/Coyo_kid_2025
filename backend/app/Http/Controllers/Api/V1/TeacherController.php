@@ -182,7 +182,7 @@ class TeacherController extends Controller
             'gender' => 'required|string|in:male,female,other',
             'phone' => 'required|string|max:20',
             'email' => 'required|email|unique:teachers,email|max:255',
-            'blood_group' => 'nullable|string|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
+            'blood_group' => 'nullable|string',
             'date_of_joining' => 'required|date',
             'father_name' => 'nullable|string|max:50',
             'mother_name' => 'nullable|string|max:50',
