@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class AdmissionInquiry extends Model
 {
     use HasFactory;
-
     protected $table = 'admission_inquiries';
 
     /**
