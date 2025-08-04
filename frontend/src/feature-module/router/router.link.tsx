@@ -256,7 +256,7 @@ import LoaderTwo from "../../core/common/loader/loaderTwo";
 import Unauthorized from "../common/Unauthorized";
 import FeesManagement from "../management/feescollection/FeesManagement";
 import AdmissionInquiryList from "../peoples/students/add-student/admission_inquiry_list";
-
+import InquiryDetails from "../peoples/students/add-student/inquiryDetails";
 
 const routes = all_routes;
 
@@ -808,6 +808,11 @@ export const authRoutes = [
    {
     path: routes.admissionInquiryList,
     element: <AdmissionInquiryList />,
+  },
+  {
+    path: all_routes.admissionInquiryDetails,
+    element: <InquiryDetails />,
+    route: Route,
   },
   {
     path: routes.editStudent,
