@@ -30,8 +30,9 @@ import CommonSelect from "../../../../core/common/commonSelect";
 import { useLocation } from "react-router-dom";
 import { preparePayload } from "../../../../utils/preparePayload";
 import axiosInstance from "../../../../utils/axiosInstance";
+import ClassSelect from "../../../../utils/ClassSelect";
 interface Address {
-  colony: string;
+  address: string;
   area: string;
   landmark: string;
   city: string;
@@ -45,7 +46,7 @@ interface InquiryFormData {
   firstName: string;
   middleName: string;
   lastName: string;
-  selectedClass: string;
+selectedClass: string | number;
   gender: string;
   dateOfBirth: string;
   primaryContact: string;
@@ -127,7 +128,7 @@ const [inquiryFormData, setInquiryFormData] = useState<InquiryFormData>({
   siblingSameSchool: "",
    siblingIds: [] as string[],
   permanentAddress: {
-    colony: "",
+    address: "",
     area: "",
     landmark: "",
     city: "",
@@ -135,7 +136,7 @@ const [inquiryFormData, setInquiryFormData] = useState<InquiryFormData>({
     pincode: "",
   },
   currentAddress: {
-    colony: "",
+    address: "",
     area: "",
     landmark: "",
     city: "",
@@ -219,13 +220,41 @@ const handleSubmit = async () => {
     console.error("❌ API Error:", err);
   }
 };
+const handlePermanentAddressChange = (field: keyof Address, value: string) => {
+  setInquiryFormData(prev => ({
+    ...prev,
+    permanentAddress: {
+      ...prev.permanentAddress,
+      [field]: value,
+    },
+  }));
+};
+
+const handleCurrentAddressChange = (field: keyof Address, value: string) => {
+  setInquiryFormData(prev => ({
+    ...prev,
+    currentAddress: {
+      ...prev.currentAddress,
+      [field]: value,
+    },
+  }));
+};
+
+
+const handlePreviousSchoolChange =  (field: keyof InquiryFormData, value: string) => {
+  setInquiryFormData(prev => ({
+    ...prev,
+    [field]: value,
+  }));
+};
+
 const payload = {
   academic_year: inquiryFormData.academicYear,
   date_of_enquiry: inquiryFormData.dateOfEnquiry,
   first_name: inquiryFormData.firstName,
   middle_name: inquiryFormData.middleName,
   last_name: inquiryFormData.lastName,
-  selected_class: inquiryFormData.selectedClass,
+  class_id: inquiryFormData.selectedClass,
   gender: inquiryFormData.gender,
   date_of_birth: inquiryFormData.dateOfBirth,
   primary_contact: inquiryFormData.primaryContact,
@@ -235,24 +264,23 @@ const payload = {
   father_name: inquiryFormData.fatherName,
   father_email: inquiryFormData.fatherEmail,
   father_phone: inquiryFormData.fatherPhone,
-  father_aadhar: inquiryFormData.fatherAadhar,
+
   father_occupation: inquiryFormData.fatherOccupation,
-  father_profile_image: inquiryFormData.fatherProfileImage,
-  father_aadhar_image: inquiryFormData.fatherAadharImage,
+
 
   mother_name: inquiryFormData.motherName,
   mother_phone: inquiryFormData.motherPhone,
   mother_email: inquiryFormData.motherEmail,
-  mother_aadhar: inquiryFormData.motherAadhar,
+
   mother_occupation: inquiryFormData.motherOccupation,
-  mother_profile_image: inquiryFormData.motherProfileImage,
-  mother_aadhar_image: inquiryFormData.motherAadharImage,
+
+
 
   sibling_same_school: inquiryFormData.siblingSameSchool,
   sibling_ids: inquiryFormData.siblingIds,
 
   permanent_address: {
-    address: inquiryFormData.permanentAddress.colony,
+    address: inquiryFormData.permanentAddress.address,
     area: inquiryFormData.permanentAddress.area,
     landmark: inquiryFormData.permanentAddress.landmark,
     city: inquiryFormData.permanentAddress.city,
@@ -260,7 +288,7 @@ const payload = {
     pincode: inquiryFormData.permanentAddress.pincode
   },
   current_address: {
-    address: inquiryFormData.currentAddress.colony,
+    address: inquiryFormData.currentAddress.address,
     area: inquiryFormData.currentAddress.area,
     landmark: inquiryFormData.currentAddress.landmark,
     city: inquiryFormData.currentAddress.city,
@@ -268,8 +296,8 @@ const payload = {
     pincode: inquiryFormData.currentAddress.pincode
   },
 
-  school_name: inquiryFormData.schoolName,
-  address: inquiryFormData.address
+  previous_school_name: inquiryFormData.schoolName,
+  previous_school_address: inquiryFormData.address
 };
 
   return (
@@ -381,19 +409,17 @@ const payload = {
       </div>
 
       {/* Class */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Class</label>
-     <CommonSelect
-  className="select"
-  options={allClass}
-  value={allClass.find(opt => opt.value === inquiryFormData.selectedClass) || undefined}
-  onChange={(option) =>
-    setInquiryFormData({ ...inquiryFormData, selectedClass: option.value })
-  }
-/>
-        </div>
-      </div>
+ {/* Class */}
+<div className="col-xxl col-xl-3 col-md-6">
+  <ClassSelect
+    label="Class"
+    value={inquiryFormData.selectedClass}
+    onChange={(val) =>
+      setInquiryFormData({ ...inquiryFormData, selectedClass: val })
+    }
+  />
+</div>
+
 
       {/* Gender */}
       <div className="col-xxl col-xl-3 col-md-6">
@@ -531,7 +557,7 @@ const payload = {
       }
     />
             </div>
-            <div className="col-xxl col-xl-3 col-md-6 mb-3">
+            {/* <div className="col-xxl col-xl-3 col-md-6 mb-3">
               <label className="form-label">Aadhar</label>
     <input
       type="text"
@@ -542,7 +568,7 @@ const payload = {
         setInquiryFormData({ ...inquiryFormData, fatherAadhar: e.target.value })
       }
     />
-            </div>
+            </div> */}
             <div className="col-xxl col-xl-3 col-md-6 mb-3">
               <label className="form-label">Occupation</label>
                  <input
@@ -555,7 +581,7 @@ const payload = {
       }
     />
             </div>
-            <div className="col-xxl col-xl-3 col-md-6 mb-3">
+            {/* <div className="col-xxl col-xl-3 col-md-6 mb-3">
               <label className="form-label">Father's Profile Image</label>
    <input
       type="file"
@@ -572,7 +598,7 @@ const payload = {
             <div className="col-xxl col-xl-3 col-md-6 mb-3">
               <label className="form-label">Father's Aadhar Image</label>
               <input type="file" className="form-control" accept="image/*,.pdf" />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -626,7 +652,7 @@ const payload = {
       }
     />
             </div>
-            <div className="col-xxl col-xl-3 col-md-6 mb-3">
+            {/* <div className="col-xxl col-xl-3 col-md-6 mb-3">
               <label className="form-label">Aadhar</label>
     <input
       type="text"
@@ -637,7 +663,7 @@ const payload = {
         setInquiryFormData({ ...inquiryFormData, motherAadhar: e.target.value })
       }
     />
-            </div>
+            </div> */}
             <div className="col-xxl col-xl-3 col-md-6 mb-3">
               <label className="form-label">Occupation</label>
          <input
@@ -650,7 +676,7 @@ const payload = {
       }
     />
             </div>
-            <div className="col-xxl col-xl-3 col-md-6 mb-3">
+            {/* <div className="col-xxl col-xl-3 col-md-6 mb-3">
               <label className="form-label">Mother's Profile Image</label>
                <input
       type="file"
@@ -663,11 +689,11 @@ const payload = {
         })
       }
     />
-            </div>
-            <div className="col-xxl col-xl-3 col-md-6 mb-3">
+            </div> */}
+            {/* <div className="col-xxl col-xl-3 col-md-6 mb-3">
               <label className="form-label">Mother's Aadhar Image</label>
               <input type="file" className="form-control" accept="image/*,.pdf" />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -753,158 +779,209 @@ const payload = {
 
                
                 {/* Address */}
-                <div className="card">
-                  <div className="card-header bg-light">
-                    <div className="d-flex align-items-center">
-                      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-                        <i className="ti ti-map fs-16" />
-                      </span>
-                      <h4 className="text-dark">Permanent Address</h4>
-                    </div>
-                  </div>
-                  <div className="card-body pb-1">
-                    <div className="row">
-                        <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                           House No. & Colony Name
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>  
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                      Area
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>
-                         <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                          Landmark
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>
-                           <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                         City
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>
-                           <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                      State
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>
-                         <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                          Pincode
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                  <div className="card">
-                  <div className="card-header bg-light">
-                    <div className="d-flex align-items-center">
-                      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-                        <i className="ti ti-map fs-16" />
-                      </span>
-                      <h4 className="text-dark">Current Address</h4>
-                    </div>
-                  </div>
-                  <div className="card-body pb-1">
-                    <div className="row">
-                        <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                            No-Colony
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>  
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                      Area
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>
-                         <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                          Landmark
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>
-                           <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                         City
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>
-                           <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                      State
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>
-                         <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">
-                          Pincode
-                          </label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '3495 Red Hawk Road, Buffalo Lake, MN 55314': undefined}/>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+         {/* Permanent Address */}
+<div className="card">
+  <div className="card-header bg-light">
+    <div className="d-flex align-items-center">
+      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
+        <i className="ti ti-map fs-16" />
+      </span>
+      <h4 className="text-dark">Permanent Address</h4>
+    </div>
+  </div>
+  <div className="card-body pb-1">
+    <div className="row">
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">House No. & Colony Name</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.permanentAddress.address}
+            onChange={(e) => handlePermanentAddressChange("address", e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Area</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.permanentAddress.area}
+            onChange={(e) => handlePermanentAddressChange("area", e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Landmark</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.permanentAddress.landmark}
+            onChange={(e) => handlePermanentAddressChange("landmark", e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">City</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.permanentAddress.city}
+            onChange={(e) => handlePermanentAddressChange("city", e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">State</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.permanentAddress.state}
+            onChange={(e) => handlePermanentAddressChange("state", e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Pincode</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.permanentAddress.pincode}
+            onChange={(e) => handlePermanentAddressChange("pincode", e.target.value)}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{/* Current Address */}
+<div className="card">
+  <div className="card-header bg-light">
+    <div className="d-flex align-items-center">
+      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
+        <i className="ti ti-map fs-16" />
+      </span>
+      <h4 className="text-dark">Current Address</h4>
+    </div>
+  </div>
+  <div className="card-body pb-1">
+    <div className="row">
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">House-No</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.currentAddress.address}
+            onChange={(e) => handleCurrentAddressChange("address", e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Area</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.currentAddress.area}
+            onChange={(e) => handleCurrentAddressChange("area", e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Landmark</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.currentAddress.landmark}
+            onChange={(e) => handleCurrentAddressChange("landmark", e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">City</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.currentAddress.city}
+            onChange={(e) => handleCurrentAddressChange("city", e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">State</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.currentAddress.state}
+            onChange={(e) => handleCurrentAddressChange("state", e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Pincode</label>
+          <input
+            type="text"
+            className="form-control"
+            value={inquiryFormData.currentAddress.pincode}
+            onChange={(e) => handleCurrentAddressChange("pincode", e.target.value)}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
            
-                {/* Previous School details */}
-                <div className="card">
-                  <div className="card-header bg-light">
-                    <div className="d-flex align-items-center">
-                      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
-                        <i className="ti ti-building fs-16" />
-                      </span>
-                      <h4 className="text-dark">Previous School Details</h4>
-                    </div>
-                  </div>
-                  <div className="card-body pb-1">
-                    <div className="row">
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">School Name</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? 'Oxford Matriculation, USA': undefined}/>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Address</label>
-                          <input type="text" className="form-control" defaultValue={isEdit? '1852 Barnes Avenue, Cincinnati, OH 45202': undefined}/>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            {/* Previous School details */}
+<div className="card">
+  <div className="card-header bg-light">
+    <div className="d-flex align-items-center">
+      <span className="bg-white avatar avatar-sm me-2 text-gray-7 flex-shrink-0">
+        <i className="ti ti-building fs-16" />
+      </span>
+      <h4 className="text-dark">Previous School Details</h4>
+    </div>
+  </div>
+  <div className="card-body pb-1">
+    <div className="row">
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">School Name</label>
+          <input
+            type="text"
+            className="form-control"
+              value={inquiryFormData.schoolName}
+            onChange={e => handlePreviousSchoolChange('schoolName', e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="mb-3">
+          <label className="form-label">Address</label>
+          <input
+            type="text"
+            className="form-control"
+           value={inquiryFormData.address}
+            onChange={e => handlePreviousSchoolChange('address', e.target.value)}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
               
               </form>
 

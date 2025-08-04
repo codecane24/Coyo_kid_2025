@@ -27,6 +27,7 @@ import {
 import { PersonalInfoType } from ".";
 import FileUploader from "../../../../utils/FileUploader";
 import { buildImageUrl } from "../../../../utils/buildImageUrl";
+import ClassSelect from "../../../../utils/ClassSelect";
 interface Props {
   personalInfo: any;
   setPersonalInfo: (val: any) => void;
@@ -212,16 +213,26 @@ return (
                   }
                 />
               )}
-              {field.type === "select" && (
-                <CommonSelect
-                  className={`select ${errors[field.key] ? "border border-danger" : ""}`}
-                  options={field.options || []}
-                  value={field.options?.find((o: any) => o.value === personalInfo[field.key])}
-                  onChange={(option) =>
-                    setPersonalInfo({ ...personalInfo, [field.key]: option?.value || "" })
-                  }
-                />
-              )}
+  {field.type === "select" && field.key === "class" ? (
+  <ClassSelect
+    value={personalInfo["class"]}
+    onChange={(val) =>
+      setPersonalInfo({ ...personalInfo, class: String(val) })
+    }
+    error={!!errors["class"]}
+    required
+  />
+) : field.type === "select" ? (
+  <CommonSelect
+    className={`select ${errors[field.key] ? "border border-danger" : ""}`}
+    options={field.options || []}
+    value={field.options?.find((o: any) => o.value === personalInfo[field.key])}
+    onChange={(option) =>
+      setPersonalInfo({ ...personalInfo, [field.key]: option?.value || "" })
+    }
+  />
+) : null}
+
               {field.type === "date" && (
                 <div className="input-icon position-relative">
                   <DatePicker
