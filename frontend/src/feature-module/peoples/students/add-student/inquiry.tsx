@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 // import { feeGroup, feesTypes, paymentType } from '../../../core/common/selectoption/selectoption'
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
@@ -34,6 +34,7 @@ import ClassSelect from "../../../../utils/ClassSelect";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { createInquiry } from "../../../../services/AdmissionInquiry";
+import { getAllId } from "../../../../services/GetAllId";
 
 interface Address {
   address: string;
@@ -90,6 +91,7 @@ siblingIds: string[];
 
 const Inquiry = () => {
   const routes = all_routes;
+const { id } = useParams();
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [inquiryCodeId, setTeacherId] = useState<string>(""); // <-- Add this state
@@ -101,7 +103,7 @@ const Inquiry = () => {
   const location = useLocation();
    const [siblingSameSchool, setSiblingSameSchool] = useState<"yes" | "no">("no");
   const [siblingIds, setSiblingIds] = useState<string[]>([]);
-
+const [serialId, setSerialId] = useState<string>("");
 
 const [inquiryFormData, setInquiryFormData] = useState<InquiryFormData>({
   academicYear: "",
@@ -325,8 +327,65 @@ console.log(payload)
 
     toast.success("Inquiry submitted successfully!", { position: "top-right" });
     console.log("✅ API Success:", response);
+    // ✅ Reset form fields to default state
+    setInquiryFormData({
+      academicYear: "",
+      dateOfEnquiry: "",
+      firstName: "",
+      middleName: "",
+      lastName: "",
+      selectedClass: "",
+      gender: "",
+      dateOfBirth: "",
+      primaryContact: "",
+      email: "",
+      suitableBatch: "",
+      fatherName: "",
+      fatherEmail: "",
+      fatherPhone: "",
+      fatherAadhar: "",
+      fatherOccupation: "",
+      fatherProfileImage: null,
+      fatherAadharImage: null,
 
-    // Optional: reset form or redirect
+      motherName: "",
+      motherPhone: "",
+      motherEmail: "",
+      motherAadhar: "",
+      motherOccupation: "",
+      motherProfileImage: null,
+      motherAadharImage: null,
+
+      siblingSameSchool: "",
+      siblingIds: [],
+
+      permanentAddress: {
+        address: "",
+        area: "",
+        landmark: "",
+        city: "",
+        state: "",
+        pincode: "",
+      },
+      currentAddress: {
+        address: "",
+        area: "",
+        landmark: "",
+        city: "",
+        state: "",
+        pincode: "",
+      },
+
+      schoolName: "",
+      address: "",
+    });
+
+    // (Optional) Also reset sibling state if separate
+    setSiblingSameSchool("no");
+    setSiblingIds([]);
+
+
+
   } catch (error) {
     console.error("❌ Submission Error:", error);
     toast.error("Something went wrong while submitting the form", {
@@ -334,6 +393,16 @@ console.log(payload)
     });
   }
 };
+useEffect(() => {
+  const loadId = async () => {
+    const id = await getAllId("admission_inquiry");
+    console.log(id)
+    setSerialId(id); // ✅ This is correct
+  };
+
+  loadId();
+}, []);
+
 
   return (
     <>
@@ -345,12 +414,25 @@ console.log(payload)
             <div className="col-md-12">
               <div className="page-header d-flex align-items-center justify-content-between mb-4">
                 <div>
-                  <h2 className="mb-1">
-                    {isEdit ? "Edit Admission Inquiry" : "Add Admission Inquiry"}
-                    <span className="badge bg-primary ms-3">
-                      Inquiry Code: {inquiryCodeId || "N/A"}
-                    </span>
-                  </h2>
+               <div className="d-flex align-items-center mb-2">
+  <h2 className="mb-0 me-3">
+    {isEdit ? "Edit Admission Inquiry" : "Add Admission Inquiry"}
+  </h2>
+
+  <div
+    className="px-2 py-1"
+    style={{
+      fontSize: "0.75rem",
+      color: "#333",
+      backgroundColor: "#E6F0FA",
+      borderRadius: "6px",
+      width: "fit-content",
+    }}
+  >
+    Inquiry Code: {serialId || "N/A"}
+  </div>
+</div>
+
                   <nav>
                     <ol className="breadcrumb mb-0">
                       <li className="breadcrumb-item">
