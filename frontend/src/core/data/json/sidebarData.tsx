@@ -116,17 +116,23 @@ export const SidebarData = [
           },
         ],
       },
-      // Other
+      // Inquiry
           {
-        label: "Other",
+        label: "Inquiry",
         icon: "ti ti-layout-list",
         submenu: true,
         showSubRoute: false,
          permissionKey: "class_view",
         submenuItems: [
           {
-            label: "Inquiry",
-            link: routes.inquiry,
+            label: "Admission Inquiries",
+            link: routes.admissionInquiryList,
+            showSubRoute: false,
+             permissionKey: "class_view",
+          },
+          {
+            label: "Add Admission Inquiry",
+            link: routes.addAdmissionInquiry,
             showSubRoute: false,
              permissionKey: "class_view",
           },

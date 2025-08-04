@@ -30,6 +30,7 @@ import CommonSelectMulti from "../../../../core/common/commonSelectMulti";
 import { useLocation, useParams } from "react-router-dom";
 import { requiredFields, getMissingFields } from "./teacherFormValidation";
 import { getClassesList } from "../../../../services/ClassData";
+import { Breadcrumb } from "react-bootstrap";
 
 
 
@@ -303,36 +304,34 @@ useEffect(() => {
       <div className="page-wrapper">
         <div className="content content-two">
           {/* Page Header */}
-          <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-            <div className="my-auto mb-2">
-              <h3 className="mb-1">
-                {isEdit ? "Edit" : "Add"} Teacher
-                {!isEdit && formData.code && (
-                  <span className="badge bg-primary ms-3">Teacher Code: {formData.code}</span>
-                )}
-                {isEdit && formData.code && (
-                  <span className="badge bg-info ms-3">Teacher Code: {formData.code}</span>
-                )}
-              </h3>
-              <nav>
-                <ol className="breadcrumb mb-0">
-                  <li className="breadcrumb-item">
-                    <Link to={routes.adminDashboard}>Dashboard</Link>
-                  </li>
-                  <li className="breadcrumb-item">
-                    <Link to={routes.teacherList}>Teacher</Link>
-                  </li>
-                  <li className="breadcrumb-item active" aria-current="page">
-                    {isEdit ? "Edit" : "Add"} Teacher
-                  </li>
-                </ol>
-              </nav>
-            </div>
-          </div>
+          <div className="page-header d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h2 className="mb-1">
+      {isEdit ? "Edit Teacher" : "Add Teacher"}
+      <span className="badge bg-primary ms-3">
+        Teacher Code: {formData.code || teacherId || "N/A"}
+      </span>
+    </h2>
+    <nav>
+      <ol className="breadcrumb mb-0">
+        <li className="breadcrumb-item">
+          <Link to={routes.adminDashboard}>Dashboard</Link>
+        </li>
+        <li className="breadcrumb-item">
+          <Link to={routes.teacherList}>Teacher</Link>
+        </li>
+        <li className="breadcrumb-item active" aria-current="page">
+          {isEdit ? "Edit" : "Add"} Teacher
+        </li>
+      </ol>
+    </nav>
+  </div>
+</div>
           {/* /Page Header */}
           <div className="row">
             <div className="col-md-12">
               <form onSubmit={handleSubmit}>
+                
                 <>
                   {/* Personal Information */}
                   <div className="card">
@@ -443,19 +442,6 @@ useEffect(() => {
                         </div>
                       </div>
                       <div className="row row-cols-xxl-5 row-cols-md-6">
-                <div className="col-xxl col-xl-3 col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">Teacher ID <span className="text-danger ms-1">*</span></label>
-                    <input
-                      type="text"
-                      className={`form-control${fieldErrors.includes("id") ? " is-invalid" : ""}`}
-                      name="id"
-                      value={formData.id || ""}
-                      onChange={handleInputChange}
-                      readOnly={!isEdit}
-                    />
-                  </div>
-                </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
                     <label className="form-label">First Name <span className="text-danger ms-1">*</span></label>

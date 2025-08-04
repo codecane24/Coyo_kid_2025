@@ -209,8 +209,14 @@ export const all_routes = {
   studentLibrary: "/student/student-library",
   studentList: "/student/student-list",
   addStudent: "/student/add-student",
-  inquiry:"/student/inquiry",
   editStudent: "/student/edit-student/:id",
+  inquiry:"/student/inquiry",
+ 
+  
+  admissionInquiryList: "/student/admission-inquiry-list",
+  admissionInquiryDetails: "/student/admission-inquiry/:id",
+  editAdmissionInquiry: "/student/admission-inquiry/edit/:id",
+  addAdmissionInquiry: "/student/admission-inquiry/add",
 
   teacherDetails: "/teacher/teacher-details",
   teacherGrid: "/teacher/teacher-grid",

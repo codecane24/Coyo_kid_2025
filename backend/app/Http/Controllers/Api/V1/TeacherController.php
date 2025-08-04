@@ -178,7 +178,8 @@ class TeacherController extends Controller
             'first_name' => 'required|string|max:50',
             'last_name' => 'nullable|string|max:50',
             'class_id' => 'nullable|integer|exists:classes,id',
-            'subject_id' => 'nullable|integer|exists:subjects,id',
+            'subject_id' => 'nullable|array',
+            'subject_id.*' => 'integer|exists:subjects,id',
             'gender' => 'required|string|in:male,female,other',
             'phone' => 'required|string|max:20',
             'email' => 'required|email|unique:teachers,email|max:255',
@@ -241,6 +242,9 @@ class TeacherController extends Controller
         if ($request->hasFile('joining_letter_file')) {
             $data['joining_letter_file'] = $request->file('joining_letter_file')->store('documents/joining_letters', 'public');
         }
+        if ($request->has('subject_id')) {
+            $data['subject_id'] = json_encode($request->subject_id);
+        }
 
         // Generate unique teacher ID
         $data['code'] = getNewSerialNo('teacher');
@@ -281,8 +285,9 @@ class TeacherController extends Controller
             ],
             'first_name' => 'required|string|max:50',
             'last_name' => 'nullable|string|max:50',
-            'class_id' => 'required|integer|exists:classes,id',
-            'subject_id' => 'required|integer|exists:subjects,id',
+            'class_id' => 'required|integer',
+            'subject_id' => 'nullable|array',
+            'subject_id.*' => 'integer|exists:subjects,id',
             'gender' => 'required|string|in:Male,Female,Other',
             'phone' => 'required|string|max:20',
             'email' => [
@@ -352,6 +357,9 @@ class TeacherController extends Controller
         }
         if ($request->hasFile('joining_letter_file')) {
             $data['joining_letter_file'] = $request->file('joining_letter_file')->store('documents/joining_letters', 'public');
+        }
+        if ($request->has('subject_id')) {
+            $data['subject_id'] = json_encode($request->subject_id);
         }
 
         $teacher->update($data);

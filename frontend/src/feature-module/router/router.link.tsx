@@ -255,6 +255,7 @@ import AddUser from "../userManagement/AddUser";
 import LoaderTwo from "../../core/common/loader/loaderTwo";
 import Unauthorized from "../common/Unauthorized";
 import FeesManagement from "../management/feescollection/FeesManagement";
+import AdmissionInquiryList from "../peoples/students/add-student/admission_inquiry_list";
 
 
 const routes = all_routes;
@@ -796,9 +797,17 @@ export const authRoutes = [
     element: <AddStudent />,
   },
 
-    {
+  {
     path: routes.inquiry,
     element:<Inquiry/>,
+  },
+  {
+    path: routes.addAdmissionInquiry,
+    element:<Inquiry/>,
+  },
+   {
+    path: routes.admissionInquiryList,
+    element: <AdmissionInquiryList />,
   },
   {
     path: routes.editStudent,

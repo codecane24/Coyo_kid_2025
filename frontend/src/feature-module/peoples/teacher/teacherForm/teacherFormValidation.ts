@@ -11,7 +11,7 @@ export const requiredFields = [
   "phone",
   "email",
   "date_of_joining",
-  "date_of_birth"
+  "dob"
 ];
 
 export function getMissingFields(formData: Record<string, any>): string[] {
