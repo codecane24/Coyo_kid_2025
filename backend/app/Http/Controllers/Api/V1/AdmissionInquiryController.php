@@ -34,19 +34,17 @@ class AdmissionInquiryController extends Controller
             'father_name' => 'nullable|string|max:100',
             'father_email' => 'nullable|email|max:100',
             'father_phone' => 'nullable|string|max:20',
-            'father_aadhar' => 'nullable|string|max:30',
             'father_occupation' => 'nullable|string|max:100',
             'mother_name' => 'nullable|string|max:100',
             'mother_phone' => 'nullable|string|max:20',
             'mother_email' => 'nullable|email|max:100',
-            'mother_aadhar' => 'nullable|string|max:30',
             'mother_occupation' => 'nullable|string|max:100',
             'sibling_same_school' => 'nullable|string|max:10',
             'sibling_ids' => 'nullable|array',
             'permanent_address' => 'nullable|array',
             'current_address' => 'nullable|array',
-            'school_name' => 'nullable|string|max:255',
-            'school_address' => 'nullable|string|max:255',
+            'previous_school_name' => 'nullable|string|max:255',
+            'previous_school_address' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -64,7 +62,11 @@ class AdmissionInquiryController extends Controller
         $data['added_by'] = auth()->user()->id ?? null; // Assuming you have user authentication
         $data['status'] = '0'; // 0:pending(new) | 1: picked |2:reply |3:admission| 4:closed
 
-        
+        // JSON encode array fields for DB if needed
+        $data['sibling_ids'] = isset($data['sibling_ids']) ? json_encode($data['sibling_ids']) : json_encode([]);
+        $data['permanent_address'] = isset($data['permanent_address']) ? json_encode($data['permanent_address']) : json_encode([]);
+        $data['current_address'] = isset($data['current_address']) ? json_encode($data['current_address']) : json_encode([]);
+
         $inquiry = AdmissionInquiry::create($data);
         if (!$inquiry) {
             return response()->json(['status' => false, 'message' => 'Inquiry could not be created'], 500);
@@ -108,23 +110,17 @@ class AdmissionInquiryController extends Controller
             'father_name' => 'nullable|string|max:100',
             'father_email' => 'nullable|email|max:100',
             'father_phone' => 'nullable|string|max:20',
-            'father_aadhar' => 'nullable|string|max:30',
             'father_occupation' => 'nullable|string|max:100',
-            'father_profile_image' => 'nullable|string',
-            'father_aadhar_image' => 'nullable|string',
             'mother_name' => 'nullable|string|max:100',
             'mother_phone' => 'nullable|string|max:20',
             'mother_email' => 'nullable|email|max:100',
-            'mother_aadhar' => 'nullable|string|max:30',
             'mother_occupation' => 'nullable|string|max:100',
-            'mother_profile_image' => 'nullable|string',
-            'mother_aadhar_image' => 'nullable|string',
             'sibling_same_school' => 'nullable|string|max:10',
             'sibling_ids' => 'nullable|array',
             'permanent_address' => 'nullable|array',
             'current_address' => 'nullable|array',
-            'school_name' => 'nullable|string|max:255',
-            'school_address' => 'nullable|string|max:255',
+            'previous_school_name' => 'nullable|string|max:255',
+            'previous_school_address' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -134,7 +130,19 @@ class AdmissionInquiryController extends Controller
             ], 422);
         }
 
-        $inquiry->update($request->all());
+        $data = $request->all();
+        // JSON encode array fields for DB if needed
+        if (isset($data['sibling_ids'])) {
+            $data['sibling_ids'] = json_encode($data['sibling_ids']);
+        }
+        if (isset($data['permanent_address'])) {
+            $data['permanent_address'] = json_encode($data['permanent_address']);
+        }
+        if (isset($data['current_address'])) {
+            $data['current_address'] = json_encode($data['current_address']);
+        }
+
+        $inquiry->update($data);
 
         return response()->json(['status' => true, 'data' => $inquiry]);
     }
