@@ -50,7 +50,7 @@ interface InquiryFormData {
   firstName: string;
   middleName: string;
   lastName: string;
-selectedClass: string | number;
+  selectedClass: string | number;
   gender: string;
   dateOfBirth: string;
   primaryContact: string;
@@ -92,6 +92,7 @@ const Inquiry = () => {
   const routes = all_routes;
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
+  const [inquiryCodeId, setTeacherId] = useState<string>(""); // <-- Add this state
   const [owner, setOwner] = useState<string[]>(['English','Spanish']);
   const [owner1, setOwner1] = useState<string[]>([]);
   const [owner2, setOwner2] = useState<string[]>([]);
@@ -164,7 +165,7 @@ const handleSiblingChange = (value: string, index: number) => {
 const addSibling = () => {
   setInquiryFormData((prev) => ({
     ...prev,
-    siblingIds: [...prev.siblingIds, ""],
+    siblingIds: [...prev.siblingIds, ""]
   }));
 };
 
@@ -340,10 +341,31 @@ console.log(payload)
       <div className="page-wrapper">
         <div className="content content-two">
           {/* Page Header */}
-  
-          {/* /Page Header */}
           <div className="row">
             <div className="col-md-12">
+              <div className="page-header d-flex align-items-center justify-content-between mb-4">
+                <div>
+                  <h2 className="mb-1">
+                    {isEdit ? "Edit Admission Inquiry" : "Add Admission Inquiry"}
+                    <span className="badge bg-primary ms-3">
+                      Inquiry Code: {inquiryCodeId || "N/A"}
+                    </span>
+                  </h2>
+                  <nav>
+                    <ol className="breadcrumb mb-0">
+                      <li className="breadcrumb-item">
+                        <Link to={routes.adminDashboard}>Dashboard</Link>
+                      </li>
+                      <li className="breadcrumb-item">
+                        <Link to={routes.admissionInquiryList}>Admission Inquiry List</Link>
+                      </li>
+                      <li className="breadcrumb-item active" aria-current="page">
+                        {isEdit ? "Edit" : "Add"} Admission Inquiry
+                      </li>
+                    </ol>
+                  </nav>
+                </div>
+              </div>
               <form>
              <div className="card">
   <div className="card-header bg-light">
