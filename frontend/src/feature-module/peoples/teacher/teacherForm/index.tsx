@@ -52,8 +52,8 @@ const TeacherForm = () => {
   const [joiningLetterFile, setJoiningLetterFile] = useState<File | null>(null);
   const location = useLocation();
 
-// Helper to map API data to form fields (for edit mode)
-const mapApiDataToForm = (data: any, classOptions: any[], subjectOptions: any[]) => {
+  // Helper to map API data to form fields (for edit mode)
+  const mapApiDataToForm = (data: any, classOptions: any[], subjectOptions: any[]) => {
   const findOption = (options: any[], value: any) => options.find(opt => String(opt.value) === String(value)) || value || "";
   return {
     ...data,
@@ -71,7 +71,7 @@ const mapApiDataToForm = (data: any, classOptions: any[], subjectOptions: any[])
     father_name: data.father_name || "",
     mother_name: data.mother_name || "",
     marital_status: data.marital_status ? findOption(Marital, data.marital_status) : "",
-    date_of_birth: data.dob ? dayjs(data.dob) : null,
+    dob: data.dob ? dayjs(data.dob) : null,
     qualification: data.qualification || "",
     work_experience: data.work_experience || "",
     previous_school: data.previous_school || "",
@@ -118,21 +118,14 @@ useEffect(() => {
     setIsEdit(true);
     (async () => {
       try {
-        console.log('Calling getTeacherById with id:', id);
         const teacherData = await getTeacherById(id);
-        console.log('Raw teacherData response:', teacherData);
-        console.log('teacherData.data:', teacherData.data);
         if (teacherData && teacherData.data) {
           const mapped = mapApiDataToForm(teacherData.data, classOptions, subjectOptions);
-          console.log('API teacherData:', teacherData.data);
-          console.log('Mapped formData:', mapped);
           setFormData(mapped);
           setTeacherId(teacherData.data.id || id);
-        } else {
-          console.warn('teacherData.data is missing or falsy:', teacherData.data);
         }
       } catch (err) {
-        console.error('Error fetching teacher by id:', err);
+        // Optionally show error
       }
     })();
   } else if (!id) {
@@ -242,7 +235,7 @@ useEffect(() => {
     setLoading(true);
     // List all fields to submit (add any missing fields here)
     const allFields = [
-      "id", "first_name", "last_name", "class", "subject", "gender", "phone", "email", "blood_group", "date_of_joining", "father_name", "mother_name", "marital_status", "date_of_birth", "qualification", "work_experience", "previous_school", "previous_school_address", "previous_school_phone", "address", "permanent_address", "pan_number", "status", "notes", "epf_no", "basic_salary", "contract_type", "work_shift", "work_location", "date_of_leaving", "medical_leaves", "casual_leaves", "maternity_leaves", "sick_leaves", "account_name", "account_number", "bank_name", "ifsc_code", "branch_name", "route", "vehicle_number", "pickup_point", "hostel", "room_no", "facebook", "instagram", "linkedin", "youtube", "twitter", "language_known"
+      "id", "first_name", "last_name", "class", "subject", "gender", "phone", "email", "blood_group", "date_of_joining", "father_name", "mother_name", "marital_status", "dob", "qualification", "work_experience", "previous_school", "previous_school_address", "previous_school_phone", "address", "permanent_address", "pan_number", "status", "notes", "epf_no", "basic_salary", "contract_type", "work_shift", "work_location", "date_of_leaving", "medical_leaves", "casual_leaves", "maternity_leaves", "sick_leaves", "account_name", "account_number", "bank_name", "ifsc_code", "branch_name", "route", "vehicle_number", "pickup_point", "hostel", "room_no", "facebook", "instagram", "linkedin", "youtube", "twitter", "language_known"
     ];
 
     // Helper: flatten select fields to value
@@ -314,11 +307,11 @@ useEffect(() => {
             <div className="my-auto mb-2">
               <h3 className="mb-1">
                 {isEdit ? "Edit" : "Add"} Teacher
-                {!isEdit && teacherId && (
-                  <span className="badge bg-primary ms-3">Teacher ID: {teacherId}</span>
+                {!isEdit && formData.code && (
+                  <span className="badge bg-primary ms-3">Teacher Code: {formData.code}</span>
                 )}
-                {isEdit && teacherId && (
-                  <span className="badge bg-info ms-3">Teacher ID: {teacherId}</span>
+                {isEdit && formData.code && (
+                  <span className="badge bg-info ms-3">Teacher Code: {formData.code}</span>
                 )}
               </h3>
               <nav>
@@ -602,10 +595,10 @@ useEffect(() => {
                     <label className="form-label">Date of Birth <span className="text-danger ms-1">*</span></label>
                     <div className="input-icon position-relative">
                       <DatePicker
-                        className={`form-control datetimepicker${fieldErrors.includes("date_of_birth") ? " is-invalid" : ""}`}
+                        className={`form-control datetimepicker${fieldErrors.includes("dob") ? " is-invalid" : ""}`}
                         format={{ format: "DD-MM-YYYY", type: "mask" }}
-                        value={formData.date_of_birth ? dayjs(formData.date_of_birth) : null}
-                        onChange={date => handleDateChange("date_of_birth", date ? date.format("YYYY-MM-DD") : "")}
+                        value={formData.dob ? dayjs(formData.dob) : null}
+                        onChange={date => handleDateChange("dob", date ? date.format("YYYY-MM-DD") : "")}
                         placeholder="Select Date"
                       />
                       <span className="input-icon-addon">
