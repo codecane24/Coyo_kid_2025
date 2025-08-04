@@ -148,7 +148,7 @@ useEffect(() => {
 
 
 
-
+// Classes List With Section Fetching
   useEffect(() => {
     async function fetchClasses() {
       try {
@@ -484,7 +484,7 @@ useEffect(() => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Class <span className="text-danger ms-1">*</span></label>
+                    <label className="form-label">Assign Class(For Class Teacher) <span className="text-danger ms-1">*</span></label>
                     <CommonSelect
                       className={`select${fieldErrors.includes("class") ? " is-invalid" : ""}`}
                       options={classOptions}

@@ -30,6 +30,7 @@ import CommonSelect from "../../../../core/common/commonSelect";
 import { useLocation } from "react-router-dom";
 import { preparePayload } from "../../../../utils/preparePayload";
 import axiosInstance from "../../../../utils/axiosInstance";
+import ClassSelect from "../../../../utils/ClassSelect";
 interface Address {
   address: string;
   area: string;
@@ -45,7 +46,7 @@ interface InquiryFormData {
   firstName: string;
   middleName: string;
   lastName: string;
-  selectedClass: string;
+selectedClass: string | number;
   gender: string;
   dateOfBirth: string;
   primaryContact: string;
@@ -253,7 +254,7 @@ const payload = {
   first_name: inquiryFormData.firstName,
   middle_name: inquiryFormData.middleName,
   last_name: inquiryFormData.lastName,
-  selected_class: inquiryFormData.selectedClass,
+  class_id: inquiryFormData.selectedClass,
   gender: inquiryFormData.gender,
   date_of_birth: inquiryFormData.dateOfBirth,
   primary_contact: inquiryFormData.primaryContact,
@@ -408,19 +409,17 @@ const payload = {
       </div>
 
       {/* Class */}
-      <div className="col-xxl col-xl-3 col-md-6">
-        <div className="mb-3">
-          <label className="form-label">Class</label>
-     <CommonSelect
-  className="select"
-  options={allClass}
-  value={allClass.find(opt => opt.value === inquiryFormData.selectedClass) || undefined}
-  onChange={(option) =>
-    setInquiryFormData({ ...inquiryFormData, selectedClass: option.value })
-  }
-/>
-        </div>
-      </div>
+ {/* Class */}
+<div className="col-xxl col-xl-3 col-md-6">
+  <ClassSelect
+    label="Class"
+    value={inquiryFormData.selectedClass}
+    onChange={(val) =>
+      setInquiryFormData({ ...inquiryFormData, selectedClass: val })
+    }
+  />
+</div>
+
 
       {/* Gender */}
       <div className="col-xxl col-xl-3 col-md-6">
