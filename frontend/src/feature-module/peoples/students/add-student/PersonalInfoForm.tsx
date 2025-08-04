@@ -53,7 +53,7 @@ const PersonalInfoForm = forwardRef<PersonalInfoFormRef, Props>(
     {
       personalInfo,
       setPersonalInfo,
-      
+      isEditMode,
       owner,
       setOwner,
       setFiles,
@@ -64,17 +64,18 @@ const PersonalInfoForm = forwardRef<PersonalInfoFormRef, Props>(
   ) => {
     const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
 
-    const requiredFields = [
+const requiredFields = isEditMode
+  ? ["firstName", "gender", "dob"] // Only validate these in edit mode
+  : [
       "academicYear",
       "admissionNo",
       "admissionDate",
       "rollNo",
       "status",
       "firstName",
-     
       "section",
       "gender",
-      "dob",
+      "dob", 
     ];
 
     useImperativeHandle(ref, () => ({

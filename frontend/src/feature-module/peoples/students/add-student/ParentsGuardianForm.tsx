@@ -43,7 +43,7 @@ interface Props {
   currentStep: number;
 }
 
-const ParentsGuardianForm: React.FC<Props> = ({ parentInfo, setParentInfo }) => {
+const ParentsGuardianForm: React.FC<Props> = ({ parentInfo, setParentInfo, }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setParentInfo((prev) => ({ ...prev, [name]: value }));

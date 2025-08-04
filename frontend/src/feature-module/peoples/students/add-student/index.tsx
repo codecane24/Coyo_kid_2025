@@ -214,7 +214,7 @@ const [parentImages, setParentImages] = useState<{
 });
 const [transportMedical, setTransportMedical] = useState<TransportMedicalFormData>({
   transportService: "",
-  seriousDisease: "",
+  seriousDisease: [],
   seriousInjuries: [],
   allergies: [],
   medications: [],
@@ -447,6 +447,35 @@ const buildFormDataFromPayload2 = (payload: any): FormData => {
  * @param setFormData    lift state up to the wizard context
  * @param setCurrentStep move to the next step in the wizard
  */
+
+const [studentData, setStudentData] = useState<any>(null);
+const { id: routeStudentId } = useParams();
+
+
+const isEditingMode = location.pathname.includes("/student/edit");
+
+console.log("routeStudentId:", routeStudentId);
+console.log("isEditingMode:", isEditingMode);
+
+
+useEffect(() => {
+  if (isEditingMode && routeStudentId) {
+    console.log("Editing student with ID:", routeStudentId);
+    getStudentById(routeStudentId)
+      .then((data) => {
+        console.log("Student fetched:", data);
+        setStudentData(data);
+      })
+      .catch((err) => console.error(err));
+  }
+}, [isEditingMode, routeStudentId]);
+const StudentEditCode = studentData?.data?.step_1?.code || null;
+useEffect(() => {
+  if (routeStudentId) {
+    setStudentId(routeStudentId);
+  }
+}, [routeStudentId]);
+
 const handleStep1Submit = async (
   finalPayload: FormData,
   studentId: string | null,
@@ -557,6 +586,7 @@ if (currentStep === 1) {
 }
 
 else if (currentStep === 2) {
+  
   const payload = {
     ...parentInfo,
   };
@@ -750,30 +780,8 @@ else if (currentStep === 5) {
 
 
 
-const [studentData, setStudentData] = useState<any>(null);
-const { id: routeStudentId } = useParams();
-
-
-const isEditingMode = location.pathname.includes("/student/edit");
-
-console.log("routeStudentId:", routeStudentId);
-console.log("isEditingMode:", isEditingMode);
-
-useEffect(() => {
-  if (isEditingMode && routeStudentId) {
-    console.log("Editing student with ID:", routeStudentId);
-    getStudentById(routeStudentId)
-      .then((data) => {
-        console.log("Student fetched:", data);
-        setStudentData(data);
-      })
-      .catch((err) => console.error(err));
-  }
-}, [isEditingMode, routeStudentId]);
-
-
-// ✅ Second useEffect: Populate form when studentData is available
-
+// ✅ Step wiese fetching data in foms in edit
+// Step-2 Data Fetching For Edit Case
 useEffect(() => {
    const loadImageAsFile = async (url: string) => {
     const res = await fetch(url);
@@ -832,6 +840,7 @@ if (s.profile_image) {
   }
 }, [isEditingMode, studentData]);
 
+// Step-2 Data Fetching For Edit Case
 useEffect(() => {
   const loadImageAsFile = async (url: string) => {
     const res = await fetch(url);
@@ -843,6 +852,7 @@ useEffect(() => {
   if (!isEditMode || !studentData?.data?.step_2) return;
 
   const { father, mother, guardians, sibling_same_school, sibling_student_ids } = studentData.data.step_2;
+console.log("studentData.data.step_2 ===>", studentData?.data.step_2);
 
   const updatedParentInfo = {
     fatherName: father?.name || "",
@@ -908,9 +918,68 @@ useEffect(() => {
     );
   }
 }, [isEditMode, studentData]);
+
+
+// Step-3 Data Fetching For Edit Case
+useEffect(() => {
+  if (!isEditMode || !studentData?.data?.step_3) return;
+
+  console.log("studentData.data.step_3 ===>", studentData.data.step_3);
+
+  const { permanent_address, current_address } = studentData.data.step_3;
+
+  const updatedAddressInfo = {
+    permanent: {
+      address: permanent_address?.address || "",
+      area: permanent_address?.area || "",
+      landmark: permanent_address?.landmark || "",
+      city: permanent_address?.city || "",
+      state: permanent_address?.state || "",
+      pincode: permanent_address?.pincode || "",
+    },
+    current: {
+      address: current_address?.address || "",
+      area: current_address?.area || "",
+      landmark: current_address?.landmark || "",
+      city: current_address?.city || "",
+      state: current_address?.state || "",
+      pincode: current_address?.pincode || "",
+    },
+  };
+
+  setAddressInfo(updatedAddressInfo);
+}, [isEditMode, studentData]);
+
+useEffect(() => {
+  if (!isEditMode || !studentData?.data?.step_4) return;
+
+  console.log("studentData.data.step_4 ===>", studentData.data.step_4);
+
+  const {
+    transport_service,
+    serious_disease,
+    serious_injuries,
+    allergies,
+    medications,
+    previous_school_name,
+    previous_school_address,
+  } = studentData.data.step_4;
+
+  const updatedTransportMedical = {
+    transportService: transport_service || "",
+    seriousDisease: serious_disease || "",
+    seriousInjuries: serious_injuries?.filter(Boolean) || [],
+    allergies: allergies?.filter(Boolean) || [],
+    medications: medications?.filter(Boolean) || [],
+    previousSchoolName: previous_school_name || "",
+    previousSchoolAddress: previous_school_address || "",
+  };
+
+  setTransportMedical(updatedTransportMedical);
+}, [isEditMode, studentData]);
+
 const [serialId, setSerialId] = useState<string>("");
 
-const StudentEditCode = studentData?.data?.step_1?.code || null;
 
 useEffect(() => {
   const loadId = async () => {
@@ -978,9 +1047,11 @@ useEffect(() => {
 <MultiStepProgressBar
   currentStep={currentStep}
   steps={steps}
-  studentId={studentId} // required for click
   onStepClick={(step) => setCurrentStep(step)}
+  isEditMode={isEditMode}
+  studentId={studentId} // optional now
 />
+
 
 
 
@@ -989,7 +1060,7 @@ useEffect(() => {
             <div className="col-md-12">
               <form onSubmit={(e) => e.preventDefault()}>
    
-{currentStep === 6 && (
+{currentStep === 1 && (
 <PersonalInfoForm
   personalInfo={personalInfo}
   setPersonalInfo={setPersonalInfo}
@@ -1001,12 +1072,14 @@ useEffect(() => {
 setFiles={(val) => setFiles(val ? Array.from(val) : [])} 
   // ✅ new prop
   studentId={studentId} 
+    isEditMode={isEditMode}
 />
 
 )}
 
 {currentStep === 2  && (
 <ParentsGuardianForm
+ 
     currentStep={currentStep}
   parentInfo={parentInfo}
   setParentInfo={setParentInfo}
@@ -1046,7 +1119,7 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
 
 )}
 
-{currentStep === 1 && (
+{currentStep === 6 && (
 <FinancialDetailsForm
   financialData={financialData}
   setFinancialData={setFinancialData}

@@ -2,7 +2,7 @@ import React from "react";
 
 export type TransportMedicalFormData = {
   transportService: string;
-  seriousDisease: string;
+  seriousDisease: string[];
   seriousInjuries: string[];
   allergies: string[];
   medications: string[];

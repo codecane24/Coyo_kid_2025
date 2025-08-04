@@ -2,13 +2,20 @@ import React from "react";
 import "./MultiStepProgressBar.css";
 
 interface Props {
-  currentStep: number; // 1-based
+  currentStep: number;
   steps: string[];
   onStepClick?: (stepNumber: number) => void;
-  studentId?: string; // ✅ NEW — to determine edit mode
+  isEditMode?: boolean; // ✅ Add this
+  studentId?: string;
 }
 
-const MultiStepProgressBar: React.FC<Props> = ({ currentStep, steps, onStepClick, studentId }) => {
+const MultiStepProgressBar: React.FC<Props> = ({
+  currentStep,
+  steps,
+  onStepClick,
+  isEditMode = false,
+  studentId,
+}) => {
   return (
     <div className="stepper-container">
       {steps.map((step, index) => {
@@ -16,14 +23,14 @@ const MultiStepProgressBar: React.FC<Props> = ({ currentStep, steps, onStepClick
         const isCompleted = stepNumber < currentStep;
         const isActive = stepNumber === currentStep;
 
-        const canClick = !!studentId && typeof onStepClick === "function";
+        const canClick = isEditMode && typeof onStepClick === "function"; // ✅ Use isEditMode
 
         return (
           <div
             className="step-item"
             key={index}
-            onClick={() => canClick && onStepClick(stepNumber)} // ✅ only allow click in edit mode
-            style={{ cursor: canClick ? "pointer" : "default" }} // ✅ pointer only if clickable
+            onClick={() => canClick && onStepClick(stepNumber)}
+            style={{ cursor: canClick ? "pointer" : "default" }}
           >
             <div className={`step-circle ${isCompleted ? "completed" : isActive ? "active" : ""}`}>
               {isCompleted ? "✔" : stepNumber}
