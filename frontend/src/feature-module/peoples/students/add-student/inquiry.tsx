@@ -31,6 +31,10 @@ import { useLocation } from "react-router-dom";
 import { preparePayload } from "../../../../utils/preparePayload";
 import axiosInstance from "../../../../utils/axiosInstance";
 import ClassSelect from "../../../../utils/ClassSelect";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { createInquiry } from "../../../../services/AdmissionInquiry";
+
 interface Address {
   address: string;
   area: string;
@@ -204,22 +208,7 @@ const removeSibling = (index: number) => {
     }
   }, [location.pathname])
   
-const handleSubmit = async () => {
-  try {
-    // ✅ Step 1: Convert to snake_case
-    const snakePayload = preparePayload(inquiryFormData);
 
-    // ✅ Step 2: Log and check
-    console.log("📦 Payload to Send:", snakePayload);
-
-    // ✅ Step 3: Send to API
-    const res = await axiosInstance.post("/inquiry", snakePayload);
-
-    console.log("✅ API Response:", res.data);
-  } catch (err) {
-    console.error("❌ API Error:", err);
-  }
-};
 const handlePermanentAddressChange = (field: keyof Address, value: string) => {
   setInquiryFormData(prev => ({
     ...prev,
@@ -298,6 +287,51 @@ const payload = {
 
   previous_school_name: inquiryFormData.schoolName,
   previous_school_address: inquiryFormData.address
+};
+const handleSubmit = async () => {
+  // ✅ Required fields to validate
+  const requiredFields = [
+    { field: inquiryFormData.firstName, label: "First Name" },
+    { field: inquiryFormData.lastName, label: "Last Name" },
+    { field: inquiryFormData.primaryContact, label: "Primary Contact" },
+    { field: inquiryFormData.email, label: "Email" },
+    { field: inquiryFormData.dateOfEnquiry, label: "Date of Enquiry" },
+    { field: inquiryFormData.dateOfBirth, label: "Date of Birth" },
+    { field: inquiryFormData.academicYear, label: "Academic Year" },
+    { field: inquiryFormData.selectedClass, label: "Class" },
+    { field: inquiryFormData.gender, label: "Gender" },
+    { field: inquiryFormData.fatherName, label: "Father's Name" },
+    { field: inquiryFormData.fatherPhone, label: "Father's Phone" },
+    { field: inquiryFormData.motherName, label: "Mother's Name" },
+    { field: inquiryFormData.motherPhone, label: "Mother's Phone" },
+    { field: inquiryFormData.permanentAddress.address, label: "Permanent Address" },
+    { field: inquiryFormData.permanentAddress.city, label: "Permanent City" },
+    { field: inquiryFormData.permanentAddress.state, label: "Permanent State" },
+    { field: inquiryFormData.permanentAddress.pincode, label: "Permanent Pincode" },
+  ];
+
+  // ✅ Validate required fields
+  for (const item of requiredFields) {
+    if (!item.field || (typeof item.field === "string" && item.field.trim() === "")) {
+      toast.error(`${item.label} is required`, { position: "top-right" });
+      return;
+    }
+  }
+console.log(payload)
+   try {
+
+    const response = await createInquiry(payload);    // ✅ Using the service
+
+    toast.success("Inquiry submitted successfully!", { position: "top-right" });
+    console.log("✅ API Success:", response);
+
+    // Optional: reset form or redirect
+  } catch (error) {
+    console.error("❌ Submission Error:", error);
+    toast.error("Something went wrong while submitting the form", {
+      position: "top-right",
+    });
+  }
 };
 
   return (
@@ -990,8 +1024,7 @@ const payload = {
   type="button"
   onClick={() => {
 
-    console.log("Final Payload =>", payload);
-    // Call your API with `payload`
+handleSubmit()
   }}
   className="btn btn-primary"
 >
