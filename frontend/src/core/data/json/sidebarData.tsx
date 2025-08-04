@@ -119,13 +119,13 @@ export const SidebarData = [
       // Inquiry
           {
         label: "Inquiry",
-        icon: "ti ti-layout-list",
+        icon: "ti ti-question-mark",
         submenu: true,
         showSubRoute: false,
          permissionKey: "class_view",
         submenuItems: [
           {
-            label: "Admission Inquiries",
+            label: "Admission Inquiriy List",
             link: routes.admissionInquiryList,
             showSubRoute: false,
              permissionKey: "class_view",
