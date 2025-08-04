@@ -73,7 +73,7 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
 
     //=== Admission Inquiry API
     Route::apiResource('admission-inquiry', 'AdmissionInquiryController');
-    
+
 
 });
 
