@@ -16,6 +16,7 @@ class AdmissionInquiry extends Model
      * @var array
      */
     protected $fillable = [
+        'code',
         'academic_year',
         'date_of_enquiry',
         'first_name',
