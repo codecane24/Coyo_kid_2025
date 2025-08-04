@@ -10,13 +10,18 @@ class StudentParent extends Model
 		'code',
 		'name',
 		'phone',
-		'adhar',
+		'email',
+		'aadhar',
+		'aadhar_file',
+		'qualiffication',
 		'relation',
-		'occoccupation',
-		'itr',
+		'occupation',
+		'itr_no',
+		'itr_file',
 		'image',
 		'docfolder_name',
-		'status'
+		'status',
+		'student_id',
 	];
 
 	protected $hidden = [

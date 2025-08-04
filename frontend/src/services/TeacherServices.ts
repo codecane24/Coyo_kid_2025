@@ -1,4 +1,10 @@
+
 import axiosInstance from "../utils/axiosInstance";
+
+export const getTeacherById = async (id: string) => {
+  const response = await axiosInstance.get(`/teacher/${id}`);
+  return response.data;
+};
 
 export const getTeacherList = async () => {
   const response = await axiosInstance.get("/teacher");

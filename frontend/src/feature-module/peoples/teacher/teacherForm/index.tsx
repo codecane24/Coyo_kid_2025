@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { createTeacher, updateTeacher } from "../../../../services/TeacherServices";
+import { createTeacher, updateTeacher, getTeacherById } from "../../../../services/TeacherServices";
+import { getAllId } from "../../../../services/GetAllId";
 import { Link } from "react-router-dom";
 // import { feeGroup, feesTypes, paymentType } from '../../../core/common/selectoption/selectoption'
 import { DatePicker } from "antd";
@@ -26,7 +27,7 @@ import {
 import { TagsInput } from "react-tag-input-component";
 import CommonSelect from "../../../../core/common/commonSelect";
 import CommonSelectMulti from "../../../../core/common/commonSelectMulti";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { requiredFields, getMissingFields } from "./teacherFormValidation";
 import { getClassesList } from "../../../../services/ClassData";
 
@@ -34,7 +35,9 @@ import { getClassesList } from "../../../../services/ClassData";
 
 const TeacherForm = () => {
   const routes = all_routes;
-  const [isEdit, setIsEdit] = useState<boolean>(false);
+  const { id } = useParams();
+  const [isEdit, setIsEdit] = useState<boolean>(!!id);
+  const [teacherId, setTeacherId] = useState<string>("");
   const [owner, setOwner] = useState<string[]>([]);
   const [owner1, setOwner1] = useState<string[]>([]);
   const [owner2, setOwner2] = useState<string[]>([]);
@@ -44,28 +47,122 @@ const TeacherForm = () => {
   const [loading, setLoading] = useState(false);
   const [classOptions, setClassOptions] = useState<any[]>([]);
   const [subjectOptions, setSubjectOptions] = useState<any[]>([]);
+  // File upload states
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [joiningLetterFile, setJoiningLetterFile] = useState<File | null>(null);
   const location = useLocation();
 
-  useEffect(() => {
-    if (location.pathname === routes.editTeacher) {
-      setIsEdit(true);
-      // You may want to fetch teacher data here and setFormData
-    } else {
-      setIsEdit(false);
-      setFormData({});
-    }
-  }, [location.pathname]);
+// Helper to map API data to form fields (for edit mode)
+const mapApiDataToForm = (data: any, classOptions: any[], subjectOptions: any[]) => {
+  const findOption = (options: any[], value: any) => options.find(opt => String(opt.value) === String(value)) || value || "";
+  return {
+    ...data,
+    id: data.id || data.code || "",
+    code: data.code || "",
+    first_name: data.first_name || "",
+    last_name: data.last_name || "",
+    class: data.class_id ? findOption(classOptions, data.class_id) : "",
+    subject: data.subject_id ? [findOption(subjectOptions, data.subject_id)] : [],
+    gender: data.gender ? findOption(gender, data.gender) : "",
+    phone: data.phone || "",
+    email: data.email || "",
+    blood_group: data.blood_group ? findOption(bloodGroup, data.blood_group) : "",
+    date_of_joining: data.date_of_joining ? dayjs(data.date_of_joining) : null,
+    father_name: data.father_name || "",
+    mother_name: data.mother_name || "",
+    marital_status: data.marital_status ? findOption(Marital, data.marital_status) : "",
+    date_of_birth: data.dob ? dayjs(data.dob) : null,
+    qualification: data.qualification || "",
+    work_experience: data.work_experience || "",
+    previous_school: data.previous_school || "",
+    previous_school_address: data.previous_school_address || "",
+    previous_school_phone: data.previous_school_phone || "",
+    address: data.address || "",
+    permanent_address: data.permanent_address || "",
+    pan_number: data.pan_number || "",
+    status: typeof data.status === 'boolean' ? (data.status ? findOption(status, 'Active') : findOption(status, 'Inactive')) : (data.status ? findOption(status, data.status) : ""),
+    notes: data.notes || "",
+    epf_no: data.epf_no || "",
+    basic_salary: data.basic_salary || "",
+    contract_type: data.contract_type ? findOption(Contract, data.contract_type) : "",
+    work_shift: data.work_shift ? findOption(Shift, data.work_shift) : "",
+    work_location: data.work_location || "",
+    date_of_leaving: data.date_of_leaving ? dayjs(data.date_of_leaving) : null,
+    medical_leaves: data.medical_leaves || "",
+    casual_leaves: data.casual_leaves || "",
+    maternity_leaves: data.maternity_leaves || "",
+    sick_leaves: data.sick_leaves || "",
+    account_name: data.account_name || "",
+    account_number: data.account_number || "",
+    bank_name: data.bank_name || "",
+    ifsc_code: data.ifsc_code || "",
+    branch_name: data.branch_name || "",
+    route: data.route ? findOption(route, data.route) : "",
+    vehicle_number: data.vehicle_number ? findOption(VehicleNumber, data.vehicle_number) : "",
+    pickup_point: data.pickup_point ? findOption(PickupPoint, data.pickup_point) : "",
+    hostel: data.hostel ? findOption(Hostel, data.hostel) : "",
+    room_no: data.room_no ? findOption(roomNO, data.room_no) : "",
+    facebook: data.facebook || "",
+    instagram: data.instagram || "",
+    linkedin: data.linkedin || "",
+    youtube: data.youtube || "",
+    twitter: data.twitter || "",
+    // Map API 'languages_known' to form 'language_known'
+    language_known: Array.isArray(data.languages_known) ? data.languages_known : (data.languages_known ? [data.languages_known] : []),
+  };
+};
 
-  // Fetch class list for dropdown
+// Fetch teacher data and map to form fields after options are loaded
+useEffect(() => {
+  if (id && classOptions.length > 0 && subjectOptions.length > 0) {
+    setIsEdit(true);
+    (async () => {
+      try {
+        console.log('Calling getTeacherById with id:', id);
+        const teacherData = await getTeacherById(id);
+        console.log('Raw teacherData response:', teacherData);
+        console.log('teacherData.data:', teacherData.data);
+        if (teacherData && teacherData.data) {
+          const mapped = mapApiDataToForm(teacherData.data, classOptions, subjectOptions);
+          console.log('API teacherData:', teacherData.data);
+          console.log('Mapped formData:', mapped);
+          setFormData(mapped);
+          setTeacherId(teacherData.data.id || id);
+        } else {
+          console.warn('teacherData.data is missing or falsy:', teacherData.data);
+        }
+      } catch (err) {
+        console.error('Error fetching teacher by id:', err);
+      }
+    })();
+  } else if (!id) {
+    setIsEdit(false);
+  }
+}, [id, classOptions, subjectOptions]);
+
+
+useEffect(() => {
+  // Fetch new Teacher ID if not editing
+  if (!isEdit) {
+    getAllId("teacher").then(id => {
+      setTeacherId(id);
+      setFormData((prev: any) => ({ ...prev, id }));
+    });
+  } else if (formData.code || formData.id) {
+    setTeacherId(formData.code || formData.id);
+  }
+}, [isEdit, formData.code, formData.id]);
+
+
   useEffect(() => {
     async function fetchClasses() {
       try {
         const classes = await getClassesList();
         const formatted = Array.isArray(classes)
           ? classes.map((cls: any) => ({
-              label: `${cls.name}${cls.section ? ` (${cls.section})` : ''}`,
-              value: cls.id
-            }))
+            label: `${cls.name} (${cls.section})`,
+            value: cls.id
+          }))
           : [];
         setClassOptions(formatted);
       } catch (error) {
@@ -143,15 +240,60 @@ const TeacherForm = () => {
       setFieldErrors([]);
     }
     setLoading(true);
+    // List all fields to submit (add any missing fields here)
+    const allFields = [
+      "id", "first_name", "last_name", "class", "subject", "gender", "phone", "email", "blood_group", "date_of_joining", "father_name", "mother_name", "marital_status", "date_of_birth", "qualification", "work_experience", "previous_school", "previous_school_address", "previous_school_phone", "address", "permanent_address", "pan_number", "status", "notes", "epf_no", "basic_salary", "contract_type", "work_shift", "work_location", "date_of_leaving", "medical_leaves", "casual_leaves", "maternity_leaves", "sick_leaves", "account_name", "account_number", "bank_name", "ifsc_code", "branch_name", "route", "vehicle_number", "pickup_point", "hostel", "room_no", "facebook", "instagram", "linkedin", "youtube", "twitter", "language_known"
+    ];
+
+    // Helper: flatten select fields to value
+    const flattenValue = (val: any) => {
+      if (val && typeof val === "object" && "value" in val) return val.value;
+      return val;
+    };
+
+    // Transform data for all fields
+    const transformedData: any = {};
+    allFields.forEach(field => {
+      let value = formData[field];
+      // Multi-select fields
+      if (field === "subject" && Array.isArray(value)) {
+        transformedData[field] = value.map((opt: any) => flattenValue(opt));
+      } else if (field === "language_known" && Array.isArray(value)) {
+        transformedData[field] = value;
+      } else if (["class", "gender", "blood_group", "status", "marital_status", "contract_type", "work_shift", "route", "vehicle_number", "pickup_point", "hostel", "room_no"].includes(field)) {
+        transformedData[field] = flattenValue(value) || "";
+      } else {
+        transformedData[field] = value !== undefined && value !== null ? value : "";
+      }
+    });
+
+    // Prepare FormData for file upload
+    const formPayload = new FormData();
+    Object.entries(transformedData).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((v, idx) => {
+          formPayload.append(`${key}[${idx}]`, typeof v === 'object' ? JSON.stringify(v) : String(v));
+        });
+      } else if (value instanceof Blob) {
+        formPayload.append(key, value);
+      } else {
+        formPayload.append(key, String(value));
+      }
+    });
+    // Append files if present
+    if (resumeFile) {
+      formPayload.append("resume", resumeFile);
+    }
+    if (joiningLetterFile) {
+      formPayload.append("joining_letter", joiningLetterFile);
+    }
     try {
       if (isEdit) {
-         const res = await updateTeacher(formData.id, formData);
-  
+        const res = await updateTeacher(transformedData.id, formPayload);
         toast.success("Teacher updated successfully");
       } else {
-        
-        const res = await createTeacher(formData);
-        console.log("Submitting form data:", res);
+        const res = await createTeacher(formPayload);
+        console.log("Submitting form data:", transformedData);
         toast.success("Teacher added successfully");
       }
     } catch (error: any) {
@@ -170,7 +312,15 @@ const TeacherForm = () => {
           {/* Page Header */}
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
             <div className="my-auto mb-2">
-              <h3 className="mb-1">{isEdit ? "Edit" : "Add"} Teacher</h3>
+              <h3 className="mb-1">
+                {isEdit ? "Edit" : "Add"} Teacher
+                {!isEdit && teacherId && (
+                  <span className="badge bg-primary ms-3">Teacher ID: {teacherId}</span>
+                )}
+                {isEdit && teacherId && (
+                  <span className="badge bg-info ms-3">Teacher ID: {teacherId}</span>
+                )}
+              </h3>
               <nav>
                 <ol className="breadcrumb mb-0">
                   <li className="breadcrumb-item">
@@ -204,50 +354,118 @@ const TeacherForm = () => {
                     <div className="card-body pb-1">
                       <div className="row">
                         <div className="col-md-12">
-                          <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
-                            <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
-                              <i className="ti ti-photo-plus fs-16" />
-                            </div>
-                            <div className="profile-upload">
-                              <div className="profile-uploader d-flex align-items-center">
-                                <div className="drag-upload-btn mb-3">
-                                  Upload
-                                  <input
-                                    type="file"
-                                    className="form-control image-sign"
-                                    multiple
-                                  />
-                                </div>
-                                <Link
-                                  to="#"
-                                  className="btn btn-primary mb-3"
-                                >
-                                  Remove
-                                </Link>
-                              </div>
-                              <p className="fs-12">
-                                Upload image size 4MB, Format JPG, PNG, SVG
-                              </p>
-                            </div>
+                <div className="d-flex align-items-center flex-wrap row-gap-3 mb-3">
+                  <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
+                    <i className="ti ti-photo-plus fs-16" />
+                  </div>
+                  <div className="profile-upload">
+                    <div className="profile-uploader d-flex align-items-center">
+                      <div className="drag-upload-btn mb-3">
+                        Upload Resume
+                        <input
+                          type="file"
+                          className="form-control image-sign"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={e => {
+                            if (e.target.files && e.target.files[0]) {
+                              setResumeFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                        {/* Preview for selected resume file */}
+                        {resumeFile && (
+                          <div className="mt-2">
+                            <span className="fs-12 text-success">Resume: {resumeFile.name}</span>
+                            {resumeFile.type.startsWith('image/') ? (
+                              <img src={URL.createObjectURL(resumeFile)} alt="Resume Preview" style={{maxWidth:100, maxHeight:100, display:'block', marginTop:4}} />
+                            ) : (
+                              <span className="fs-12">(PDF or other file)</span>
+                            )}
                           </div>
+                        )}
+                        {/* Preview for edit mode: existing resume file */}
+                        {!resumeFile && isEdit && formData.resume_url && (
+                          <div className="mt-2">
+                            <span className="fs-12 text-info">Current Resume:</span>
+                            {formData.resume_url.match(/\.(jpg|jpeg|png)$/i) ? (
+                              <img src={formData.resume_url} alt="Resume Preview" style={{maxWidth:100, maxHeight:100, display:'block', marginTop:4}} />
+                            ) : (
+                              <a href={formData.resume_url} target="_blank" rel="noopener noreferrer">View Resume</a>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="drag-upload-btn mb-3 ms-2">
+                        Upload Joining Letter
+                        <input
+                          type="file"
+                          className="form-control image-sign"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={e => {
+                            if (e.target.files && e.target.files[0]) {
+                              setJoiningLetterFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                        {/* Preview for selected joining letter file */}
+                        {joiningLetterFile && (
+                          <div className="mt-2">
+                            <span className="fs-12 text-success">Joining Letter: {joiningLetterFile.name}</span>
+                            {joiningLetterFile.type.startsWith('image/') ? (
+                              <img src={URL.createObjectURL(joiningLetterFile)} alt="Joining Letter Preview" style={{maxWidth:100, maxHeight:100, display:'block', marginTop:4}} />
+                            ) : (
+                              <span className="fs-12">(PDF or other file)</span>
+                            )}
+                          </div>
+                        )}
+                        {/* Preview for edit mode: existing joining letter file */}
+                        {!joiningLetterFile && isEdit && formData.joining_letter_url && (
+                          <div className="mt-2">
+                            <span className="fs-12 text-info">Current Joining Letter:</span>
+                            {formData.joining_letter_url.match(/\.(jpg|jpeg|png)$/i) ? (
+                              <img src={formData.joining_letter_url} alt="Joining Letter Preview" style={{maxWidth:100, maxHeight:100, display:'block', marginTop:4}} />
+                            ) : (
+                              <a href={formData.joining_letter_url} target="_blank" rel="noopener noreferrer">View Joining Letter</a>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <Link
+                        to="#"
+                        className="btn btn-primary mb-3 ms-2"
+                        onClick={e => {
+                          e.preventDefault();
+                          setResumeFile(null);
+                          setJoiningLetterFile(null);
+                        }}
+                      >
+                        Remove All
+                      </Link>
+                    </div>
+                    <p className="fs-12">
+                      Upload image size 4MB, Format JPG, PNG, PDF
+                    </p>
+                  </div>
+                </div>
                         </div>
                       </div>
                       <div className="row row-cols-xxl-5 row-cols-md-6">
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Teacher ID</label>
+                    <label className="form-label">Teacher ID <span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className={`form-control${fieldErrors.includes("id") ? " is-invalid" : ""}`}
                       name="id"
                       value={formData.id || ""}
                       onChange={handleInputChange}
+                      readOnly={!isEdit}
                     />
                   </div>
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">First Name</label>
+                    <label className="form-label">First Name <span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className={`form-control${fieldErrors.includes("first_name") ? " is-invalid" : ""}`}
@@ -259,7 +477,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Last Name</label>
+                    <label className="form-label">Last Name <span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className={`form-control${fieldErrors.includes("last_name") ? " is-invalid" : ""}`}
@@ -271,7 +489,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Class</label>
+                    <label className="form-label">Class <span className="text-danger ms-1">*</span></label>
                     <CommonSelect
                       className={`select${fieldErrors.includes("class") ? " is-invalid" : ""}`}
                       options={classOptions}
@@ -282,7 +500,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Subject</label>
+                    <label className="form-label">Subject <span className="text-danger ms-1">*</span></label>
                     <CommonSelectMulti
                       className={`select${fieldErrors.includes("subject") ? " is-invalid" : ""}`}
                       options={subjectOptions}
@@ -294,7 +512,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Gender</label>
+                    <label className="form-label">Gender <span className="text-danger ms-1">*</span></label>
                     <CommonSelect
                       className={`select${fieldErrors.includes("gender") ? " is-invalid" : ""}`}
                       options={gender}
@@ -305,9 +523,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">
-                      Primary Contact Number
-                    </label>
+                    <label className="form-label">Primary Contact Number <span className="text-danger ms-1">*</span></label>
                     <input
                       type="text"
                       className={`form-control${fieldErrors.includes("phone") ? " is-invalid" : ""}`}
@@ -319,7 +535,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Email Address</label>
+                    <label className="form-label">Email Address <span className="text-danger ms-1">*</span></label>
                     <input
                       type="email"
                       className={`form-control${fieldErrors.includes("email") ? " is-invalid" : ""}`}
@@ -331,7 +547,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Blood Group</label>
+                    <label className="form-label">Blood Group <span className="text-danger ms-1">*</span></label>
                     <CommonSelect
                       className="select"
                       options={bloodGroup}
@@ -342,7 +558,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Date of Joining</label>
+                    <label className="form-label">Date of Joining <span className="text-danger ms-1">*</span></label>
                     <div className="input-icon position-relative">
                       <DatePicker
                         className={`form-control datetimepicker${fieldErrors.includes("date_of_joining") ? " is-invalid" : ""}`}
@@ -383,7 +599,7 @@ const TeacherForm = () => {
                 </div>
                 <div className="col-xxl col-xl-3 col-md-6">
                   <div className="mb-3">
-                    <label className="form-label">Date of Birth</label>
+                    <label className="form-label">Date of Birth <span className="text-danger ms-1">*</span></label>
                     <div className="input-icon position-relative">
                       <DatePicker
                         className={`form-control datetimepicker${fieldErrors.includes("date_of_birth") ? " is-invalid" : ""}`}
@@ -404,7 +620,8 @@ const TeacherForm = () => {
                             <CommonSelect
                               className="select"
                               options={Marital}
-                              defaultValue={isEdit ? Marital[0] : undefined}
+                              value={formData.marital_status || ""}
+                              onChange={value => handleSelectChange("marital_status", value)}
                             />
                           </div>
                         </div>
@@ -412,9 +629,8 @@ const TeacherForm = () => {
                           <div className="mb-3">
                             <label className="form-label">Language Known</label>
                             <TagsInput
-                              // className="input-tags form-control"
-                              value={owner}
-                              onChange={setOwner}
+                              value={formData.language_known || []}
+                              onChange={value => setFormData((prev: any) => ({ ...prev, language_known: value }))}
                             />
                           </div>
                         </div>
@@ -424,7 +640,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "MBA" : undefined}
+                              name="qualification"
+                              value={formData.qualification || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -436,7 +654,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "2  Years" : undefined}
+                              name="work_experience"
+                              value={formData.work_experience || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -448,9 +668,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "Oxford Matriculation, USA" : undefined
-                              }
+                              name="previous_school"
+                              value={formData.previous_school || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -462,11 +682,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit
-                                  ? "1852 Barnes Avenue, Cincinnati, OH 45202"
-                                  : undefined
-                              }
+                              name="previous_school_address"
+                              value={formData.previous_school_address || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -478,9 +696,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "+1 35676 45556" : undefined
-                              }
+                              name="previous_school_phone"
+                              value={formData.previous_school_phone || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -490,11 +708,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit
-                                  ? "3495 Red Hawk Road, Buffalo Lake, MN 55314"
-                                  : undefined
-                              }
+                              name="address"
+                              value={formData.address || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -506,11 +722,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit
-                                  ? "3495 Red Hawk Road, Buffalo Lake, MN 55314"
-                                  : undefined
-                              }
+                              name="permanent_address"
+                              value={formData.permanent_address || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -522,7 +736,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "343445954908" : undefined}
+                              name="pan_number"
+                              value={formData.pan_number || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -532,7 +748,8 @@ const TeacherForm = () => {
                             <CommonSelect
                               className="select"
                               options={status}
-                              defaultValue={isEdit ? status[0] : undefined}
+                              value={formData.status || ""}
+                              onChange={value => handleSelectChange("status", value)}
                             />
                           </div>
                         </div>
@@ -541,13 +758,11 @@ const TeacherForm = () => {
                             <label className="form-label">Notes</label>
                             <textarea
                               className="form-control"
+                              name="notes"
                               placeholder="Other Information"
                               rows={4}
-                              defaultValue={
-                                isEdit
-                                  ? "Depending on the specific needs of your organization or system, additional information may be collected or tracked. Its important to ensure that any data collected complies with privacy regulations and policies to protect students sensitive information"
-                                  : undefined
-                              }
+                              value={formData.notes || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -576,7 +791,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "34234345" : undefined}
+                              name="epf_no"
+                              value={formData.epf_no || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -586,7 +803,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "150000" : undefined}
+                              name="basic_salary"
+                              value={formData.basic_salary || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -596,7 +815,8 @@ const TeacherForm = () => {
                             <CommonSelect
                               className="select"
                               options={Contract}
-                              defaultValue={isEdit ? Contract[0] : undefined}
+                              value={formData.contract_type || ""}
+                              onChange={value => handleSelectChange("contract_type", value)}
                             />
                           </div>
                         </div>
@@ -606,7 +826,8 @@ const TeacherForm = () => {
                             <CommonSelect
                               className="select"
                               options={Shift}
-                              defaultValue={isEdit ? Shift[0] : undefined}
+                              value={formData.work_shift || ""}
+                              onChange={value => handleSelectChange("work_shift", value)}
                             />
                           </div>
                         </div>
@@ -616,7 +837,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "2nd Floor" : undefined}
+                              name="work_location"
+                              value={formData.work_location || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -626,23 +849,13 @@ const TeacherForm = () => {
                               Date of Leaving
                             </label>
                             <div className="input-icon position-relative">
-                            {isEdit? <DatePicker
+                              <DatePicker
                                 className="form-control datetimepicker"
-                                format={{
-                                  format: "DD-MM-YYYY",
-                                  type: "mask",
-                                }}
-                                value={defaultDate}
+                                format={{ format: "DD-MM-YYYY", type: "mask" }}
+                                value={formData.date_of_leaving ? dayjs(formData.date_of_leaving) : null}
+                                onChange={date => handleDateChange("date_of_leaving", date ? date.format("YYYY-MM-DD") : "")}
                                 placeholder="Select Date"
-                              /> : <DatePicker
-                              className="form-control datetimepicker"
-                              format={{
-                                format: "DD-MM-YYYY",
-                                type: "mask",
-                              }}
-                              defaultValue=""
-                              placeholder="Select Date"
-                            />}
+                              />
                               <span className="input-icon-addon">
                                 <i className="ti ti-calendar" />
                               </span>
@@ -671,7 +884,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "01" : undefined}
+                              name="medical_leaves"
+                              value={formData.medical_leaves || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -681,7 +896,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "02" : undefined}
+                              name="casual_leaves"
+                              value={formData.casual_leaves || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -693,7 +910,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "20" : undefined}
+                              name="maternity_leaves"
+                              value={formData.maternity_leaves || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -703,7 +922,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "02" : undefined}
+                              name="sick_leaves"
+                              value={formData.sick_leaves || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -729,7 +950,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "Teresa" : undefined}
+                              name="account_name"
+                              value={formData.account_name || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -739,7 +962,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "0126784900" : undefined}
+                              name="account_number"
+                              value={formData.account_number || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -749,9 +974,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "Bank of America" : undefined
-                              }
+                              name="bank_name"
+                              value={formData.bank_name || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -761,7 +986,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "BOA83209832" : undefined}
+                              name="ifsc_code"
+                              value={formData.ifsc_code || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -771,7 +998,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={isEdit ? "Cincinnati" : undefined}
+                              name="branch_name"
+                              value={formData.branch_name || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -800,36 +1029,39 @@ const TeacherForm = () => {
                   </div>
                   <div className="card-body pb-1">
                     <div className="row">
-                      <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Route</label>
-                          <CommonSelect
-                            className="select"
-                            options={route}
-                            defaultValue={isEdit ? route[0] : undefined}
-                          />
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Route</label>
+                            <CommonSelect
+                              className="select"
+                              options={route}
+                              value={formData.route || ""}
+                              onChange={value => handleSelectChange("route", value)}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Vehicle Number</label>
-                          <CommonSelect
-                            className="select"
-                            options={VehicleNumber}
-                            defaultValue={isEdit ? VehicleNumber[0] : undefined}
-                          />
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Vehicle Number</label>
+                            <CommonSelect
+                              className="select"
+                              options={VehicleNumber}
+                              value={formData.vehicle_number || ""}
+                              onChange={value => handleSelectChange("vehicle_number", value)}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Pickup Point</label>
-                          <CommonSelect
-                            className="select"
-                            options={PickupPoint}
-                            defaultValue={isEdit ? PickupPoint[0] : undefined}
-                          />
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Pickup Point</label>
+                            <CommonSelect
+                              className="select"
+                              options={PickupPoint}
+                              value={formData.pickup_point || ""}
+                              onChange={value => handleSelectChange("pickup_point", value)}
+                            />
+                          </div>
                         </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -853,26 +1085,28 @@ const TeacherForm = () => {
                   </div>
                   <div className="card-body pb-1">
                     <div className="row">
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Hostel</label>
-                          <CommonSelect
-                            className="select"
-                            options={Hostel}
-                            defaultValue={isEdit ? Hostel[0] : undefined}
-                          />
+                        <div className="col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Hostel</label>
+                            <CommonSelect
+                              className="select"
+                              options={Hostel}
+                              value={formData.hostel || ""}
+                              onChange={value => handleSelectChange("hostel", value)}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="mb-3">
-                          <label className="form-label">Room No</label>
-                          <CommonSelect
-                            className="select"
-                            options={roomNO}
-                            defaultValue={isEdit ? roomNO[0] : undefined}
-                          />
+                        <div className="col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Room No</label>
+                            <CommonSelect
+                              className="select"
+                              options={roomNO}
+                              value={formData.room_no || ""}
+                              onChange={value => handleSelectChange("room_no", value)}
+                            />
+                          </div>
                         </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -896,9 +1130,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "www.facebook.com" : undefined
-                              }
+                              name="facebook"
+                              value={formData.facebook || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -908,9 +1142,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "www.instagram.com" : undefined
-                              }
+                              name="instagram"
+                              value={formData.instagram || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -920,9 +1154,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "www.Linkedin.com" : undefined
-                              }
+                              name="linkedin"
+                              value={formData.linkedin || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -932,9 +1166,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "www.youtube.com" : undefined
-                              }
+                              name="youtube"
+                              value={formData.youtube || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>
@@ -944,9 +1178,9 @@ const TeacherForm = () => {
                             <input
                               type="text"
                               className="form-control"
-                              defaultValue={
-                                isEdit ? "www.twitter.com" : undefined
-                              }
+                              name="twitter"
+                              value={formData.twitter || ""}
+                              onChange={handleInputChange}
                             />
                           </div>
                         </div>

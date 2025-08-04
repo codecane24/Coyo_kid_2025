@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log; // Import Log facade for error logging
 use Illuminate\Support\Facades\Storage; // Import Storage facade for file uploads
 use Auth;
 use Illuminate\Support\Str;
+use DB;
 class StudentController extends Controller
 {
     /**
@@ -92,6 +93,8 @@ class StudentController extends Controller
                     'mother_tongue' => $student->mother_tongue,
                     'languages' => json_decode($student->languages, true),
                     'profile_image' => $student->profile_image,
+                    'father_id' => $student->father_id,
+                    'mother_id' => $student->mother_id,
                 ],
                 'step_2' => [
                     'father' => $student->father,
@@ -262,6 +265,7 @@ class StudentController extends Controller
     public function update(Request $request, $id)
     {
         // Retrieve the student instance
+    
         $student = Student::find($id);
 
         if (!$student) {
@@ -435,6 +439,7 @@ class StudentController extends Controller
 
                         // Handle Father
                         $fatherDetails = [
+                            'student_id' => $student->id,
                             'relation' => 'father',
                             'name' => $request->input('father_name'),
                             'phone' => $request->input('father_phone'),
@@ -464,6 +469,7 @@ class StudentController extends Controller
 
                         // Handle Mother
                         $motherDetails = [
+                            'student_id' => $student->id,
                             'relation' => 'mother',
                             'name' => $request->input('mother_name'),
                             'phone' => $request->input('mother_phone'),
@@ -495,6 +501,7 @@ class StudentController extends Controller
                         $guardiansToAttach = [];
                         foreach ($request->input('guardians', []) as $index => $guardianData) {
                             $guardianDetails = [
+                                'student_id' => $student->id,
                                 'relation' => $guardianData['relation'],
                                 'name' => $guardianData['name'],
                                 'phone' => $guardianData['phone'] ?? null,
@@ -509,7 +516,6 @@ class StudentController extends Controller
                             // Try to find existing guardian for this student
                             $existingGuardian = $student->guardians()
                                 ->where('name', $guardianDetails['name'])
-                                ->orWhere('phone', $guardianDetails['phone'])
                                 ->orWhere('aadhar', $guardianDetails['aadhar'])
                                 ->first();
 
@@ -537,7 +543,7 @@ class StudentController extends Controller
                         ]);
 
                         // Sync guardians (detach all and attach new ones)
-                        $student->guardians()->sync($guardiansToAttach);
+                        //$student->guardians()->sync($guardiansToAttach);
 
                         // Handle siblings
                         StudentSibling::where('student_id', $student->id)->delete();
@@ -690,8 +696,8 @@ class StudentController extends Controller
                     StudentMedicalHistory::updateOrCreate(
                         ['student_id' => $student->id],
                         [
-                            'serious_disease' => $request->serious_disease ?? 'NA',
-                            'medical_condition' => $request->medical_condition ?? 'Good',
+                            'serious_disease' => $request->serious_disease ? json_encode($request->serious_disease) : null,
+                            //'medical_condition' => $request->medical_condition ?? 'Good',
                             'serious_injuries' => $request->serious_injuries ? json_encode($request->serious_injuries) : null,
                             'allergies' => $request->allergies ? json_encode($request->allergies) : null,
                             'medications' => $request->medications ? json_encode($request->medications) : null,

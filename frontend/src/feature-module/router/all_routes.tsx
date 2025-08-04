@@ -216,7 +216,7 @@ export const all_routes = {
   teacherGrid: "/teacher/teacher-grid",
   teacherList: "/teacher/teacher-list",
   addTeacher: "/teacher/add-teacher",
-  editTeacher: "/teacher/edit-teacher",
+  editTeacher: "/teacher/edit-teacher/:id",
   teacherLibrary: "/teacher/teacher-library",
   teacherSalary: "/teacher/teacher-salary",
   teacherLeaves: "/teacher/teacher-leaves",

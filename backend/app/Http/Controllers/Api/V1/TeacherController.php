@@ -91,7 +91,7 @@ class TeacherController extends Controller
      */
     public function show($id)
     {
-        $teacher = Teacher::select(
+        $teachers = Teacher::select(
             'id',
             'code',
             'first_name',
@@ -148,7 +148,20 @@ class TeacherController extends Controller
             'branch_id'
         )->findOrFail($id);
 
-        return response()->json($teacher);
+         if (!$teachers) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Teacher not found',
+                'data' => null,
+            ], 404);
+        }
+
+         return response()->json([
+            'status' => 'success',
+            'data' => $teachers,
+            'message' => 'Teacher retrieved successfully.',
+        ], 200);    
+        
     }
 
     /**
@@ -159,7 +172,7 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        return $request;
+       
         $validator = Validator::make($request->all(), [
             //'code' => 'nullable|string|unique:teachers,code|max:50',
             'first_name' => 'required|string|max:50',
