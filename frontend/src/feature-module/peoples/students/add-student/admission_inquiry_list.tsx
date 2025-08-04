@@ -278,6 +278,12 @@ const AdmissionInquiryList = () => {
                   >
                     <i className="ti ti-list-tree" />
                   </Link>
+                   <Link
+                    to={routes.admissionInquiryGrid}
+                    className="btn btn-icon btn-sm me-1 primary-hover"
+                  >
+                    <i className="ti ti-grid-dots" />
+                  </Link>
                 </div>
                 <div className="dropdown mb-3">
                   <Link
