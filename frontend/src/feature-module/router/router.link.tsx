@@ -805,6 +805,10 @@ export const authRoutes = [
     path: routes.addAdmissionInquiry,
     element:<Inquiry/>,
   },
+    {
+    path: routes.editAdmissionInquiry,
+    element:<Inquiry/>,
+  },
    {
     path: routes.admissionInquiryList,
     element: <AdmissionInquiryList />,

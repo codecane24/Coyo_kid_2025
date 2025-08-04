@@ -40,6 +40,8 @@ import { FinancialInfoType } from "./FinancialDetailsForm";
 import { createStudent, getStudentById, updateStudent } from "../../../../services/StudentData";
 import { ParentInfo } from "./ParentsGuardianForm";
 import qs from "qs"; 
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { getAllId } from "../../../../services/GetAllId";
 type ClassItem = {
   id: string;
@@ -1019,7 +1021,7 @@ useEffect(() => {
     >
 <div>
 {serialId? (
-  <p>Student Code: {serialId}</p>
+  <p>student code: {serialId}</p>
 ) : (
   <p>Loading...</p>
 )}
@@ -1160,7 +1162,6 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
 </button>
 
 </div>
-
               </form>
             </div>
           </div>
