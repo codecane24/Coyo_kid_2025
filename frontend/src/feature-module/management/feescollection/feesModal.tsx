@@ -1,29 +1,192 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import CommonSelect from "../../../core/common/commonSelect";
-import { feeGroup, feesTypes } from "../../../core/common/selectoption/selectoption";
+import { feesTypes } from "../../../core/common/selectoption/selectoption";
 import { DatePicker } from 'antd'
 import dayjs from "dayjs";
+import { toast } from "react-toastify";
 
-const FeesModal = () => {
-    const [activeContent, setActiveContent] = useState('');
-    const handleContentChange = (event:any) => {
-        setActiveContent(event.target.value);
-      };
-    const today = new Date()
-    const year = today.getFullYear()
-    const month = String(today.getMonth() + 1).padStart(2, '0') // Month is zero-based, so we add 1
-    const day = String(today.getDate()).padStart(2, '0')
-    const formattedDate = `${month}-${day}-${year}`
-    const defaultValue = dayjs(formattedDate);
-    const getModalContainer = () => {
-     const modalElement = document.getElementById('modal-datepicker');
-     return modalElement ? modalElement : document.body; // Fallback to document.body if modalElement is null
-   };
-    const getModalContainer2 = () => {
-     const modalElement = document.getElementById('modal-datepicker2');
-     return modalElement ? modalElement : document.body; // Fallback to document.body if modalElement is null
-   };
+import { 
+  createFeesType, 
+  updateFeesType, 
+  deleteFeesType,
+  getFeesTypeById,
+  getFeesGroupList 
+} from "../../../services/FeesAllData";
+
+interface FeesModalProps {
+  editType: any;
+  showEditModal: boolean;
+  onCloseEditModal: () => void;
+  deleteId?: string | null;
+  setDeleteId?: (id: string | null) => void;
+  fetchFeesTypes?: () => void;
+}
+
+const FeesModal: React.FC<FeesModalProps> = ({
+  editType,
+  showEditModal,
+  onCloseEditModal,
+  deleteId,
+  setDeleteId,
+  fetchFeesTypes,
+}) => {
+  const [activeContent, setActiveContent] = useState('');
+  const [feeGroupOptions, setFeeGroupOptions] = useState<any[]>([]);
+  const [addType, setAddType] = useState({ name: "", feesgroup_id: "", description: "", status: false });
+  const [editTypeState, setEditType] = useState<{ id?: string; name: string; feesgroup_id: string; description: string; status: boolean }>({ id: "", name: "", feesgroup_id: "", description: "", status: false });
+
+  // Sync editType prop to local state when modal is shown or editType changes
+  useEffect(() => {
+    if (showEditModal && editType && editType.id) {
+      // If editType is just an id, fetch full data
+      if (!editType.name) {
+        getFeesTypeById(editType.id).then(res => {
+          if (res && res.status === "success" && res.data) {
+            setEditType({
+              id: res.data.id,
+              name: res.data.name || "",
+              feesgroup_id: res.data.feesgroup_id || "",
+              description: res.data.description || "",
+              status: res.data.status === "1",
+            });
+          }
+        });
+      } else {
+        setEditType({
+          id: editType.id,
+          name: editType.name || "",
+          feesgroup_id: editType.feesgroup_id || "",
+          description: editType.description || "",
+          status: editType.status === "1" || editType.status === true,
+        });
+      }
+    }
+  }, [editType, showEditModal]);
+
+  const handleContentChange = (event:any) => {
+      setActiveContent(event.target.value);
+    };
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  const formattedDate = `${month}-${day}-${year}`
+  const defaultValue = dayjs(formattedDate);
+  const getModalContainer = () => {
+   const modalElement = document.getElementById('modal-datepicker');
+   return modalElement ? modalElement : document.body;
+ };
+  const getModalContainer2 = () => {
+   const modalElement = document.getElementById('modal-datepicker2');
+   return modalElement ? modalElement : document.body;
+ };
+
+  // Fetch dynamic fee group options
+  useEffect(() => {
+    getFeesGroupList().then((res) => {
+      if (res && res.status === "success" && Array.isArray(res.data)) {
+        setFeeGroupOptions(
+          res.data.map((item: any) => ({
+            value: item.id,
+            label: item.name,
+          }))
+        );
+      }
+    });
+  }, []);
+
+  // Handlers for Add Fees Type
+  const handleAddTypeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setAddType({ ...addType, [e.target.name]: e.target.value });
+  };
+  const handleAddTypeGroup = (option: any) => {
+    setAddType({ ...addType, feesgroup_id: option?.value || "" });
+  };
+  const handleAddTypeStatus = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAddType({ ...addType, status: e.target.checked });
+  };
+  const handleAddTypeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await createFeesType({
+        name: addType.name,
+        feesgroup_id: addType.feesgroup_id,
+        description: addType.description,
+        status: addType.status ? "1" : "0",
+      });
+      toast.success("Fees Type added successfully");
+      setAddType({ name: "", feesgroup_id: "", description: "", status: false });
+      // Optionally refresh table data here
+    } catch {
+      toast.error("Failed to add Fees Type");
+    }
+  };
+
+  // Handlers for Edit Fees Type (implement fetching and setting editType as needed)
+  const handleEditTypeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setEditType({ ...editTypeState, [e.target.name]: e.target.value });
+  };
+  const handleEditTypeGroup = (option: any) => {
+    setEditType({ ...editTypeState, feesgroup_id: option?.value || "" });
+  };
+  const handleEditTypeStatus = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditType({ ...editTypeState, status: e.target.checked });
+  };
+  // Example: When you want to set editType for editing (e.g. when opening the edit modal), make sure to include the id:
+  // setEditType({ id: item.id, name: item.name, feesgroup_id: item.feesgroup_id, description: item.description, status: item.status === "1" });
+
+  const handleEditTypeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (!editTypeState.id) {
+        toast.error("No Fees Type selected for editing.");
+        return;
+      }
+      await updateFeesType(editTypeState.id, {
+        name: editTypeState.name,
+        feesgroup_id: editTypeState.feesgroup_id,
+        description: editTypeState.description,
+        status: editTypeState.status ? "1" : "0",
+      });
+      toast.success("Fees Type updated successfully");
+      // Optionally refresh table data here
+    } catch {
+      toast.error("Failed to update Fees Type");
+    }
+  };
+
+  // When opening the edit modal, always set the id property:
+  const openEditTypeModal = (item: any) => {
+    setEditType({
+      id: item.id,
+      name: item.name || "",
+      feesgroup_id: item.feesgroup_id || "",
+      description: item.description || "",
+      status: item.status === "1",
+    });
+    // Show modal logic here if needed
+  };
+
+  // Delete logic for Fees Type
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const res = await deleteFeesType(deleteId);
+      if (res && res.status === "success") {
+        toast.success("Fees Type deleted successfully");
+        if (setDeleteId) setDeleteId(null);
+        if (fetchFeesTypes) fetchFeesTypes();
+      } else {
+        toast.error("Failed to delete Fees Type");
+        if (setDeleteId) setDeleteId(null);
+      }
+    } catch {
+      toast.error("Failed to delete Fees Type");
+      if (setDeleteId) setDeleteId(null);
+    }
+  };
+    
   return (
     <>
     <>
@@ -59,7 +222,7 @@ const FeesModal = () => {
                   <label className="form-label">Fees Group</label>
                   <CommonSelect
                         className="select"
-                        options={feeGroup}
+                        options={feeGroupOptions}
                         defaultValue={undefined}
                         />
                 </div>
@@ -218,8 +381,8 @@ const FeesModal = () => {
                   <label className="form-label">Fees Group</label>
                   <CommonSelect
                         className="select"
-                        options={feeGroup}
-                        defaultValue={feeGroup[1]}
+                        options={feeGroupOptions}
+                        defaultValue={feeGroupOptions[0]}
                         />
                 </div>
                 <div className="mb-3">
@@ -371,13 +534,20 @@ const FeesModal = () => {
                   <i className="ti ti-x" />
                 </button>
               </div>
-              <form>
+              <form onSubmit={handleAddTypeSubmit}>
                 <div className="modal-body">
                   <div className="row">
                     <div className="col-md-12">
                       <div className="mb-3">
                         <label className="form-label">Name</label>
-                        <input type="text" className="form-control" />
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="name"
+                          value={addType.name}
+                          onChange={handleAddTypeChange}
+                          required
+                        />
                       </div>
                       <div className="mb-3">
                         <div className="d-flex justify-content-between">
@@ -396,8 +566,10 @@ const FeesModal = () => {
                         </div>
                         <CommonSelect
                           className="select"
-                          options={feeGroup}
-                          defaultValue={undefined}
+                          options={feeGroupOptions}
+                          value={feeGroupOptions.find(opt => opt.value === addType.feesgroup_id) || null}
+                          onChange={handleAddTypeGroup}
+                          
                         />
                       </div>
                     </div>
@@ -406,7 +578,10 @@ const FeesModal = () => {
                       <textarea
                         className="form-control"
                         rows={4}
-                        defaultValue={""}
+                        name="description"
+                        value={addType.description}
+                        onChange={handleAddTypeChange}
+                        placeholder="Add Comment"
                       />
                     </div>
                     <div className="d-flex align-items-center justify-content-between">
@@ -420,6 +595,8 @@ const FeesModal = () => {
                           type="checkbox"
                           role="switch"
                           id="switch-sm"
+                          checked={addType.status}
+                          onChange={handleAddTypeStatus}
                         />
                       </div>
                     </div>
@@ -433,13 +610,13 @@ const FeesModal = () => {
                   >
                     Cancel
                   </Link>
-                  <Link
-                    to="#"
-                    data-bs-dismiss="modal"
+                  <button
+                    type="submit"
                     className="btn btn-primary"
+                    data-bs-dismiss="modal"
                   >
                     Add Fees Type
-                  </Link>
+                  </button>
                 </div>
               </form>
             </div>
@@ -461,7 +638,7 @@ const FeesModal = () => {
                   <i className="ti ti-x" />
                 </button>
               </div>
-              <form>
+              <form onSubmit={handleEditTypeSubmit}>
                 <div className="modal-body">
                   <div className="row">
                     <div className="col-md-12">
@@ -470,8 +647,11 @@ const FeesModal = () => {
                         <input
                           type="text"
                           className="form-control"
+                          name="name"
+                          value={editTypeState.name}
+                          onChange={handleEditTypeChange}
                           placeholder="Enter Name"
-                          defaultValue=""
+                          required
                         />
                       </div>
                       <div className="mb-3">
@@ -491,8 +671,13 @@ const FeesModal = () => {
                         </div>
                         <CommonSelect
                           className="select"
-                          options={feeGroup}
-                          defaultValue={feeGroup[1]}
+                          options={feeGroupOptions}
+                          value={
+                            feeGroupOptions.find(
+                              opt => String(opt.value) === String(editTypeState.feesgroup_id)
+                            ) || null
+                          }
+                          onChange={handleEditTypeGroup}
                         />
                       </div>
                     </div>
@@ -501,8 +686,10 @@ const FeesModal = () => {
                       <textarea
                         className="form-control"
                         rows={4}
+                        name="description"
+                        value={editTypeState.description}
+                        onChange={handleEditTypeChange}
                         placeholder="Add Comment"
-                        defaultValue={""}
                       />
                     </div>
                     <div className="d-flex align-items-center justify-content-between">
@@ -516,6 +703,8 @@ const FeesModal = () => {
                           type="checkbox"
                           role="switch"
                           id="switch-sm2"
+                          checked={!!editTypeState.status}
+                          onChange={handleEditTypeStatus}
                         />
                       </div>
                     </div>
@@ -529,13 +718,13 @@ const FeesModal = () => {
                   >
                     Cancel
                   </Link>
-                  <Link
-                    to="#"
-                    data-bs-dismiss="modal"
+                  <button
+                    type="submit"
                     className="btn btn-primary"
+                    data-bs-dismiss="modal"
                   >
                     Save Changes
-                  </Link>
+                  </button>
                 </div>
               </form>
             </div>
@@ -770,31 +959,36 @@ const FeesModal = () => {
       <div className="modal fade" id="delete-modal">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
-            <form>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                handleDelete();
+              }}
+            >
               <div className="modal-body text-center">
                 <span className="delete-icon">
                   <i className="ti ti-trash-x" />
                 </span>
                 <h4>Confirm Deletion</h4>
                 <p>
-                  You want to delete all the marked items, this cant be undone
-                  once you delete.
+                  You want to delete this Fees Type, this can't be undone once you delete.
                 </p>
                 <div className="d-flex justify-content-center">
                   <Link
                     to="#"
                     className="btn btn-light me-3"
                     data-bs-dismiss="modal"
+                    onClick={() => setDeleteId && setDeleteId(null)}
                   >
                     Cancel
                   </Link>
-                  <Link
-                    to="#"
+                  <button
+                    type="submit"
                     className="btn btn-danger"
                     data-bs-dismiss="modal"
                   >
                     Yes, Delete
-                  </Link>
+                  </button>
                 </div>
               </div>
             </form>

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { all_routes } from "../../router/all_routes";
 import { Link } from "react-router-dom";
 import PredefinedDateRanges from "../../../core/common/datePicker";
@@ -13,18 +13,45 @@ import {
 import { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
 import FeesModal from "./feesModal";
-import { feesType } from "../../../core/data/json/feesType";
 import TooltipOption from "../../../core/common/tooltipOption";
+import { getFeesTypeList, getFeesTypeById, deleteFeesType } from "../../../services/FeesAllData";
+import { toast } from "react-toastify";
 
 const FeesTypes = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const data = feesType;
+  const [data, setData] = useState<TableData[]>([]);
+  const [editType, setEditType] = useState<any>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const fetchFeesTypes = () => {
+    getFeesTypeList().then((res) => {
+      if (res && res.status === "success" && Array.isArray(res.data)) {
+        setData(
+          res.data.map((item: any) => ({
+            id: item.id,
+            feesType: item.name,
+            feesCode: item.code || "-",
+            feesGroup: (item.feesgroup && item.feesgroup.name) ? item.feesgroup.name : "-",
+            description: item.description || "-",
+            status: item.status === "1" ? "Active" : "Inactive",
+          }))
+        );
+      }
+    });
+  };
+
+  useEffect(() => {
+    fetchFeesTypes();
+  }, []);
+
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
     }
   };
+
   const columns = [
     {
       title: "ID",
@@ -34,31 +61,31 @@ const FeesTypes = () => {
           {text}
         </Link>
       ),
-      sorter: (a: TableData, b: TableData) => a.id.length - b.id.length,
+      sorter: (a: TableData, b: TableData) => Number(a.id) - Number(b.id),
     },
     {
       title: "Fees Type",
       dataIndex: "feesType",
       sorter: (a: TableData, b: TableData) =>
-        a.feesType.length - b.feesType.length,
+        (a.feesType || "").localeCompare(b.feesType || ""),
     },
     {
       title: "Fees Code",
       dataIndex: "feesCode",
       sorter: (a: TableData, b: TableData) =>
-        a.feesCode.length - b.feesCode.length,
+        (a.feesCode || "").localeCompare(b.feesCode || ""),
     },
     {
       title: "Fees Group",
       dataIndex: "feesGroup",
       sorter: (a: TableData, b: TableData) =>
-        a.feesGroup.length - b.feesGroup.length,
+        (a.feesGroup || "").localeCompare(b.feesGroup || ""),
     },
     {
       title: "Description",
       dataIndex: "description",
       sorter: (a: TableData, b: TableData) =>
-        a.description.length - b.description.length,
+        (a.description || "").localeCompare(b.description || ""),
     },
     {
       title: "Status",
@@ -78,53 +105,65 @@ const FeesTypes = () => {
           )}
         </>
       ),
-      sorter: (a: TableData, b: TableData) => a.status.length - b.status.length,
+      sorter: (a: TableData, b: TableData) =>
+        (a.status || "").localeCompare(b.status || ""),
     },
     {
       title: "Action",
       dataIndex: "action",
-      render: () => (
-        <>
-          <div className="d-flex align-items-center">
-            <div className="dropdown">
-              <Link
-                to="#"
-                className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <i className="ti ti-dots-vertical fs-14" />
-              </Link>
-              <ul className="dropdown-menu dropdown-menu-right p-3">
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#edit_fees_Type"
-                  >
-                    <i className="ti ti-edit-circle me-2" />
-                    Edit
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#delete-modal"
-                  >
-                    <i className="ti ti-trash-x me-2" />
-                    Delete
-                  </Link>
-                </li>
-              </ul>
-            </div>
+      render: (_: any, record: any) => (
+        <div className="d-flex align-items-center">
+          <div className="dropdown">
+            <Link
+              to="#"
+              className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i className="ti ti-dots-vertical fs-14" />
+            </Link>
+            <ul className="dropdown-menu dropdown-menu-right p-3">
+              <li>
+                <Link
+                  className="dropdown-item rounded-1"
+                  to="#"
+                  data-bs-toggle="modal"
+                  data-bs-target="#edit_fees_Type"
+                  onClick={async () => {
+                    const res = await getFeesTypeById(record.id);
+                    if (res && res.status === "success" && res.data) {
+                      setEditType(res.data);
+                    } else {
+                      setEditType(record);
+                    }
+                    setShowEditModal(true);
+                  }}
+                >
+                  <i className="ti ti-edit-circle me-2" />
+                  Edit
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="dropdown-item rounded-1"
+                  to="#"
+                  data-bs-toggle="modal"
+                  data-bs-target="#delete-modal"
+                  onClick={() => setDeleteId(record.id)}
+                >
+                  <i className="ti ti-trash-x me-2" />
+                  Delete
+                </Link>
+              </li>
+            </ul>
           </div>
-        </>
+        </div>
       ),
     },
   ];
+
+
+
   return (
     <>
       {/* Page Wrapper */}
@@ -149,7 +188,7 @@ const FeesTypes = () => {
               </nav>
             </div>
             <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <TooltipOption />
+              <TooltipOption />
               <div className="mb-2">
                 <Link
                   to="#"
@@ -303,7 +342,56 @@ const FeesTypes = () => {
         </div>
       </div>
       {/* /Page Wrapper */}
-      <FeesModal />
+      <FeesModal
+        editType={editType}
+        showEditModal={showEditModal}
+        onCloseEditModal={() => setShowEditModal(false)}
+        deleteId={deleteId}
+        setDeleteId={setDeleteId}
+        fetchFeesTypes={fetchFeesTypes}
+      />
+      {/* Delete Modal */}
+      <div className="modal fade" id="delete-modal" tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+              
+              }}
+            >
+              <div className="modal-body text-center">
+                <span className="delete-icon">
+                  <i className="ti ti-trash-x" />
+                </span>
+                <h4>Confirm Deletion</h4>
+                <p>
+                  You want to delete this Fees Type, this can't be undone once you delete.
+                </p>
+                <div className="d-flex justify-content-center">
+                  <Link
+                    to="#"
+                    className="btn btn-light me-3"
+                    data-bs-dismiss="modal"
+                    onClick={() => setDeleteId(null)}
+                  >
+                    Cancel
+                  </Link>
+                  <button
+                    type="submit"
+                    className="btn btn-danger"
+                    // Remove data-bs-dismiss to ensure modal closes only after state updates
+                    // data-bs-dismiss="modal"
+                  >
+                    Yes, Delete
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      {/* /Delete Modal */}
     </>
   );
 };

@@ -5,7 +5,7 @@ import {
   createFeesGroup, 
   updateFeesGroup, 
   deleteFeesGroup 
-} from "../../../services/FeesGroupData";
+} from "../../../services/FeesAllData";
 
 
 interface FeesGroupModalProps {

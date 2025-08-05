@@ -54,13 +54,25 @@ class AdmissionInquiryController extends Controller
             ], 422);
         }
 
+        // Check for existing active inquiry by phone
+        $existing = AdmissionInquiry::where('primary_contact', $request->primary_contact)
+                ->whereIn('status', [0, 1]) // Assuming 0 is 'new', and 1 is 'pending'
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'status' => false,
+                'message' => 'An active inquiry already exists for this phone number.',
+                'data' => $existing
+            ], 409);
+        }
+
         $data = $request->all();
-        // Generate unique admission inquiry ID
         $data['code'] = getNewSerialNo('admission_inquiry');
         $data['created_at'] = now();
         $data['updated_at'] = now();
-        $data['added_by'] = auth()->user()->id ?? null; // Assuming you have user authentication
-        $data['status'] = '0'; // 0:pending(new) | 1: picked |2:reply |3:admission| 4:closed
+        $data['added_by'] = auth()->user()->id ?? null;
+        $data['status'] = '0';
 
         // JSON encode array fields for DB if needed
         $data['sibling_ids'] = isset($data['sibling_ids']) ? json_encode($data['sibling_ids']) : json_encode([]);
@@ -84,6 +96,11 @@ class AdmissionInquiryController extends Controller
         if (!$inquiry) {
             return response()->json(['status' => false, 'message' => 'Inquiry not found'], 404);
         }
+        // Decode JSON fields if necessary
+        $inquiry->sibling_ids = json_decode($inquiry->sibling_ids, true);
+        $inquiry->permanent_address = json_decode($inquiry->permanent_address, true);
+        $inquiry->current_address = json_decode($inquiry->current_address, true);
+
         return response()->json(['status' => true, 'data' => $inquiry]);
     }
 

@@ -59,10 +59,9 @@ const TeacherForm = () => {
   return {
     ...data,
     id: data.id || data.code || "",
-    code: data.code || "",
     first_name: data.first_name || "",
     last_name: data.last_name || "",
-    class: data.class_id ? findOption(classOptions, data.class_id) : "",
+    class_id: data.class_id ? findOption(classOptions, data.class_id) : "",
     subject: data.subject_id ? [findOption(subjectOptions, data.subject_id)] : [],
     gender: data.gender ? findOption(gender, data.gender) : "",
     phone: data.phone || "",

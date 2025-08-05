@@ -6,7 +6,7 @@ import CommonSelect from "../../../core/common/commonSelect";
 import { ids, names, status } from "../../../core/common/selectoption/selectoption";
 import { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
-import { getFeesGroupList } from "../../../services/FeesGroupData";
+import { getFeesGroupList } from "../../../services/FeesAllData";
 import FeesGroupModal from "./feesGroupModal";
 import TooltipOption from "../../../core/common/tooltipOption";
 
