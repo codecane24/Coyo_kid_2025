@@ -72,11 +72,12 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     Route::apiResource('fees-group','FeesGroupControler');
     Route::apiResource('fees-type','FeesTypeController');
     Route::apiResource('fees-master','FeesMasterController');
-
+    Route::apiResource('assign-fees','FeesAssignController');
+    Route::apiResource('student-fees', 'StudentFeesController');
+    
     //=== Admission Inquiry API
     Route::apiResource('admission-inquiry', 'AdmissionInquiryController');
-
-
+    
 });
 
 
