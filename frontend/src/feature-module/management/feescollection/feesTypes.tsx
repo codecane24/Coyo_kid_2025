@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { all_routes } from "../../router/all_routes";
 import { Link } from "react-router-dom";
 import PredefinedDateRanges from "../../../core/common/datePicker";
@@ -13,18 +13,37 @@ import {
 import { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
 import FeesModal from "./feesModal";
-import { feesType } from "../../../core/data/json/feesType";
 import TooltipOption from "../../../core/common/tooltipOption";
+import { getFeesTypeList } from "../../../services/FeesAllData";
 
 const FeesTypes = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const data = feesType;
+  const [data, setData] = useState<TableData[]>([]);
+
+  useEffect(() => {
+    getFeesTypeList().then((res) => {
+      if (res && res.status === "success" && Array.isArray(res.data)) {
+        setData(
+          res.data.map((item: any) => ({
+            id: item.id,
+            feesType: item.name,
+            feesCode: item.code || "-",
+            feesGroup: item.feesgroup_id || "-",
+            description: item.description || "-",
+            status: item.status === "1" ? "Active" : "Inactive",
+          }))
+        );
+      }
+    });
+  }, []);
+
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
     }
   };
+
   const columns = [
     {
       title: "ID",
@@ -34,31 +53,31 @@ const FeesTypes = () => {
           {text}
         </Link>
       ),
-      sorter: (a: TableData, b: TableData) => a.id.length - b.id.length,
+      sorter: (a: TableData, b: TableData) => Number(a.id) - Number(b.id),
     },
     {
       title: "Fees Type",
       dataIndex: "feesType",
       sorter: (a: TableData, b: TableData) =>
-        a.feesType.length - b.feesType.length,
+        (a.feesType || "").localeCompare(b.feesType || ""),
     },
     {
       title: "Fees Code",
       dataIndex: "feesCode",
       sorter: (a: TableData, b: TableData) =>
-        a.feesCode.length - b.feesCode.length,
+        (a.feesCode || "").localeCompare(b.feesCode || ""),
     },
     {
       title: "Fees Group",
       dataIndex: "feesGroup",
       sorter: (a: TableData, b: TableData) =>
-        a.feesGroup.length - b.feesGroup.length,
+        (a.feesGroup || "").localeCompare(b.feesGroup || ""),
     },
     {
       title: "Description",
       dataIndex: "description",
       sorter: (a: TableData, b: TableData) =>
-        a.description.length - b.description.length,
+        (a.description || "").localeCompare(b.description || ""),
     },
     {
       title: "Status",
@@ -78,7 +97,8 @@ const FeesTypes = () => {
           )}
         </>
       ),
-      sorter: (a: TableData, b: TableData) => a.status.length - b.status.length,
+      sorter: (a: TableData, b: TableData) =>
+        (a.status || "").localeCompare(b.status || ""),
     },
     {
       title: "Action",
@@ -125,6 +145,7 @@ const FeesTypes = () => {
       ),
     },
   ];
+
   return (
     <>
       {/* Page Wrapper */}
@@ -149,7 +170,7 @@ const FeesTypes = () => {
               </nav>
             </div>
             <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <TooltipOption />
+              <TooltipOption />
               <div className="mb-2">
                 <Link
                   to="#"

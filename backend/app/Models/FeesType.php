@@ -22,5 +22,14 @@ class FeesType extends Model
 		'updated_at'
 	];
 
+	public function feesgroup()
+	{
+		return $this->belongsTo(FeesGroup::class, 'feesgroup_id');
+	}
+
+	public function createby()
+	{
+		return $this->belongsTo(User::class, 'created_by');
+	}
 
 }

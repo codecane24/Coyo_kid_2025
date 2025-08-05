@@ -11,7 +11,7 @@ class FeesTypeController extends Controller
     // List all fee types
     public function index()
     {
-        $data = FeesType::get();
+        $data = FeesType::with(['feesgroup:id,name'])->get();
         return response()->json([
             'status' => 'success',
             'message' => 'Data fetched successfully',
