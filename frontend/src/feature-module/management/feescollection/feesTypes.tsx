@@ -14,12 +14,14 @@ import { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
 import FeesModal from "./feesModal";
 import TooltipOption from "../../../core/common/tooltipOption";
-import { getFeesTypeList } from "../../../services/FeesAllData";
+import { getFeesTypeList, getFeesTypeById } from "../../../services/FeesAllData";
 
 const FeesTypes = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
   const [data, setData] = useState<TableData[]>([]);
+  const [editType, setEditType] = useState<any>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     getFeesTypeList().then((res) => {
@@ -29,7 +31,7 @@ const FeesTypes = () => {
             id: item.id,
             feesType: item.name,
             feesCode: item.code || "-",
-            feesGroup: item.feesgroup_id || "-",
+            feesGroup: (item.feesgroup && item.feesgroup.name) ? item.feesgroup.name : "-",
             description: item.description || "-",
             status: item.status === "1" ? "Active" : "Inactive",
           }))
@@ -103,45 +105,54 @@ const FeesTypes = () => {
     {
       title: "Action",
       dataIndex: "action",
-      render: () => (
-        <>
-          <div className="d-flex align-items-center">
-            <div className="dropdown">
-              <Link
-                to="#"
-                className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <i className="ti ti-dots-vertical fs-14" />
-              </Link>
-              <ul className="dropdown-menu dropdown-menu-right p-3">
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#edit_fees_Type"
-                  >
-                    <i className="ti ti-edit-circle me-2" />
-                    Edit
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#delete-modal"
-                  >
-                    <i className="ti ti-trash-x me-2" />
-                    Delete
-                  </Link>
-                </li>
-              </ul>
-            </div>
+      render: (_: any, record: any) => (
+        <div className="d-flex align-items-center">
+          <div className="dropdown">
+            <Link
+              to="#"
+              className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i className="ti ti-dots-vertical fs-14" />
+            </Link>
+            <ul className="dropdown-menu dropdown-menu-right p-3">
+              <li>
+                <Link
+                  className="dropdown-item rounded-1"
+                  to="#"
+                  data-bs-toggle="modal"
+                  data-bs-target="#edit_fees_Type"
+                  onClick={async () => {
+                    // Fetch full data by ID before opening modal
+                    const res = await getFeesTypeById(record.id);
+                    console.log(res);
+                    if (res && res.status === "success" && res.data) {
+                      setEditType(res.data);
+                    } else {
+                      setEditType(record); // fallback to record if fetch fails
+                    }
+                    setShowEditModal(true);
+                  }}
+                >
+                  <i className="ti ti-edit-circle me-2" />
+                  Edit
+                </Link>
+              </li>
+              <li>
+                <Link
+                  className="dropdown-item rounded-1"
+                  to="#"
+                  data-bs-toggle="modal"
+                  data-bs-target="#delete-modal"
+                >
+                  <i className="ti ti-trash-x me-2" />
+                  Delete
+                </Link>
+              </li>
+            </ul>
           </div>
-        </>
+        </div>
       ),
     },
   ];
@@ -324,7 +335,11 @@ const FeesTypes = () => {
         </div>
       </div>
       {/* /Page Wrapper */}
-      <FeesModal />
+      <FeesModal
+        editType={editType}
+        showEditModal={showEditModal}
+        onCloseEditModal={() => setShowEditModal(false)}
+      />
     </>
   );
 };

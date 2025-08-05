@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { all_routes } from "../../router/all_routes";
 import { Link } from "react-router-dom";
 import PredefinedDateRanges from "../../../core/common/datePicker";
@@ -22,6 +22,9 @@ const FeesMaster = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
   const data = feesMasterData;
+  const [editType, setEditType] = useState<any>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
       dropdownMenuRef.current.classList.remove("show");
@@ -336,7 +339,11 @@ const FeesMaster = () => {
         </div>
       </div>
       {/* /Page Wrapper */}
-      <FeesModal/>
+      <FeesModal
+        editType={editType}
+        showEditModal={showEditModal}
+        onCloseEditModal={() => setShowEditModal(false)}
+      />
     </>
   );
 };

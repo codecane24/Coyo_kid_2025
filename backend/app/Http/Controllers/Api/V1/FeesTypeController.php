@@ -23,7 +23,15 @@ class FeesTypeController extends Controller
     public function show($id)
     {
         $type = FeesType::findOrFail($id);
-        return response()->json($type);
+        if (!$type) {
+            return response()->json(['status' => false, 'message' => 'Fee Type not found'], 404);
+        }
+        $type->load('feesgroup:id,name'); // Load related fees group
+        return response()->json([
+            'status' => 'success',
+            'data' => $type
+        ], 200);
+  
     }
 
     // Store a new fee type
