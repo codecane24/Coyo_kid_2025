@@ -74,7 +74,8 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     Route::apiResource('fees-master','FeesMasterController');
     Route::apiResource('assign-fees','FeesAssignController');
     Route::apiResource('student-fees', 'StudentFeesController');
-    
+    Route::apiResource('academic-year', 'AcademicYearController');
+
     //=== Admission Inquiry API
     Route::apiResource('admission-inquiry', 'AdmissionInquiryController');
     
