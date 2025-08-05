@@ -84,6 +84,11 @@ class AdmissionInquiryController extends Controller
         if (!$inquiry) {
             return response()->json(['status' => false, 'message' => 'Inquiry not found'], 404);
         }
+        // Decode JSON fields if necessary
+        $inquiry->sibling_ids = json_decode($inquiry->sibling_ids, true);
+        $inquiry->permanent_address = json_decode($inquiry->permanent_address, true);
+        $inquiry->current_address = json_decode($inquiry->current_address, true);
+
         return response()->json(['status' => true, 'data' => $inquiry]);
     }
 
