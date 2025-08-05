@@ -18,9 +18,19 @@ interface FeesModalProps {
   editType: any;
   showEditModal: boolean;
   onCloseEditModal: () => void;
+  deleteId?: string | null;
+  setDeleteId?: (id: string | null) => void;
+  fetchFeesTypes?: () => void;
 }
 
-const FeesModal: React.FC<FeesModalProps> = ({ editType, showEditModal, onCloseEditModal }) => {
+const FeesModal: React.FC<FeesModalProps> = ({
+  editType,
+  showEditModal,
+  onCloseEditModal,
+  deleteId,
+  setDeleteId,
+  fetchFeesTypes,
+}) => {
   const [activeContent, setActiveContent] = useState('');
   const [feeGroupOptions, setFeeGroupOptions] = useState<any[]>([]);
   const [addType, setAddType] = useState({ name: "", feesgroup_id: "", description: "", status: false });
@@ -158,6 +168,25 @@ const FeesModal: React.FC<FeesModalProps> = ({ editType, showEditModal, onCloseE
     // Show modal logic here if needed
   };
 
+  // Delete logic for Fees Type
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const res = await deleteFeesType(deleteId);
+      if (res && res.status === "success") {
+        toast.success("Fees Type deleted successfully");
+        if (setDeleteId) setDeleteId(null);
+        if (fetchFeesTypes) fetchFeesTypes();
+      } else {
+        toast.error("Failed to delete Fees Type");
+        if (setDeleteId) setDeleteId(null);
+      }
+    } catch {
+      toast.error("Failed to delete Fees Type");
+      if (setDeleteId) setDeleteId(null);
+    }
+  };
+    
   return (
     <>
     <>
@@ -643,7 +672,11 @@ const FeesModal: React.FC<FeesModalProps> = ({ editType, showEditModal, onCloseE
                         <CommonSelect
                           className="select"
                           options={feeGroupOptions}
-                          value={feeGroupOptions.find(opt => opt.value === editTypeState.feesgroup_id) || null}
+                          value={
+                            feeGroupOptions.find(
+                              opt => String(opt.value) === String(editTypeState.feesgroup_id)
+                            ) || null
+                          }
                           onChange={handleEditTypeGroup}
                         />
                       </div>
@@ -926,31 +959,36 @@ const FeesModal: React.FC<FeesModalProps> = ({ editType, showEditModal, onCloseE
       <div className="modal fade" id="delete-modal">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
-            <form>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                handleDelete();
+              }}
+            >
               <div className="modal-body text-center">
                 <span className="delete-icon">
                   <i className="ti ti-trash-x" />
                 </span>
                 <h4>Confirm Deletion</h4>
                 <p>
-                  You want to delete all the marked items, this cant be undone
-                  once you delete.
+                  You want to delete this Fees Type, this can't be undone once you delete.
                 </p>
                 <div className="d-flex justify-content-center">
                   <Link
                     to="#"
                     className="btn btn-light me-3"
                     data-bs-dismiss="modal"
+                    onClick={() => setDeleteId && setDeleteId(null)}
                   >
                     Cancel
                   </Link>
-                  <Link
-                    to="#"
+                  <button
+                    type="submit"
                     className="btn btn-danger"
                     data-bs-dismiss="modal"
                   >
                     Yes, Delete
-                  </Link>
+                  </button>
                 </div>
               </div>
             </form>

@@ -82,7 +82,7 @@ class FeesTypeController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'success' => false,
+                'status' => 'error',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -90,7 +90,7 @@ class FeesTypeController extends Controller
         $feeType->update($request->all());
 
         return response()->json([
-            'success' => true,
+            'status' => 'success',
             'message' => 'Fee Type updated successfully',
             'data' => $feeType
         ]);
@@ -103,7 +103,7 @@ class FeesTypeController extends Controller
         $type->delete();
 
         return response()->json([
-            'success' => true,
+            'status' => 'success',
             'message' => 'Fee Type deleted successfully'
         ]);
     }

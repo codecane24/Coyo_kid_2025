@@ -14,7 +14,8 @@ import { TableData } from "../../../core/data/interface";
 import Table from "../../../core/common/dataTable/index";
 import FeesModal from "./feesModal";
 import TooltipOption from "../../../core/common/tooltipOption";
-import { getFeesTypeList, getFeesTypeById } from "../../../services/FeesAllData";
+import { getFeesTypeList, getFeesTypeById, deleteFeesType } from "../../../services/FeesAllData";
+import { toast } from "react-toastify";
 
 const FeesTypes = () => {
   const routes = all_routes;
@@ -22,8 +23,9 @@ const FeesTypes = () => {
   const [data, setData] = useState<TableData[]>([]);
   const [editType, setEditType] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchFeesTypes = () => {
     getFeesTypeList().then((res) => {
       if (res && res.status === "success" && Array.isArray(res.data)) {
         setData(
@@ -38,6 +40,10 @@ const FeesTypes = () => {
         );
       }
     });
+  };
+
+  useEffect(() => {
+    fetchFeesTypes();
   }, []);
 
   const handleApplyClick = () => {
@@ -124,13 +130,11 @@ const FeesTypes = () => {
                   data-bs-toggle="modal"
                   data-bs-target="#edit_fees_Type"
                   onClick={async () => {
-                    // Fetch full data by ID before opening modal
                     const res = await getFeesTypeById(record.id);
-                    console.log(res);
                     if (res && res.status === "success" && res.data) {
                       setEditType(res.data);
                     } else {
-                      setEditType(record); // fallback to record if fetch fails
+                      setEditType(record);
                     }
                     setShowEditModal(true);
                   }}
@@ -145,6 +149,7 @@ const FeesTypes = () => {
                   to="#"
                   data-bs-toggle="modal"
                   data-bs-target="#delete-modal"
+                  onClick={() => setDeleteId(record.id)}
                 >
                   <i className="ti ti-trash-x me-2" />
                   Delete
@@ -156,6 +161,8 @@ const FeesTypes = () => {
       ),
     },
   ];
+
+
 
   return (
     <>
@@ -339,7 +346,52 @@ const FeesTypes = () => {
         editType={editType}
         showEditModal={showEditModal}
         onCloseEditModal={() => setShowEditModal(false)}
+        deleteId={deleteId}
+        setDeleteId={setDeleteId}
+        fetchFeesTypes={fetchFeesTypes}
       />
+      {/* Delete Modal */}
+      <div className="modal fade" id="delete-modal" tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+              
+              }}
+            >
+              <div className="modal-body text-center">
+                <span className="delete-icon">
+                  <i className="ti ti-trash-x" />
+                </span>
+                <h4>Confirm Deletion</h4>
+                <p>
+                  You want to delete this Fees Type, this can't be undone once you delete.
+                </p>
+                <div className="d-flex justify-content-center">
+                  <Link
+                    to="#"
+                    className="btn btn-light me-3"
+                    data-bs-dismiss="modal"
+                    onClick={() => setDeleteId(null)}
+                  >
+                    Cancel
+                  </Link>
+                  <button
+                    type="submit"
+                    className="btn btn-danger"
+                    // Remove data-bs-dismiss to ensure modal closes only after state updates
+                    // data-bs-dismiss="modal"
+                  >
+                    Yes, Delete
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      {/* /Delete Modal */}
     </>
   );
 };
