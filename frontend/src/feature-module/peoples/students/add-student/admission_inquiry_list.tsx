@@ -10,6 +10,8 @@ import PredefinedDateRanges from "../../../../core/common/datePicker";
 import Table from "../../../../core/common/dataTable/index";
 import { formatDate } from "../../../../utils/dateUtils";
 import { getInquiryList } from "../../../../services/AdmissionInquiry";
+import TooltipOption from "../../../../core/common/tooltipOption";
+import { useRefresh } from "../../../../context/RefreshContext";
 
 // Define the correct type for your admission inquiry data
 interface AdmissionInquiryTableData {
@@ -29,7 +31,7 @@ interface AdmissionInquiryTableData {
 const AdmissionInquiryList = () => {
   const routes = all_routes;
   const [data, setData] = useState<AdmissionInquiryTableData[]>([]);
-
+const { refreshKey } = useRefresh();
   useEffect(() => {
     const fetchInquiryData = async () => {
       try {
@@ -170,10 +172,23 @@ const AdmissionInquiryList = () => {
     }
   };
 
+// const handlePrint = () => {
+//     printElementById("print-area"); // ID of the element you want to print
+//   };
+// const handleExport = (type: "pdf" | "excel") => {
+//   const exportColumns = columns
+//     .filter(col => col.dataIndex) // skip buttons, render-only columns
+//     .map(col => ({
+//       title: col.title,
+//       field: col.dataIndex as string,
+//     }));
+
+//   exportData(type, data, exportColumns, "StudentList");
+// };
   return (
     <>
       {/* Page Wrapper */}
-      <div className="page-wrapper">
+      <div className="page-wrapper" key={refreshKey}>
         <div className="content">
           {/* Page Header */}
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
@@ -194,6 +209,7 @@ const AdmissionInquiryList = () => {
               </nav>
             </div>
             <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
+               <TooltipOption   showRefresh={false} />
               <div className="mb-2">
                 <Link
                   to={routes.addAdmissionInquiry}
@@ -313,7 +329,7 @@ const AdmissionInquiryList = () => {
                 </div>
               </div>
             </div>
-            <div className="card-body p-0 py-3">
+            <div className="card-body p-0 py-3" >
               {/* Inquiry List Table */}
               <Table dataSource={data} columns={columns} Selection={true} />
               {/* /Inquiry List Table */}

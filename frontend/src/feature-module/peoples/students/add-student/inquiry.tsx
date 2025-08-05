@@ -24,6 +24,7 @@ import {
   roomNO,
   route,
   status,
+  ids,
 } from "../../../../core/common/selectoption/selectoption";
 import { TagsInput } from "react-tag-input-component";
 import CommonSelect from "../../../../core/common/commonSelect";
@@ -33,8 +34,10 @@ import axiosInstance from "../../../../utils/axiosInstance";
 import ClassSelect from "../../../../utils/ClassSelect";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { createInquiry } from "../../../../services/AdmissionInquiry";
+import { createInquiry, getInquiryById } from "../../../../services/AdmissionInquiry";
 import { getAllId } from "../../../../services/GetAllId";
+import TooltipOption from "../../../../core/common/tooltipOption";
+import { useRefresh } from "../../../../context/RefreshContext";
 
 interface Address {
   address: string;
@@ -90,9 +93,10 @@ siblingIds: string[];
 
 
 const Inquiry = () => {
+  const { refreshKey } = useRefresh();
   const routes = all_routes;
 const { id } = useParams();
-
+   console.log("Editing ID:", id);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [inquiryCodeId, setTeacherId] = useState<string>(""); // <-- Add this state
   const [owner, setOwner] = useState<string[]>(['English','Spanish']);
@@ -104,6 +108,7 @@ const { id } = useParams();
    const [siblingSameSchool, setSiblingSameSchool] = useState<"yes" | "no">("no");
   const [siblingIds, setSiblingIds] = useState<string[]>([]);
 const [serialId, setSerialId] = useState<string>("");
+const [editCode, setEditCode] = useState<any>(null); // or a proper type if you have
 
 const [inquiryFormData, setInquiryFormData] = useState<InquiryFormData>({
   academicYear: "",
@@ -291,6 +296,85 @@ const payload = {
   previous_school_name: inquiryFormData.schoolName,
   previous_school_address: inquiryFormData.address
 };
+ 
+useEffect(() => {
+  if (id) {
+    console.log("Editing ID:", id);
+
+    setIsEdit(true);
+    getInquiryById(id)
+      .then((data) => {
+                console.log("Fetched Inquiry Data:", data); // ✅ Add this
+                    const inquirrry = data.data; // ✅ FIXED
+                    const editinquirycode = data.data.code
+                    setEditCode(editinquirycode)
+        // Map the fetched data to your state shape
+        setInquiryFormData({
+          academicYear:  inquirrry.academic_year || "",
+          dateOfEnquiry:  inquirrry.date_of_enquiry || "",
+          firstName:  inquirrry.first_name || "",
+          middleName:  inquirrry.middle_name || "",
+          lastName:  inquirrry.last_name || "",
+          selectedClass:  inquirrry.class_id || "",
+          gender:  inquirrry.gender || "",
+          dateOfBirth:  inquirrry.date_of_birth || "",
+          primaryContact:  inquirrry.primary_contact || "",
+          email:  inquirrry.email || "",
+          suitableBatch:  inquirrry.suitable_batch || "",
+          
+          fatherName:  inquirrry.father_name || "",
+          fatherEmail:  inquirrry.father_email || "",
+          fatherPhone:  inquirrry.father_phone || "",
+          fatherAadhar:  inquirrry.father_aadhar || "",
+          fatherOccupation:  inquirrry.father_occupation || "",
+          fatherProfileImage: null, // if not fetched as blob
+          fatherAadharImage: null,
+
+          motherName:  inquirrry.mother_name || "",
+          motherPhone:  inquirrry.mother_phone || "",
+          motherEmail:  inquirrry.mother_email || "",
+          motherAadhar:  inquirrry.mother_aadhar || "",
+          motherOccupation:  inquirrry.mother_occupation || "",
+          motherProfileImage: null,
+          motherAadharImage: null,
+
+          siblingSameSchool:  inquirrry.sibling_same_school || "",
+          siblingIds:  inquirrry.sibling_ids || [],
+
+          permanentAddress: {
+            address:  inquirrry.permanent_address?.address || "",
+            area:  inquirrry.permanent_address?.area || "",
+            landmark:  inquirrry.permanent_address?.landmark || "",
+            city:  inquirrry.permanent_address?.city || "",
+            state:  inquirrry.permanent_address?.state || "",
+            pincode:  inquirrry.permanent_address?.pincode || "",
+          },
+          currentAddress: {
+            address:  inquirrry.current_address?.address || "",
+            area:  inquirrry.current_address?.area || "",
+            landmark:  inquirrry.current_address?.landmark || "",
+            city:  inquirrry.current_address?.city || "",
+            state:  inquirrry.current_address?.state || "",
+            pincode:  inquirrry.current_address?.pincode || "",
+          },
+          schoolName:  inquirrry.previous_school_name || "",
+          address:  inquirrry.previous_school_address || "",
+        });
+
+        // Optional: Set extra states
+        setSiblingSameSchool( inquirrry.sibling_same_school || "no");
+        setSiblingIds( inquirrry.sibling_ids || []);
+        setSerialId( inquirrry.inquiry_code || "");
+        setDefaultDate(dayjs( inquirrry.date_of_enquiry));
+      })
+      .catch((err) => {
+        console.error("❌ Error loading inquiry:", err);
+        toast.error("Failed to load inquiry details");
+      });
+      console.log("FORM DATA:",FormData)
+  }
+}, [id]);
+
 const handleSubmit = async () => {
   // ✅ Required fields to validate
   const requiredFields = [
@@ -323,10 +407,17 @@ const handleSubmit = async () => {
 console.log(payload)
    try {
 
-    const response = await createInquiry(payload);    // ✅ Using the service
+if (isEdit && id) {
+  await axiosInstance.put(`/admission-inquiry/${id}`, payload);
+  toast.success("Inquiry updated successfully!");
+} else {
+  const response = await createInquiry(payload);
+  toast.success("Inquiry submitted successfully!");
+}
+
 
     toast.success("Inquiry submitted successfully!", { position: "top-right" });
-    console.log("✅ API Success:", response);
+
     // ✅ Reset form fields to default state
     setInquiryFormData({
       academicYear: "",
@@ -393,21 +484,29 @@ console.log(payload)
     });
   }
 };
+
 useEffect(() => {
   const loadId = async () => {
-    const id = await getAllId("admission_inquiry");
-    console.log(id)
-    setSerialId(id); // ✅ This is correct
+    if (editCode) {
+      console.log("Edit mode: Skipping code generation for editCode:", editCode);
+      setSerialId(editCode);
+    } else {
+      const id = await getAllId("admission_inquiry"); // default behavior without code
+      console.log("Fetched New Inquiry Code:", id);
+      setSerialId(id);
+    }
   };
 
   loadId();
-}, []);
+}, [editCode]);
 
+ // ✅ Only runs when editCode is updated
 
+console.log(serialId)
   return (
     <>
       {/* Page Wrapper */}
-      <div className="page-wrapper">
+      <div className="page-wrapper" key={refreshKey}>
         <div className="content content-two">
           {/* Page Header */}
           <div className="row">
@@ -419,36 +518,48 @@ useEffect(() => {
     {isEdit ? "Edit Admission Inquiry" : "Add Admission Inquiry"}
   </h2>
 
-  <div
-    className="px-2 py-1"
-    style={{
-      fontSize: "0.75rem",
-      color: "#333",
-      backgroundColor: "#E6F0FA",
-      borderRadius: "6px",
-      width: "fit-content",
-    }}
-  >
-    Inquiry Code: {serialId || "N/A"}
-  </div>
+ <div
+      className="px-2 py-1"
+      style={{
+        fontSize: "0.75rem",
+        color: "#333",
+        backgroundColor: "#E6F0FA",
+        borderRadius: "6px",
+        width: "fit-content",
+      }}
+    >
+<div>
+{serialId? (
+  <p>inquiry code: {serialId}</p>
+) : (
+  <p>Loading...</p>
+)}
+
+</div>
+
+    </div>
+
 </div>
 
                   <nav>
                     <ol className="breadcrumb mb-0">
                       <li className="breadcrumb-item">
-                        <Link to={routes.adminDashboard}>Dashboard</Link>
+                        <Link to={routes.adminDashboard}>Inquiry</Link>
                       </li>
                       <li className="breadcrumb-item">
-                        <Link to={routes.admissionInquiryList}>Admission Inquiry List</Link>
+                        <Link to={routes.admissionInquiryList}>Admission Inquiry</Link>
                       </li>
                       <li className="breadcrumb-item active" aria-current="page">
                         {isEdit ? "Edit" : "Add"} Admission Inquiry
+                      </li>
+                      <li>
+                       
                       </li>
                     </ol>
                   </nav>
                 </div>
               </div>
-              <form>
+              <form  >
              <div className="card">
   <div className="card-header bg-light">
     <div className="d-flex align-items-center">

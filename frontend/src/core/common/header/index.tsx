@@ -10,10 +10,13 @@ import {
   setMobileSidebar,
   toggleMiniSidebar,
 } from "../../data/redux/sidebarSlice";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { all_routes } from "../../../feature-module/router/all_routes";
 import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useRefresh } from "../../../context/RefreshContext";
+import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 
 const Header = () => {
   const { user } = useAuth();
@@ -23,7 +26,10 @@ const Header = () => {
   const dataLayout = useSelector((state: any) => state.themeSetting.dataLayout);
   const [notificationVisible, setNotificationVisible] = useState(false);
    const { logout } = useAuth();
-
+  const iconRef = useRef<HTMLElement | null>(null); // Specify type for <i> element
+  const { refresh } = useRefresh();
+  const [spinKey, setSpinKey] = useState(0);
+ const [lastClicked, setLastClicked] = useState<number>(0);
 const navigate = useNavigate();
   const handleLogout = () => {
   logout();
@@ -84,7 +90,32 @@ const navigate = useNavigate();
       }
     }
   };
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const refreshing = () => {
+    setIsRefreshing(true);
+
+    // Your refresh logic
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 1000); // simulate refresh time (1s)
+  };
+const handleClick = () => {
+        const now = Date.now();
+    if (now - lastClicked < 5000) {
+      toast.warning("Please wait for refreshing again.");
+      return;
+    }
+
+    // ✅ Do your refresh logic here
+ 
+    setLastClicked(now);
+    setSpinKey(prev => prev + 1);
+  
+
+  refresh(); // Your actual refresh logic
+};
+console.log(user)
   return (
     <>
       {/* Header */}
@@ -174,7 +205,7 @@ const navigate = useNavigate();
                   </Link>
                 </div>
               </div>
-              <div className="pe-1 ms-1">
+              {/* <div className="pe-1 ms-1">
                 <div className="dropdown">
                   <Link
                     to="#"
@@ -243,7 +274,37 @@ const navigate = useNavigate();
                     </Link>
                   </div>
                 </div>
-              </div>
+              </div> */}
+ <div className="pe-1">
+      <div>
+        <button
+          className="btn btn-outline-light bg-white btn-icon me-1"
+          onClick={handleClick}
+        >
+<motion.i
+  key={spinKey}
+  className="ti ti-refresh inline-block"
+  animate={{
+    rotate: 720,
+    scale: [1, 1.4, 0.95, 1],
+    opacity: [1, 0.7, 1],
+  }}
+  transition={{
+    duration: 0.9,
+    ease: "easeInOut",
+  }}
+  style={{
+    display: "inline-block",
+    transformOrigin: "center center",
+  }}
+/>
+
+
+        </button>
+      </div>
+    </div>
+
+
               <div className="pe-1">
                 <div className="dropdown">
                   <Link
@@ -533,7 +594,7 @@ const navigate = useNavigate();
       >
         <span className="avatar avatar-md rounded">
           <ImageWithBasePath
-            src={user?.avatar || "assets/img/profiles/avatar-27.jpg"}
+            src={user?.profile_img || "assets/img/profiles/avatar-27.jpg"}
             alt="Img"
             className="img-fluid"
           />

@@ -204,7 +204,7 @@ export const SidebarData = [
 permissionKey: "class_view",
         submenuItems: [
           {
-            label: "All Students",
+            label: "All Students List",
             link: routes.studentGrid,
             subLink1: routes.addStudent,
             subLink2: routes.editStudent,

@@ -20,6 +20,7 @@ import TooltipOption from "../../../../core/common/tooltipOption";
 import { getStudent } from "../../../../services/StudentData";
 import { exportData } from "../../../../utils/exportHelper";
 import { printElementById } from "../../../../utils/printHelper";
+import { useRefresh } from "../../../../context/RefreshContext";
 const MyComponent = () => {
   const tableData = [
     { name: "John", age: 25, city: "New York" },
@@ -41,10 +42,11 @@ const MyComponent = () => {
 
 const StudentList = () => {
   const routes = all_routes;
+  const { refreshKey } = useRefresh();
     const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
 const [data, setData] = useState<any[]>([]);
 const [loading, setLoading] = useState(true);
- const [refreshKey, setRefreshKey] = useState(0);
+
 // Inside your component
 const navigate = useNavigate();
 
@@ -165,10 +167,7 @@ to={`/student/edit-student/${record.encryptid || record.id || record._id}`}
 }
 ];
 
-// Fuctions to work the tooltip Options
-    const handleRefresh = () => {
-    setRefreshKey((prev) => prev + 1); // This will re-render component parts
-  };
+
 const handlePrint = () => {
     printElementById("print-area"); // ID of the element you want to print
   };
@@ -205,7 +204,7 @@ const handleExport = (type: "pdf" | "excel") => {
               </nav>
             </div>
             <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
- <TooltipOption onExport={handleExport} onPrint={handlePrint}  onRefresh={handleRefresh} />
+ <TooltipOption onExport={handleExport} onPrint={handlePrint}   showRefresh={false} />
 
               <div className="mb-2">
                 <Link

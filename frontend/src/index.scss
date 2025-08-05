@@ -28,6 +28,19 @@ a {
 .ant-tooltip {
   display: none;
 }
+/* Add this CSS somewhere in your project */
+.spin-refresh {
+  animation: spinRefresh 0.8s ease-in-out;
+}
+
+@keyframes spinRefresh {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 
 .data-table-card {
   .ant-table-content {

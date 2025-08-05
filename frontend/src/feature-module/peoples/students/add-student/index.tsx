@@ -43,6 +43,7 @@ import qs from "qs";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { getAllId } from "../../../../services/GetAllId";
+import { motion } from "framer-motion";
 type ClassItem = {
   id: string;
   name: string; 
@@ -478,6 +479,8 @@ useEffect(() => {
   }
 }, [routeStudentId]);
 
+
+
 const handleStep1Submit = async (
   finalPayload: FormData,
   studentId: string | null,
@@ -487,59 +490,42 @@ const handleStep1Submit = async (
   setCurrentStep: React.Dispatch<React.SetStateAction<number>>
 ) => {
   try {
-    // ─────────────────────────────────────────────────────────
-    // 1️⃣ Decide whether this is CREATE (POST) or UPDATE (PUT)
-    // ─────────────────────────────────────────────────────────
-    const existingId = routeStudentId || studentId;      // ← use whichever exists
+    const existingId = routeStudentId || studentId;
     let res;
 
     if (existingId) {
-      // Edit mode → PUT
       res = await updateStudent(existingId, finalPayload);
     } else {
-      // Create mode → POST
       res = await createStudent(finalPayload);
     }
 
-    // ─────────────────────────────────────────────────────────
-    // 2️⃣ Handle possible validation errors from backend
-    // ─────────────────────────────────────────────────────────
     if (res?.data?.status === "false") {
       const validationErrors = res?.data?.errors;
-      const errorMessage     = res?.data?.message || "Something went wrong";
+      const errorMessage = res?.data?.message || "Something went wrong";
 
       if (validationErrors) {
         const allErrors = Object.entries(validationErrors)
           .map(([field, msgs]) => `${field}: ${(msgs as string[]).join(", ")}`)
           .join("\n");
-        alert(`❌ Validation Failed:\n${allErrors}`);
+
+        toast.error(`❌ Validation Failed:\n${allErrors}`);
       } else {
-        alert(`❌ Error: ${errorMessage}`);
+        toast.error(`❌ Error: ${errorMessage}`);
       }
-      return; // stop here on error
+      return;
     }
 
-    // ─────────────────────────────────────────────────────────
-    // 3️⃣ If we just created, capture the new id for later steps
-    // ─────────────────────────────────────────────────────────
     if (!existingId && res?.student_id) {
       setStudentId(res.student_id);
     }
 
-    // ─────────────────────────────────────────────────────────
-    // 4️⃣ Persist this step’s data in the wizard context
-    // ─────────────────────────────────────────────────────────
     setFormData((prev: any) => ({
       ...prev,
       personalInfo: finalPayload,
     }));
 
-    // ─────────────────────────────────────────────────────────
-    // 5️⃣ Go to next step
-    // ─────────────────────────────────────────────────────────
     setCurrentStep(2);
   } catch (error: any) {
-    // generic server or network error handling
     const response = error?.response;
     if (response?.status === 422 && response?.data?.errors) {
       const validationErrors = response.data.errors;
@@ -548,9 +534,10 @@ const handleStep1Submit = async (
           Array.isArray(msgs) ? `${field}: ${msgs.join(", ")}` : `${field}: ${msgs}`
         )
         .join("\n");
-      alert(`❌ Validation Failed:\n${allErrors}`);
+
+      toast.error(`❌ Validation Failed:\n${allErrors}`);
     } else {
-      alert("❌ Server Error. Please try again later.");
+      toast.error("❌ Server Error. Please try again later.");
     }
   }
 };
@@ -558,34 +545,39 @@ const handleStep1Submit = async (
 
 
 
+
 const handleNextStep = async () => {
 if (currentStep === 1) {
-     const finalData = {
-      ...personalInfo,
-      languagesKnown: owner, // ✅ ADD this line (use correct camelCase key)
-    };
+  const finalData = {
+    ...personalInfo,
+    languagesKnown: owner, // ✅ Make sure this key name matches your backend
+  };
 
-    const formData = buildFormDataFromPayload(finalData);
+  const formData = buildFormDataFromPayload(finalData);
 
   console.log("✅ FormData to be sent:");
- formData.forEach((value, key) => {
-  console.log(`${key}:`, value);
-});
-
+  formData.forEach((value, key) => {
+    console.log(`${key}:`, value);
+  });
 
   try {
     await handleStep1Submit(
       formData,
       studentId,
-        routeStudentId,
+      routeStudentId,
       setStudentId,
       setFormData,
       setCurrentStep
     );
+
+    // ✅ Optionally show success toast here
+    toast.success("Step 1 submitted successfully!");
   } catch (error) {
     console.error("❌ Step 1 Submit Error:", error);
+    toast.error("❌ Failed to submit Step 1. Please try again.");
   }
 }
+
 
 else if (currentStep === 2) {
   
@@ -643,9 +635,30 @@ else if (currentStep === 2) {
     await updateStudent(studentId, formData);
     console.log("✅ FormData sent:");
     formData.forEach((val, key) => console.log(`${key}:`, val));
-  } catch (error) {
-    console.error("❌ Submit Error:", error);
+  } 
+catch (error: unknown) {
+  console.error("❌ Submit Error:", error);
+
+  let message = "❌ Unknown error occurred.";
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof (error as any).response === "object"
+  ) {
+    const errRes = error as any;
+    message =
+      errRes.response?.data?.message ||
+      errRes.response?.data?.error ||
+      errRes.message ||
+      message;
+  } else if (error instanceof Error) {
+    message = error.message;
   }
+
+  toast.error(`❌ Submit Error: ${message}`);
+}
 
   setFormData((prev) => ({ ...prev, parentGuardianInfo: payload }));
   setCurrentStep(3);
@@ -653,8 +666,6 @@ else if (currentStep === 2) {
 
 
 if (currentStep === 3) {
-
-
   const payload = {
     step: "step_3",
     studentId: studentId,
@@ -673,7 +684,7 @@ if (currentStep === 3) {
       const formKey = parentKey ? `${parentKey}[${snakeKey}]` : snakeKey;
 
       if (typeof value === "object" && value !== null) {
-        appendFormData(value, formKey); // 🔁 Recursively snake_case nested keys
+        appendFormData(value, formKey);
       } else {
         formData.append(formKey, String(value ?? ""));
       }
@@ -681,20 +692,40 @@ if (currentStep === 3) {
   };
 
   appendFormData(payload);
-
-  // Add _method only if needed (Laravel-style override)
   formData.append("_method", "PUT");
 
   try {
-    await updateStudent(studentId, formData); // ✅ Send as FormData
+    await updateStudent(studentId, formData);
     console.log("✅ Step 3 Payload sent as snake_case FormData");
+
+    toast.success("✅ Address details saved successfully!");
+
     setFormData((prev) => ({ ...prev, addressInfo: payload }));
     setCurrentStep(4);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("❌ Step 3 Submit Error:", error);
+
+    let message = "❌ Unknown error occurred.";
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as any).response === "object"
+    ) {
+      const errRes = error as any;
+      message =
+        errRes.response?.data?.message ||
+        errRes.response?.data?.error ||
+        errRes.message ||
+        message;
+    } else if (error instanceof Error) {
+      message = error.message;
+    }
+
+    toast.error(`❌ Step 3 Submit Error: ${message}`);
   }
 }
-
 
 
 
@@ -710,40 +741,60 @@ else if (currentStep === 4) {
 
   const formData = new FormData();
 
- for (const [key, value] of Object.entries(payload)) {
-  const snakeKey = toSnakeCase(key);
+  for (const [key, value] of Object.entries(payload)) {
+    const snakeKey = toSnakeCase(key);
 
-  if (
-    Array.isArray(value) &&
-    ["seriousInjuries", "allergies", "medications"].includes(key)
-  ) {
-    value.forEach((v) => formData.append(`${snakeKey}[]`, v));
-  } else {
-    if (value instanceof Blob) {
-      formData.append(snakeKey, value);
-    } else if (typeof value === "object" && value !== null) {
-      formData.append(snakeKey, JSON.stringify(value));
+    if (
+      Array.isArray(value) &&
+      ["seriousInjuries", "allergies", "medications"].includes(key)
+    ) {
+      value.forEach((v) => formData.append(`${snakeKey}[]`, v));
     } else {
-      formData.append(snakeKey, value ?? "");
+      if (value instanceof Blob) {
+        formData.append(snakeKey, value);
+      } else if (typeof value === "object" && value !== null) {
+        formData.append(snakeKey, JSON.stringify(value));
+      } else {
+        formData.append(snakeKey, value ?? "");
+      }
     }
   }
-}
-
 
   formData.append("_method", "PUT");
 
   try {
     await updateStudent(studentId, formData);
     console.log("✅ Step 4 submitted");
+    toast.success("✅ Transport & Medical details submitted successfully!");
     setCurrentStep(5);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("❌ Error in Step 4 submission", error);
+
+    let message = "❌ Unknown error occurred.";
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as any).response === "object"
+    ) {
+      const errRes = error as any;
+      message =
+        errRes.response?.data?.message ||
+        errRes.response?.data?.error ||
+        errRes.message ||
+        message;
+    } else if (error instanceof Error) {
+      message = error.message;
+    }
+
+    toast.error(`❌ Step 4 Submit Error: ${message}`);
   }
 }
 
 else if (currentStep === 5) {
   const payload = {
-    ...documents, // 👈 documents should come from state shared via props
+    ...documents, // documents from props/state
     step: "step_5",
     studentId,
   };
@@ -757,8 +808,7 @@ else if (currentStep === 5) {
     const snakeKey = toSnakeCase(key);
 
     if (value instanceof Blob) {
-      // ✅ File (PDF) upload
-      formData.append(snakeKey, value);
+      formData.append(snakeKey, value); // ✅ file upload
     } else if (typeof value === "object" && value !== null) {
       formData.append(snakeKey, JSON.stringify(value));
     } else {
@@ -771,9 +821,30 @@ else if (currentStep === 5) {
   try {
     await updateStudent(studentId, formData);
     console.log("✅ Step 5 submitted");
+    toast.success("✅ Documents uploaded successfully!");
     setCurrentStep(6);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("❌ Error in Step 5 submission", error);
+
+    let message = "❌ Unknown error occurred.";
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as any).response === "object"
+    ) {
+      const errRes = error as any;
+      message =
+        errRes.response?.data?.message ||
+        errRes.response?.data?.error ||
+        errRes.message ||
+        message;
+    } else if (error instanceof Error) {
+      message = error.message;
+    }
+
+    toast.error(`❌ Step 5 Submit Error: ${message}`);
   }
 }
 
@@ -1149,19 +1220,37 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
     </p>
   </label>
 </div>
+
+
 <div className="d-flex justify-content-between mt-4">
+
   {currentStep > 1 && (
-    <button className="btn btn-secondary" onClick={handleBack}>
-      <i className="bi bi-arrow-left-circle me-2" />
-      Back
+    <button
+      className="btn btn-outline-dark d-flex align-items-center gap-2 px-4 py-2 rounded shadow-sm"
+      onClick={handleBack}
+    >
+      <i className="bi bi-arrow-left-circle fs-5" />
+      <span className="fw-medium">Back</span>
     </button>
   )}
-<button className="btn btn-success" onClick={handleNextStep}>
-  <i className="bi bi-check-circle me-2" />
-  {currentStep === 6 ? "Submit" : "Next Step"}
-</button>
+
+  <button
+    className={`btn d-flex align-items-center gap-2 px-4 py-2 rounded shadow-sm ${
+      currentStep === 6 ? "bg-btn-primary text-white" : "btn-outline-success"
+    }`}
+    onClick={handleNextStep}
+  >
+    <i className={`bi ${currentStep === 6 ? "bi-send" : "bi-arrow-right-circle"} fs-5`} />
+    <span className="fw-medium">
+      {currentStep === 6 ? "Submit" : "Next Step"}
+    </span>
+  </button>
 
 </div>
+
+
+
+
               </form>
             </div>
           </div>

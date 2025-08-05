@@ -25,6 +25,7 @@
     "clipboard-copy": "^4.0.1",
     "dragula": "^3.7.3",
     "feather-icons-react": "^0.7.1",
+    "framer-motion": "^12.23.12",
     "jquery": "^3.7.1",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",

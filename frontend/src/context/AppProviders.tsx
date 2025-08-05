@@ -2,6 +2,7 @@
 import React from "react";
 import { AuthProvider } from "./AuthContext";
 import { AdmissionFormProvider } from "./AdmissionFormContext";
+import { RefreshProvider } from "./RefreshContext";
 
 interface Props {
   children: React.ReactNode;
@@ -10,9 +11,11 @@ interface Props {
 export const AppProviders: React.FC<Props> = ({ children }) => {
   return (
     <AuthProvider>
+      <RefreshProvider>
       <AdmissionFormProvider>
         {children}
       </AdmissionFormProvider>
+      </RefreshProvider>
     </AuthProvider>
   );
 };

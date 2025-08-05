@@ -256,11 +256,14 @@ import LoaderTwo from "../../core/common/loader/loaderTwo";
 import Unauthorized from "../common/Unauthorized";
 import FeesManagement from "../management/feescollection/FeesManagement";
 import AdmissionInquiryList from "../peoples/students/add-student/admission_inquiry_list";
+import { useRefresh } from "../../context/RefreshContext";
+import WithRefresh from "../../core/common/WithRefresh";
 
 
 const routes = all_routes;
-
+ 
 export const authRoutes = [
+  
   // {
   //   path: "/",
   //   name: "Root",
@@ -794,29 +797,29 @@ export const authRoutes = [
   },
   {
     path: routes.addStudent,
-    element: <AddStudent />,
+    element: <WithRefresh><AddStudent /></WithRefresh>,
   },
-
+ {
+    path: routes.editStudent,
+    element: <WithRefresh><AddStudent /></WithRefresh>,
+  },
   {
     path: routes.inquiry,
     element:<Inquiry/>,
   },
   {
     path: routes.addAdmissionInquiry,
-    element:<Inquiry/>,
+    element: <WithRefresh><Inquiry/></WithRefresh>,
   },
     {
     path: routes.editAdmissionInquiry,
-    element:<Inquiry/>,
+    element:<WithRefresh><Inquiry/></WithRefresh>,
   },
    {
     path: routes.admissionInquiryList,
     element: <AdmissionInquiryList />,
   },
-  {
-    path: routes.editStudent,
-    element: <AddStudent />,
-  },
+ 
   {
     path: routes.studentLibrary,
     element: <StudentLibrary />,
