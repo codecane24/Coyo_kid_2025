@@ -4,7 +4,7 @@ import axios from "axios";
 import { Breadcrumb } from "react-bootstrap";
 import { all_routes } from "../../../router/all_routes";
 
-const InquiryDetails = () => {
+const InquiryDetail = () => {
   const { id } = useParams<{ id: string }>();
     const routes = all_routes;
   const [data, setData] = useState<any>(null);
@@ -211,4 +211,4 @@ const InquiryDetails = () => {
   );
 };
 
-export default InquiryDetails;
+export default InquiryDetail;
