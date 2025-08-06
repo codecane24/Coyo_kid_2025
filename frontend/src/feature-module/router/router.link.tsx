@@ -261,7 +261,7 @@ import { useRefresh } from "../../context/RefreshContext";
 import WithRefresh from "../../core/common/WithRefresh";
 
 import AdmissionInquiryGrid from "../peoples/students/add-student/admission_inquiry_grid";
-import InquiryDetails from "../peoples/students/add-student/InquiryDetails";
+import InquiryDetail from "../peoples/students/add-student/inquiryDetails"; 
 
 
 const routes = all_routes;
@@ -825,7 +825,7 @@ export const authRoutes = [
   },
     {
     path: routes.admissionInquiryDetails,
-    element: <InquiryDetails/>,
+    element: <InquiryDetail />,
   },
 
   {
