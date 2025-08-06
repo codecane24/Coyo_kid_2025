@@ -215,7 +215,7 @@ export const all_routes = {
   
   admissionInquiryList: "/student/admission-inquiry-list",
   admissionInquiryGrid: "/student/admission-inquiry-grid",
-  admissionInquiryDetails: "/student/admission-inquiry/:id",
+  admissionInquiryDetails: "/student/admission-inquiry-details/:id",
   editAdmissionInquiry: "/student/admission-inquiry/edit/:id",
   addAdmissionInquiry: "/student/admission-inquiry/add",
 

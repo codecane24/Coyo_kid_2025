@@ -344,7 +344,7 @@ const { refreshKey } = useRefresh();
           {/* /Inquiry List */}
         </div>
       </div>
-      {/* /Page Wrapper */}
+
     </>
   );
 };

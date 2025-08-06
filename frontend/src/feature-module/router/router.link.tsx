@@ -262,7 +262,7 @@ import WithRefresh from "../../core/common/WithRefresh";
 
 
 import AdmissionInquiryGrid from "../peoples/students/add-student/admission_inquiry_grid";
-import InquiryDetails from "../peoples/students/add-student/inquiryDetails";
+import InquiryDetails from "../peoples/students/add-student/InquiryDetails";
 
 
 const routes = all_routes;
@@ -824,7 +824,11 @@ export const authRoutes = [
     path: routes.admissionInquiryList,
     element: <AdmissionInquiryList />,
   },
- 
+    {
+    path: routes.admissionInquiryDetails,
+    element: <InquiryDetails/>,
+  },
+
   {
     path: routes.studentLibrary,
     element: <StudentLibrary />,
