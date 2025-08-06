@@ -10,13 +10,15 @@ import {
   setMobileSidebar,
   toggleMiniSidebar,
 } from "../../data/redux/sidebarSlice";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { all_routes } from "../../../feature-module/router/all_routes";
 import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useRefresh } from "../../../context/RefreshContext";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
+import { getAcademicYearList } from "../../../services/OtherServices";
+
 
 const Header = () => {
   const { user } = useAuth();
@@ -115,7 +117,25 @@ const handleClick = () => {
 
   refresh(); // Your actual refresh logic
 };
-console.log(user)
+const [academicYears, setAcademicYears] = useState<any[]>([]);
+const [selectedAcademicYear, setSelectedAcademicYear] = useState<any>(null);
+
+useEffect(() => {
+  getAcademicYearList().then((res) => {
+    if (res && res.status === "success" && Array.isArray(res.data)) {
+      setAcademicYears(res.data);
+      // Set the first active year as selected, or fallback to first item
+      const activeYear = res.data.find((y: any) => y.status === 1) || res.data[0];
+      setSelectedAcademicYear(activeYear);
+    }
+  });
+}, []);
+
+const handleAcademicYearSelect = (year: any) => {
+  setSelectedAcademicYear(year);
+  // Optionally: trigger a global context update or reload data for selected year
+};
+
   return (
     <>
       {/* Header */}
@@ -182,27 +202,19 @@ console.log(user)
                   aria-expanded="false"
                 >
                   <i className="ti ti-calendar-due me-1" />
-                  Academic Year : 2024 / 2025
+                  Academic Year : {selectedAcademicYear ? `${selectedAcademicYear.name}` : "Loading..."}
                 </Link>
                 <div className="dropdown-menu dropdown-menu-right">
-                  <Link
-                    to="#"
-                    className="dropdown-item d-flex align-items-center"
-                  >
-                    Academic Year : 2023 / 2024
-                  </Link>
-                  <Link
-                    to="#"
-                    className="dropdown-item d-flex align-items-center"
-                  >
-                    Academic Year : 2022 / 2023
-                  </Link>
-                  <Link
-                    to="#"
-                    className="dropdown-item d-flex align-items-center"
-                  >
-                    Academic Year : 2021 / 2022
-                  </Link>
+                  {academicYears.map((year: any) => (
+                    <Link
+                      key={year.id}
+                      to="#"
+                      className={`dropdown-item d-flex align-items-center${selectedAcademicYear?.id === year.id ? " active" : ""}`}
+                      onClick={() => handleAcademicYearSelect(year)}
+                    >
+                      Academic Year : {year.name}
+                    </Link>
+                  ))}
                 </div>
               </div>
               {/* <div className="pe-1 ms-1">
