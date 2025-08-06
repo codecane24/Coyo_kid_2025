@@ -825,7 +825,7 @@ export const authRoutes = [
   },
     {
     path: routes.admissionInquiryDetails,
-    element: <InquiryDetails/>,
+    element: <WithRefresh><InquiryDetails/></WithRefresh>,
   },
 
   {

@@ -27,14 +27,37 @@ const InquiryDetails = () => {
   return (
     <div className="page-wrapper">
       <div className="content content-two">
-        <div className="page-header d-flex align-items-center justify-content-between mb-4">
+        <div className="page-header d-flex align-items-center gap-2 justify-content-between mb-4">
           <div>
+            <div className="d-flex align-items-center mb-2">
             <h2 className="mb-1">
               Admission Inquiry Details
-              <span className="badge bg-primary ms-3">
+              {/* <span className="badge bg-primary ms-3">
                 Inquiry Code: {data.code}
-              </span>
+              </span> */}
+              
+  
             </h2>
+              <div
+      className="px-2 py-1"
+      style={{
+        fontSize: "0.85rem",
+        color: "#333",
+        backgroundColor: "#E6F0FA",
+        borderRadius: "6px",
+        width: "fit-content",
+      }}
+    >
+<div>
+{data.code? (
+  <p>Inquiry Code: {data.code}</p>
+) : (
+  <p>Loading...</p>
+)}
+
+</div>
+
+    </div></div>
             <nav>
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
@@ -50,115 +73,123 @@ const InquiryDetails = () => {
             </nav>
           </div>
         </div>
-        <div className="card">
-          <div className="card-body">
-            <h4 className="mb-3">Student Information</h4>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Name:</strong></div>
-              <div className="col-md-8">{data.first_name} {data.middle_name} {data.last_name}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Academic Year:</strong></div>
-              <div className="col-md-8">{data.academic_year}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Date of Enquiry:</strong></div>
-              <div className="col-md-8">{data.date_of_enquiry?.slice(0, 10)}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Class:</strong></div>
-              <div className="col-md-8">{data.class_id}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Gender:</strong></div>
-              <div className="col-md-8">{data.gender}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Date of Birth:</strong></div>
-              <div className="col-md-8">{data.date_of_birth?.slice(0, 10)}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Primary Contact:</strong></div>
-              <div className="col-md-8">{data.primary_contact}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Email:</strong></div>
-              <div className="col-md-8">{data.email}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Suitable Batch:</strong></div>
-              <div className="col-md-8">{data.suitable_batch}</div>
-            </div>
-            <hr />
-            <h4 className="mb-3">Father's Information</h4>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Name:</strong></div>
-              <div className="col-md-8">{data.father_name}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Email:</strong></div>
-              <div className="col-md-8">{data.father_email}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Phone:</strong></div>
-              <div className="col-md-8">{data.father_phone}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Occupation:</strong></div>
-              <div className="col-md-8">{data.father_occupation}</div>
-            </div>
-            <hr />
-            <h4 className="mb-3">Mother's Information</h4>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Name:</strong></div>
-              <div className="col-md-8">{data.mother_name}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Email:</strong></div>
-              <div className="col-md-8">{data.mother_email}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Phone:</strong></div>
-              <div className="col-md-8">{data.mother_phone}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Occupation:</strong></div>
-              <div className="col-md-8">{data.mother_occupation}</div>
-            </div>
-            <hr />
-            <h4 className="mb-3">Addresses</h4>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Permanent Address:</strong></div>
-              <div className="col-md-8">
-                {data.permanent_address?.address}, {data.permanent_address?.area}, {data.permanent_address?.city}, {data.permanent_address?.state}, {data.permanent_address?.pincode}
-                <br />
-                Landmark: {data.permanent_address?.landmark}
-              </div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Current Address:</strong></div>
-              <div className="col-md-8">
-                {data.current_address?.address}, {data.current_address?.area}, {data.current_address?.city}, {data.current_address?.state}, {data.current_address?.pincode}
-                <br />
-                Landmark: {data.current_address?.landmark}
-              </div>
-            </div>
-            <hr />
-            <h4 className="mb-3">Other Details</h4>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Siblings (IDs):</strong></div>
-              <div className="col-md-8">{Array.isArray(data.sibling_ids) ? data.sibling_ids.filter(Boolean).join(", ") : ""}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Status:</strong></div>
-              <div className="col-md-8">{data.status}</div>
-            </div>
-            <div className="row mb-2">
-              <div className="col-md-4"><strong>Created At:</strong></div>
-              <div className="col-md-8">{data.created_at?.slice(0, 10)}</div>
-            </div>
-          </div>
-        </div>
+   <div className="card shadow-sm border-0">
+  <div className="card-body">
+    <h4 className="mb-4 border-bottom pb-2">Student Information</h4>
+
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Name:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.first_name} {data.middle_name} {data.last_name}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Academic Year:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.academic_year}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Date of Enquiry:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.date_of_enquiry?.slice(0, 10)}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Class:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.class_id}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Gender:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.gender}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Date of Birth:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.date_of_birth?.slice(0, 10)}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Primary Contact:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.primary_contact}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Email:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.email}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Suitable Batch:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.suitable_batch}</div>
+    </div>
+
+    <hr className="my-4" />
+    <h4 className="mb-4 border-bottom pb-2">Father's Information</h4>
+
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Name:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.father_name}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Email:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.father_email}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Phone:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.father_phone}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Occupation:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.father_occupation}</div>
+    </div>
+
+    <hr className="my-4" />
+    <h4 className="mb-4 border-bottom pb-2">Mother's Information</h4>
+
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Name:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.mother_name}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Email:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.mother_email}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Phone:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.mother_phone}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Occupation:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.mother_occupation}</div>
+    </div>
+
+    <hr className="my-4" />
+    <h4 className="mb-4 border-bottom pb-2">Addresses</h4>
+
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Permanent Address:</div>
+      <div className="col-md-8 text-dark fw-medium">
+        {data.permanent_address?.address}, {data.permanent_address?.area}, {data.permanent_address?.city}, {data.permanent_address?.state}, {data.permanent_address?.pincode}<br />
+        <span className="text-muted">Landmark: {data.permanent_address?.landmark}</span>
+      </div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Current Address:</div>
+      <div className="col-md-8 text-dark fw-medium">
+        {data.current_address?.address}, {data.current_address?.area}, {data.current_address?.city}, {data.current_address?.state}, {data.current_address?.pincode}<br />
+        <span className="text-muted">Landmark: {data.current_address?.landmark}</span>
+      </div>
+    </div>
+
+    <hr className="my-4" />
+    <h4 className="mb-4 border-bottom pb-2">Other Details</h4>
+
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Siblings (IDs):</div>
+      <div className="col-md-8 text-dark fw-medium">{Array.isArray(data.sibling_ids) ? data.sibling_ids.filter(Boolean).join(", ") : ""}</div>
+    </div>
+    <div className="row mb-3">
+      <div className="col-md-4 fw-semibold text-muted">Status:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.status}</div>
+    </div>
+    <div className="row">
+      <div className="col-md-4 fw-semibold text-muted">Created At:</div>
+      <div className="col-md-8 text-dark fw-medium">{data.created_at?.slice(0, 10)}</div>
+    </div>
+  </div>
+</div>
+
       </div>
     </div>
   );
