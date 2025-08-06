@@ -44,6 +44,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { getAllId } from "../../../../services/GetAllId";
 import { motion } from "framer-motion";
+import { getInquiryById } from "../../../../services/AdmissionInquiry";
 type ClassItem = {
   id: string;
   name: string; 
@@ -84,7 +85,14 @@ const AddStudent = () => {
 const { id } = useParams();
 const isEditMode = Boolean(id);
 const location = useLocation();
+const inquiryId = location.state?.inquiryId || null;
+
+
   const [isEdit, setIsEdit] = useState<boolean>(false);
+  const [inquiryData, setInquiryData] = useState<any>(null);
+const [inquiryConversionMode, setInquiryConversionMode] = useState<boolean>(false);
+
+
 const params = useParams();
 const { editstudentId } = useParams<{ editstudentId: string }>();
 
@@ -226,10 +234,6 @@ const [transportMedical, setTransportMedical] = useState<TransportMedicalFormDat
 });
 
 
-
-
-
-
 const [addressInfo, setAddressInfo] = useState({
   permanent: {
     address: "",
@@ -295,7 +299,22 @@ const removeContent = (index: number) => {
   updated.splice(index, 1);
   setNewContents(updated);
 };
-
+console.log(inquiryConversionMode)
+useEffect(() => {
+  if (inquiryConversionMode) {
+    setLoading(true);
+    getInquiryById(inquiryId)
+      .then((res) => {
+        console.log("this is the inquiry conversion data",res.data)
+     
+      })
+      .catch((err) => {
+        console.error("Error fetching inquiry:", err);
+      
+      })
+      .finally(() => setLoading(false));
+  }
+}, [inquiryConversionMode]);
   useEffect(() => {
   const fetchClasses = async () => {
     try {
@@ -429,6 +448,19 @@ const isEditingMode = location.pathname.includes("/student/edit");
 console.log("routeStudentId:", routeStudentId);
 console.log("isEditingMode:", isEditingMode);
 
+useEffect(() => {
+  if (inquiryId) {
+    setInquiryConversionMode(true);
+    setLoading(true);
+    getInquiryById(inquiryId)
+      .then((res) => {
+        console.log("this is the inquiry conversion data", res.data);
+        setInquiryData(res.data);
+      })
+      .catch((err) => console.error("Error fetching inquiry:", err))
+      .finally(() => setLoading(false));
+  }
+}, [inquiryId]);
 
 useEffect(() => {
   if (isEditingMode && routeStudentId) {
@@ -856,6 +888,24 @@ else if (currentStep === 5) {
 
 }
 
+useEffect(() => {
+  if (inquiryConversionMode && inquiryData) {
+setPersonalInfo((prev) => ({
+  ...prev, // ✅ keeps the rest of the required fields intact
+  academicYear: inquiryData.academic_year || "",
+  firstName: inquiryData.first_name || "",
+  middleName: inquiryData.middle_name || "",
+  lastName: inquiryData.last_name || "",
+  class: inquiryData.class_id || "",
+  gender: inquiryData.gender || "",
+  dob: inquiryData.date_of_birth || "",
+  primaryContact: inquiryData.primary_contact || "",
+  email: inquiryData.email || "",
+  suitableBatch: inquiryData.suitable_batch || "",
+}));
+
+  }
+}, [inquiryConversionMode, inquiryData]);
 
 
 
@@ -1056,6 +1106,19 @@ useEffect(() => {
 
   setTransportMedical(updatedTransportMedical);
 }, [isEditMode, studentData]);
+useEffect(() => {
+  if (id) {
+    getInquiryById(id)
+      .then((data) => {
+        setStudentData(data.data); // ✅ now `data` is from response.data
+      })
+      .catch((err) => {
+        console.error("API error:", err);
+        setStudentData(null);
+      })
+      .finally(() => setLoading(false));
+  }
+}, [id]);
 
 const [serialId, setSerialId] = useState<string>("");
 
@@ -1084,7 +1147,13 @@ useEffect(() => {
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
             <div className="my-auto mb-2">
 <div className="d-flex align-items-center mb-2">
-<h3 className="mb-0 me-2">{isEditingMode ? 'Edit' : 'Add'} Student</h3>
+<h3 className="mb-0 me-2">
+  {isEdit
+    ? 'Edit'
+    : inquiryConversionMode
+    ? 'Convert Inquiry to Admission'
+    : 'Add Student'}
+</h3>
 
     <div
       className="px-2 py-1"
@@ -1106,6 +1175,7 @@ useEffect(() => {
 </div>
 
     </div>
+ 
 </div>
 
               <nav>

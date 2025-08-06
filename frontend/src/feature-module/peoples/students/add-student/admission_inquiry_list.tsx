@@ -24,7 +24,7 @@ interface AdmissionInquiryTableData {
   gender: string;
   primary_contact: string;
   date_of_enquiry: string;
-  status: string | boolean;
+  status: string;
   // Add any other fields you use in your columns/actions
 }
 
@@ -92,27 +92,52 @@ const { refreshKey } = useRefresh();
       sorter: (a: AdmissionInquiryTableData, b: AdmissionInquiryTableData) =>
         (a.date_of_enquiry || "").localeCompare(b.date_of_enquiry || ""),
     },
-    {
-      title: "Status",
-      dataIndex: "status",
-      render: (text: string | boolean) => (
-        <>
-          {text === true || text === "Active" ? (
-            <span className="badge badge-soft-success d-inline-flex align-items-center">
-              <i className="ti ti-circle-filled fs-5 me-1"></i>
-              Active
-            </span>
-          ) : (
-            <span className="badge badge-soft-danger d-inline-flex align-items-center">
-              <i className="ti ti-circle-filled fs-5 me-1"></i>
-              Inactive
-            </span>
-          )}
-        </>
-      ),
-      sorter: (a: AdmissionInquiryTableData, b: AdmissionInquiryTableData) =>
-        (a.status || "").toString().localeCompare((b.status || "").toString()),
-    },
+{
+  title: "Status",
+  dataIndex: "status",
+  render: (status: string) => {
+    let label = "";
+    let badgeClass = "";
+    let iconColor = "";
+
+    switch (status) {
+      case "0":
+        label = "New";
+        badgeClass = "badge-soft-primary";
+        iconColor = "text-primary";
+        break;
+      case "1":
+        label = "In Process";
+        badgeClass = "badge-soft-warning";
+        iconColor = "text-warning";
+        break;
+      case "2":
+        label = "Admission Converted";
+        badgeClass = "badge-soft-success";
+        iconColor = "text-success";
+        break;
+      case "3":
+        label = "Closed";
+        badgeClass = "badge-soft-danger";
+        iconColor = "text-danger";
+        break;
+      default:
+        label = "Unknown";
+        badgeClass = "badge-soft-secondary";
+        iconColor = "text-muted";
+    }
+
+    return (
+      <span className={`badge ${badgeClass} d-inline-flex align-items-center`}>
+        <i className={`ti ti-circle-filled fs-5 me-1 ${iconColor}`}></i>
+        {label}
+      </span>
+    );
+  },
+  sorter: (a: AdmissionInquiryTableData, b: AdmissionInquiryTableData) =>
+    (a.status || "").localeCompare(b.status || ""),
+}
+,
     {
       title: "Action",
       dataIndex: "action",
@@ -172,19 +197,7 @@ const { refreshKey } = useRefresh();
     }
   };
 
-// const handlePrint = () => {
-//     printElementById("print-area"); // ID of the element you want to print
-//   };
-// const handleExport = (type: "pdf" | "excel") => {
-//   const exportColumns = columns
-//     .filter(col => col.dataIndex) // skip buttons, render-only columns
-//     .map(col => ({
-//       title: col.title,
-//       field: col.dataIndex as string,
-//     }));
 
-//   exportData(type, data, exportColumns, "StudentList");
-// };
   return (
     <>
       {/* Page Wrapper */}

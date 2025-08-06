@@ -605,11 +605,16 @@ const handleAcademicYearSelect = (year: any) => {
         data-bs-toggle="dropdown"
       >
         <span className="avatar avatar-md rounded">
-          <ImageWithBasePath
-            src={user?.profile_img || "assets/img/profiles/avatar-27.jpg"}
-            alt="Img"
-            className="img-fluid"
-          />
+<ImageWithBasePath
+  src={
+    user?.profile_img && typeof user.profile_img === "string"
+      ? user.profile_img
+      : "https://tse4.mm.bing.net/th/id/OIP.OesLvyzDO6AvU_hYUAT4IAHaHa?pid=Api&P=0&h=180"
+  }
+  alt="Img"
+  className="img-fluid"
+/>
+
         </span>
       </Link>
 
