@@ -269,6 +269,7 @@ const routes = all_routes;
  
 export const authRoutes = [
   
+  // Vikram
   // {
   //   path: "/",
   //   name: "Root",
