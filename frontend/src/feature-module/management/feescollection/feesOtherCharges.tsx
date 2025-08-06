@@ -16,9 +16,9 @@ import Table from "../../../core/common/dataTable/index";
 
 import { feesMasterData } from "../../../core/data/json/feesMaster";
 import TooltipOption from "../../../core/common/tooltipOption";
-import FeesMasterModal from "./feesMasterModal";
+import FeesModal from "./feesModal";
 
-const FeesMaster = () => {
+const FeesOtherCharges = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
   const data = feesMasterData;
@@ -158,14 +158,14 @@ const FeesMaster = () => {
           {/* Page Header */}
           <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
             <div className="my-auto mb-2">
-              <h3 className="page-title mb-1">Fees Master</h3>
+              <h3 className="page-title mb-1">Fees Other Charges</h3>
               <nav>
                 <ol className="breadcrumb mb-0">
                   <li className="breadcrumb-item">
                     <Link to={routes.adminDashboard}>Dashboard</Link>
                   </li>
                   <li className="breadcrumb-item">
-                    <Link to="#">Fees Master</Link>
+                    <Link to="#">Fees Collection</Link>
                   </li>
                   <li className="breadcrumb-item active" aria-current="page">
                    Other Charges
@@ -192,7 +192,7 @@ const FeesMaster = () => {
           {/* Students List */}
           <div className="card">
             <div className="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
-              <h4 className="mb-3">Fees Master List</h4>
+              <h4 className="mb-3">Other Charges</h4>
               <div className="d-flex align-items-center flex-wrap">
                 <div className="input-icon-start mb-3 me-2 position-relative">
                   <PredefinedDateRanges />
@@ -339,9 +339,13 @@ const FeesMaster = () => {
         </div>
       </div>
       {/* /Page Wrapper */}
-      <FeesMasterModal/>
+      <FeesModal
+        editType={editType}
+        showEditModal={showEditModal}
+        onCloseEditModal={() => setShowEditModal(false)}
+      />
     </>
   );
 };
 
-export default FeesMaster;
+export default FeesOtherCharges;

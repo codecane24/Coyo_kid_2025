@@ -159,6 +159,7 @@ import ResetPasswordSuccess2 from "../auth/resetPasswordSuccess/resetPasswordSuc
 import ResetPasswordSuccess3 from "../auth/resetPasswordSuccess/resetPasswordSuccess-3";
 import FeesTypes from "../management/feescollection/feesTypes";
 import FeesMaster from "../management/feescollection/feesMaster";
+import FeesMaster from "../management/feescollection/feesOtherCharges";
 import FeesAssign from "../management/feescollection/feesAssign";
 import FeesCollectionReoprt from "../management/feescollection/feesCollectionReport";
 import StudentAttendance from "../hrm/attendance/student-attendance";
@@ -256,7 +257,7 @@ import LoaderTwo from "../../core/common/loader/loaderTwo";
 import Unauthorized from "../common/Unauthorized";
 import FeesManagement from "../management/feescollection/FeesManagement";
 import AdmissionInquiryList from "../peoples/students/add-student/admission_inquiry_list";
-import InquiryDetails from "../peoples/students/add-student/InquiryDetails";
+import InquiryDetails from "../peoples/students/add-student/inquiryDetails";
 import { useRefresh } from "../../context/RefreshContext";
 import WithRefresh from "../../core/common/WithRefresh";
 
@@ -1035,9 +1036,9 @@ export const authRoutes = [
     path:   routes.feesMaster,
     element: <FeesMaster />,
   },
-{
+  {
     path:   routes.otherCharges,
-    element: <FeesOtherCharges />,
+    element: <FeesMaster />,
   },
     {
     path:   routes.acadmicFees,

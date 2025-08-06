@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { all_routes } from "../../router/all_routes";
 import { Link } from "react-router-dom";
 import PredefinedDateRanges from "../../../core/common/datePicker";
@@ -17,6 +17,7 @@ import Table from "../../../core/common/dataTable/index";
 import { feesMasterData } from "../../../core/data/json/feesMaster";
 import TooltipOption from "../../../core/common/tooltipOption";
 import FeesMasterModal from "./feesMasterModal";
+import { createFeesMaster, updateFeesMaster, getFeesGroupList } from "../../../services/FeesAllData";
 
 const FeesMaster = () => {
   const routes = all_routes;
@@ -24,6 +25,65 @@ const FeesMaster = () => {
   const data = feesMasterData;
   const [editType, setEditType] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [feeGroupOptions, setFeeGroupOptions] = useState<any[]>([]);
+  const [formData, setFormData] = useState({
+    id: "",
+    title: "",
+    feesgroup_id: "",
+    feestype_id: "",
+    due_date: "",
+    amount: "",
+    fine_type: "",
+    fine_amount: "",
+    status: false,
+    description: "",
+  });
+
+  useEffect(() => {
+    getFeesGroupList().then((res) => {
+      if (res && res.status === "success" && Array.isArray(res.data)) {
+        setFeeGroupOptions(
+          res.data.map((item: any) => ({
+            value: item.id,
+            label: item.name,
+          }))
+        );
+      }
+    });
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSelectChange = (field: string, option: any) => {
+    setFormData({ ...formData, [field]: option?.value || "" });
+  };
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, status: e.target.checked });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (formData.id) {
+        await updateFeesMaster(formData.id, {
+          ...formData,
+          status: formData.status ? "1" : "0",
+        });
+        // Show success toast, reset form, refresh table, etc.
+      } else {
+        await createFeesMaster({
+          ...formData,
+          status: formData.status ? "1" : "0",
+        });
+        // Show success toast, reset form, refresh table, etc.
+      }
+    } catch {
+      // Show error toast
+    }
+  };
 
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {

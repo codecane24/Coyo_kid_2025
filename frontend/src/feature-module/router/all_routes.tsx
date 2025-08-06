@@ -239,6 +239,7 @@ export const all_routes = {
   feesMaster:"/management/fees-master",
   acadmicFees:"/management/acadmic-fees",
   otherCharges:"/management/other-charges",
+  
   feesAssign:"/management/fees-assign",
   feesCollectionReport:"/management/fees-collection-report",
   collectFees:"/management/collect-fees",
