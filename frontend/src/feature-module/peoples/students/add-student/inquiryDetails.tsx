@@ -70,12 +70,14 @@ const InquiryDetails = () => {
   </div>
 
   {/* Right Side Buttons */}
+  
   <div className="d-flex align-items-center gap-2">
     {/* Dropdown */}
     <select className="form-select" style={{ width: "150px" }}>
       <option value="">Select Option</option>
+        <option value="3">Pick</option>
       <option value="1">Follow Up</option>
-      <option value="2">Convert</option>
+      <option value="2">Convert To Addmission</option>
       <option value="3">Archive</option>
     </select>
 
