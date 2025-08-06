@@ -1032,8 +1032,12 @@ export const authRoutes = [
     element: <FeesTypes />,
   },
   {
-    path:   routes.otherCharges,
+    path:   routes.feesMaster,
     element: <FeesMaster />,
+  },
+{
+    path:   routes.otherCharges,
+    element: <FeesOtherCharges />,
   },
     {
     path:   routes.acadmicFees,
