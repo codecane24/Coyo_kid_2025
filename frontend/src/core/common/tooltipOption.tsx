@@ -1,6 +1,7 @@
 import React from "react";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import { exportData } from "../../utils/exportHelper";
 
 interface TooltipOptionProps {
   onRefresh?: () => void;
@@ -10,6 +11,10 @@ interface TooltipOptionProps {
   showRefresh?: boolean;
   showExport?: boolean;
   showPrint?: boolean;
+
+  data?: any[];
+  columns?: { title: string; field: string }[];
+  exportFileName?: string;
 }
 
 const TooltipOption: React.FC<TooltipOptionProps> = ({
@@ -19,7 +24,20 @@ const TooltipOption: React.FC<TooltipOptionProps> = ({
   showRefresh = true,
   showExport = true,
   showPrint = true,
+  data,
+  columns,
+  exportFileName = "export",
 }) => {
+  const handleInternalExport = (type: "pdf" | "excel") => {
+    if (onExport) {
+      onExport(type); // Use passed function if available
+    } else if (data && columns && exportFileName) {
+      exportData(type, data, columns, exportFileName); // Use fallback logic
+    } else {
+      console.warn("Export failed: missing onExport or export config.");
+    }
+  };
+
   return (
     <>
       {/* Refresh Button */}
@@ -72,7 +90,7 @@ const TooltipOption: React.FC<TooltipOptionProps> = ({
             <li>
               <Link
                 to="#"
-                onClick={() => onExport?.("pdf")}
+                onClick={() => handleInternalExport("pdf")}
                 className="dropdown-item rounded-1"
               >
                 <i className="ti ti-file-type-pdf me-1" />
@@ -82,7 +100,7 @@ const TooltipOption: React.FC<TooltipOptionProps> = ({
             <li>
               <Link
                 to="#"
-                onClick={() => onExport?.("excel")}
+                onClick={() => handleInternalExport("excel")}
                 className="dropdown-item rounded-1"
               >
                 <i className="ti ti-file-type-xls me-1" />

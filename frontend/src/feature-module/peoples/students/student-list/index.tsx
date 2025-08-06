@@ -21,6 +21,7 @@ import { getStudent } from "../../../../services/StudentData";
 import { exportData } from "../../../../utils/exportHelper";
 import { printElementById } from "../../../../utils/printHelper";
 import { useRefresh } from "../../../../context/RefreshContext";
+import { buildExportColumns } from "../../../../utils/buildExportColumns";
 const MyComponent = () => {
   const tableData = [
     { name: "John", age: 25, city: "New York" },
@@ -204,7 +205,8 @@ const handleExport = (type: "pdf" | "excel") => {
               </nav>
             </div>
             <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
- <TooltipOption onExport={handleExport} onPrint={handlePrint}   showRefresh={false} />
+ <TooltipOption   data={data} // ✅ your dynamic table data
+  columns={buildExportColumns(columns)}onPrint={handlePrint}   showRefresh={false} />
 
               <div className="mb-2">
                 <Link
