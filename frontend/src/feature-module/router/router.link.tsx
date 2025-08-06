@@ -256,11 +256,11 @@ import LoaderTwo from "../../core/common/loader/loaderTwo";
 import Unauthorized from "../common/Unauthorized";
 import FeesManagement from "../management/feescollection/FeesManagement";
 import AdmissionInquiryList from "../peoples/students/add-student/admission_inquiry_list";
-
+<<<<<<< HEAD
 import { useRefresh } from "../../context/RefreshContext";
 import WithRefresh from "../../core/common/WithRefresh";
 
-
+=======
 import AdmissionInquiryGrid from "../peoples/students/add-student/admission_inquiry_grid";
 import InquiryDetails from "../peoples/students/add-student/InquiryDetails";
 
