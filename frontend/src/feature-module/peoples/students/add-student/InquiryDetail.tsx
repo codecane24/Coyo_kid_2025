@@ -78,7 +78,7 @@ const InquiryDetail = () => {
         <option value="3">Pick</option>
       <option value="1">Follow Up</option>
       <option value="2">Convert To Addmission</option>
-      <option value="3">Archive</option>
+      <option value="3">Close</option>
     </select>
 
     {/* Edit Button */}
