@@ -1235,16 +1235,31 @@ console.log(serialId)
               </form>
 
 
-<button
-  type="button"
-  onClick={() => {
+<div className="d-flex gap-2">
+  <button
+    type="button"
+    onClick={() => {
+      handleSubmit();
+    }}
+    className="btn btn-primary"
+  >
+    Submit
+  </button>
+<Link to={routes.admissionInquiryList} className="nav-link">
+  <button
+    type="button"
+ 
+    style={{
+      backgroundColor: '#E6F0FA',
+      border: '1px solid black',
+      color: 'black',
+    }}
+    className="btn"
+  >
+    Cancel
+  </button></Link>
+</div>
 
-handleSubmit()
-  }}
-  className="btn btn-primary"
->
-  Submit & Log Payload
-</button>
 
 
 

@@ -155,7 +155,7 @@ function toSnakeCaseTwo(obj: any): any {
   admissionNo: "",
   admissionDate: "",
   rollNo: "",
-  status: "",
+
   firstName: "",
   middleName: "",
   lastName: "",
@@ -344,38 +344,7 @@ const formatDate = (dateStr: string | undefined) => {
   return d.toISOString().split("T")[0]; // YYYY-MM-DD
 };
 
-const handleSubmitPersonalInfo = (e: React.FormEvent) => {
-  e.preventDefault(); // 🔥 This prevents page refresh
 
-  if (!personalInfo.firstName || !personalInfo.admissionNo) {
-    alert("First Name and Admission Number are required");
-    return;
-  }
-
-  const payload = {
-    ...personalInfo,
-    admissionDate: formatDate(personalInfo.admissionDate),
-    dob: formatDate(personalInfo.dob),
-    languages: owner,
-  };
-
-  setFormData((prev) => ({
-    ...prev,
-    personalInfo: payload,
-  }));
-
-  if (files?.length) {
-    const formData = new FormData();
-    formData.append("data", JSON.stringify(payload));
-    Array.from(files).forEach((file) => {
-      formData.append("images", file);
-    });
-    // Optional: await axios.post(...)
-  }
-
-  console.log("Payload:Add Student-PersionalInfo", payload);
-  setShowFinancialForm(true);
-};
 
 
 
@@ -552,6 +521,40 @@ if (currentStep === 1) {
     ...personalInfo,
     languagesKnown: owner, // ✅ Make sure this key name matches your backend
   };
+ // ✅ Only validate fields that are required in your Step 1 form
+  const requiredFields: (keyof typeof finalData)[] = [
+    "firstName",
+    "lastName",
+    "email",
+
+    "gender",
+    "languagesKnown",
+    // 👉 Do NOT include "admissionNo", "status", "section" if they're not on the form
+  ];
+
+  const emptyFields: string[] = [];
+
+  requiredFields.forEach((key) => {
+    const value = finalData[key];
+
+    if (
+      value === null ||
+      value === undefined ||
+      value === "" ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
+      emptyFields.push(key);
+    }
+  });
+
+  if (emptyFields.length > 0) {
+    toast.error(
+      `Please fill in the following fields: ${emptyFields
+        .map((field) => field.replace(/([A-Z])/g, " $1")) // convert camelCase to readable
+        .join(", ")}`
+    );
+    return;
+  }
 
   const formData = buildFormDataFromPayload(finalData);
 
@@ -568,14 +571,17 @@ if (currentStep === 1) {
       setStudentId,
       setFormData,
       setCurrentStep
+      
     );
 
-    // ✅ Optionally show success toast here
-    toast.success("Step 1 submitted successfully!");
+      // ✅ Optionally show success toast here
+ 
+      toast.success("Step 1 submitted successfully!");
   } catch (error) {
     console.error("❌ Step 1 Submit Error:", error);
     toast.error("❌ Failed to submit Step 1. Please try again.");
   }
+
 }
 
 
@@ -1223,30 +1229,28 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
 
 
 <div className="d-flex justify-content-between mt-4">
-
   {currentStep > 1 && (
     <button
       className="btn btn-outline-dark d-flex align-items-center gap-2 px-4 py-2 rounded shadow-sm"
       onClick={handleBack}
     >
-      <i className="bi bi-arrow-left-circle fs-5" />
       <span className="fw-medium">Back</span>
     </button>
   )}
 
   <button
     className={`btn d-flex align-items-center gap-2 px-4 py-2 rounded shadow-sm ${
-      currentStep === 6 ? "bg-btn-primary text-white" : "btn-outline-success"
+      currentStep === 6 ? "bg-btn-primary text-white" : "btn-primary text-white"
     }`}
     onClick={handleNextStep}
   >
-    <i className={`bi ${currentStep === 6 ? "bi-send" : "bi-arrow-right-circle"} fs-5`} />
     <span className="fw-medium">
       {currentStep === 6 ? "Submit" : "Next Step"}
     </span>
   </button>
-
 </div>
+
+
 
 
 
