@@ -825,7 +825,11 @@ export const authRoutes = [
     path: routes.admissionInquiryList,
     element: <AdmissionInquiryList />,
    },
-    {
+  {
+    path: routes.admissionInquiryGrid,
+    element: <AdmissionInquiryGrid />,
+   },
+   {
     path: routes.admissionInquiryDetails,
     element: <InquiryDetail />,
   },
