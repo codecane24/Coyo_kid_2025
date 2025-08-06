@@ -257,7 +257,7 @@ import LoaderTwo from "../../core/common/loader/loaderTwo";
 import Unauthorized from "../common/Unauthorized";
 import FeesManagement from "../management/feescollection/FeesManagement";
 import AdmissionInquiryList from "../peoples/students/add-student/admission_inquiry_list";
-import InquiryDetails from "../peoples/students/add-student/inquiryDetails";
+import InquiryDetails from "../peoples/students/add-student/InquiryDetails";
 import { useRefresh } from "../../context/RefreshContext";
 import WithRefresh from "../../core/common/WithRefresh";
 
