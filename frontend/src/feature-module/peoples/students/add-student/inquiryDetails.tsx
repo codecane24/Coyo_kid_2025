@@ -6,6 +6,7 @@ import { all_routes } from "../../../router/all_routes";
 
 const InquiryDetails = () => {
   const { id } = useParams<{ id: string }>();
+    const routes = all_routes;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,52 +28,67 @@ const InquiryDetails = () => {
   return (
     <div className="page-wrapper">
       <div className="content content-two">
-        <div className="page-header d-flex align-items-center gap-2 justify-content-between mb-4">
-          <div>
-            <div className="d-flex align-items-center mb-2">
-            <h2 className="mb-1">
-              Admission Inquiry Details
-              {/* <span className="badge bg-primary ms-3">
-                Inquiry Code: {data.code}
-              </span> */}
-              
-  
-            </h2>
-              <div
-      className="px-2 py-1"
-      style={{
-        fontSize: "0.85rem",
-        color: "#333",
-        backgroundColor: "#E6F0FA",
-        borderRadius: "6px",
-        width: "fit-content",
-      }}
-    >
-<div>
-{data.code? (
-  <p>Inquiry Code: {data.code}</p>
-) : (
-  <p>Loading...</p>
-)}
+   <div className="page-header d-flex align-items-center justify-content-between mb-4">
+  {/* Left Side Content */}
+  <div>
+    <div className="d-flex align-items-center mb-2 gap-3 flex-wrap">
+      <h2 className="mb-1">
+        Admission Inquiry Details
+      </h2>
 
+      {/* Inquiry Code Badge */}
+      <div
+        className="px-2 py-1"
+        style={{
+          fontSize: "0.85rem",
+          color: "#333",
+          backgroundColor: "#E6F0FA",
+          borderRadius: "6px",
+          width: "fit-content",
+        }}
+      >
+        <p className="mb-0">
+          {data.code ? `Inquiry Code: ${data.code}` : "Loading..."}
+        </p>
+      </div>
+    </div>
+
+    {/* Breadcrumb */}
+    <nav>
+      <ol className="breadcrumb mb-0">
+        <li className="breadcrumb-item">
+          <Link to={all_routes.adminDashboard}>Dashboard</Link>
+        </li>
+        <li className="breadcrumb-item">
+          <Link to={all_routes.admissionInquiryList}>Admission Inquiry List</Link>
+        </li>
+        <li className="breadcrumb-item active" aria-current="page">
+          Inquiry Details
+        </li>
+      </ol>
+    </nav>
+  </div>
+
+  {/* Right Side Buttons */}
+  <div className="d-flex align-items-center gap-2">
+    {/* Dropdown */}
+    <select className="form-select" style={{ width: "150px" }}>
+      <option value="">Select Option</option>
+      <option value="1">Follow Up</option>
+      <option value="2">Convert</option>
+      <option value="3">Archive</option>
+    </select>
+
+    {/* Edit Button */}
+      {/* Icon-Only Edit Button */}
+       <Link className="" to={routes.editAdmissionInquiry.replace(":id", String(id))}>
+    <button className="btn btn-outline-primary p-2">
+      <i className="ti ti-edit" style={{ fontSize: "1rem" }}></i>
+    </button></Link>
+  </div>
 </div>
 
-    </div></div>
-            <nav>
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to={all_routes.adminDashboard}>Dashboard</Link>
-                </li>
-                <li className="breadcrumb-item">
-                  <Link to={all_routes.admissionInquiryList}>Admission Inquiry List</Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  Inquiry Details
-                </li>
-              </ol>
-            </nav>
-          </div>
-        </div>
+
    <div className="card shadow-sm border-0">
   <div className="card-body">
     <h4 className="mb-4 border-bottom pb-2">Student Information</h4>
