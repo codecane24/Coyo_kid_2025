@@ -309,9 +309,7 @@ const StudentGrid = () => {
                     <p>
                       {student.class_id || "-"}, {student.section_id || "-"}
                     </p>
-                       <p>
-                      {profileImage}
-                    </p>
+             
                   </div>
                 </div>
               </div>
@@ -371,8 +369,6 @@ const StudentGrid = () => {
   </div>
 </div>
 
-
-   
     </div>
   </div>
   {/* /Page Wrapper */}

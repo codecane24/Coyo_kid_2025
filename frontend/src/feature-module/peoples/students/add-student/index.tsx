@@ -45,6 +45,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { getAllId } from "../../../../services/GetAllId";
 import { motion } from "framer-motion";
 import { getInquiryById } from "../../../../services/AdmissionInquiry";
+import FinancialSummary from "./FinancialSummary";
 type ClassItem = {
   id: string;
   name: string; 
@@ -1268,7 +1269,7 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
 
 )}
 
-{currentStep === 6 && (
+{currentStep === 7 && (
 <FinancialDetailsForm
   financialData={financialData}
   setFinancialData={setFinancialData}
@@ -1280,7 +1281,13 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
 
 )}
 
-
+{currentStep === 6 && (<FinancialSummary
+  studentName="Kapil Raj Desai"
+  studentCode="STD0001"
+  course="BCA"
+  admissionDate="2025-06-15"
+/>
+)}
           
               
                 {/* /Other Details */}
