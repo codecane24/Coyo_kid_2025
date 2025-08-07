@@ -162,11 +162,14 @@ const handleLogout = () => {
       className="d-flex align-items-center border bg-white rounded p-2 shadow-sm"
       style={{ textDecoration: "none" }}
     >
-      <ImageWithBasePath
-        src="assets/img/icons/global-img.svg"
-        className="avatar avatar-md img-fluid rounded"
-        alt="Profile"
-      />
+
+
+<img
+  src="/assets/img/icons/global-img.svg"
+  className="avatar avatar-md img-fluid rounded"
+  alt="Profile"
+/>
+
       <div className="ms-3 d-flex flex-column">
         <div className="fw-semibold text-dark" style={{ fontSize: "1rem" }}>
           Global International

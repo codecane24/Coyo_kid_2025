@@ -147,13 +147,13 @@ const handleAcademicYearSelect = (year: any) => {
           onMouseLeave={onMouseLeave}
         >
           <Link to={routes.adminDashboard} className="logo logo-normal">
-            <ImageWithBasePath src="assets/img/authentication/kidzy.png" alt="Logo" />
+            <ImageWithBasePath src="/assets/img/authentication/kidzy.png" alt="Logo" />
           </Link>
           <Link to={routes.adminDashboard} className="logo-small">
-            <ImageWithBasePath src="assets/img/main-logo.png" alt="Logo" />
+            <ImageWithBasePath src="/assets/img/main-logo.png" alt="Logo" />
           </Link>
           <Link to={routes.adminDashboard} className="dark-logo">
-            <ImageWithBasePath src="assets/img/main-logo.png" alt="Logo" />
+            <ImageWithBasePath src="/assets/img/main-logo.png" alt="Logo" />
           </Link>
           <Link id="toggle_btn" to="#" onClick={handleToggleMiniSidebar}>
             <i className="ti ti-menu-deep" />
