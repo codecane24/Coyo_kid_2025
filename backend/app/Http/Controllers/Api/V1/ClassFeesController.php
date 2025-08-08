@@ -67,15 +67,18 @@ class ClassFeesController extends Controller
 
         $created = [];
 
-        // check already exists
+        // check already exists return error with class name and fees type name
+        
         foreach ($request->classid as $class_id) {
             $existingFees = ClassFees::where('class_id', $class_id)
                 ->whereIn('feestype_id', array_column($request->feestypes, 'feestype_id'))
                 ->get();
             if ($existingFees->isNotEmpty()) {
+                $className = $existingFees->first()->class->name ?? 'Unknown Class';
+                $feeTypeNames = $existingFees->pluck('feestype.name')->implode(', ');
                 return response()->json([
                     'status' => false,
-                    'message' => 'Class Fees already exist for the selected class and fee type(s)',
+                    'message' => "Class Fees already exist for the selected class ($className) and fee type(s): $feeTypeNames",
                 ], 409);
             }
         }
