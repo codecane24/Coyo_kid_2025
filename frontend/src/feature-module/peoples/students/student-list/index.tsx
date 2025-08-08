@@ -148,7 +148,7 @@ const columns = [
     dataIndex: "dob",
     render: (text: string) => text || "N/A",
   },
-// In your column definition:
+  
 {
   title: "Actions",
   dataIndex: "actions",
