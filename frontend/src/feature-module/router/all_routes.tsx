@@ -237,9 +237,16 @@ export const all_routes = {
   feesGroup:"/management/fees-group",
   feesType:"/management/fees-type",
   feesMaster:"/management/fees-master",
+  feesMasterAdd:"/management/add-fees-master",
+  feesMasterEdit:"/management/edit-fees-master/:id",
   acadmicFees:"/management/acadmic-fees",
   otherCharges:"/management/other-charges",
-  
+
+    //=== Class Fees Master
+  classFeesMaster:"/management/class-fees-master",
+  classFeesMasterAdd:"/management/add-class-fees-master",
+  classFeesMasterEdit:"/management/edit-class-fees-master/:id",
+
   feesAssign:"/management/fees-assign",
   feesCollectionReport:"/management/fees-collection-report",
   collectFees:"/management/collect-fees",

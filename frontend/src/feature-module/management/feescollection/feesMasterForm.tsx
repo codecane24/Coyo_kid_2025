@@ -11,21 +11,21 @@ import {
   ids,
   status,
 } from "../../../core/common/selectoption/selectoption";
-import { TableData } from "../../../core/data/interface";
-import Table from "../../../core/common/dataTable/index";
-
-import { feesMasterData } from "../../../core/data/json/feesMaster";
+import { createFeesMaster, 
+          updateFeesMaster, 
+          getFeesGroupList,
+          getFeesTypeList,
+          getFeesTypeDropdown
+        } from "../../../services/FeesAllData";
+import { toast } from "react-toastify";
 import TooltipOption from "../../../core/common/tooltipOption";
 import FeesMasterModal from "./feesMasterModal";
-import { createFeesMaster, updateFeesMaster, getFeesGroupList } from "../../../services/FeesAllData";
 
-const FeesMaster = () => {
+const FeesMasterForm = () => {
   const routes = all_routes;
   const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
-  const data = feesMasterData;
-  const [editType, setEditType] = useState<any>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [feeGroupOptions, setFeeGroupOptions] = useState<any[]>([]);
+  const [feesTypeOptions, setFeesTypeOptions] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     id: "",
     title: "",
@@ -38,20 +38,32 @@ const FeesMaster = () => {
     status: false,
     description: "",
   });
+  // Add a loading state for dropdowns
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getFeesGroupList().then((res) => {
-      if (res && res.status === "success" && Array.isArray(res.data)) {
-        setFeeGroupOptions(
-          res.data.map((item: any) => ({
-            value: item.id,
-            label: item.name,
-          }))
-        );
-      }
-    });
+    Promise.all([
+      getFeesGroupList().then((res) => {
+        if (res && res.status === "success" && Array.isArray(res.data)) {
+          setFeeGroupOptions(
+            res.data.map((item: any) => ({
+              value: item.id,
+              label: item.name,
+            }))
+          );
+        }
+      }),
+      getFeesTypeDropdown().then((result) => {
+        setFeesTypeOptions(result.options || []);
+      }),
+    ])
+    .catch((err) => {
+      // Show error if dropdowns fail to load
+      toast.error("Failed to load dropdown data");
+    })
+    .finally(() => setLoading(false));
   }, []);
-
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -72,16 +84,28 @@ const FeesMaster = () => {
           ...formData,
           status: formData.status ? "1" : "0",
         });
-        // Show success toast, reset form, refresh table, etc.
+        toast.success("Fees Master updated successfully");
       } else {
         await createFeesMaster({
           ...formData,
           status: formData.status ? "1" : "0",
         });
-        // Show success toast, reset form, refresh table, etc.
+        toast.success("Fees Master added successfully");
+        setFormData({
+          id: "",
+          title: "",
+          feesgroup_id: "",
+          feestype_id: "",
+          due_date: "",
+          amount: "",
+          fine_type: "",
+          fine_amount: "",
+          status: false,
+          description: "",
+        });
       }
     } catch {
-      // Show error toast
+      toast.error("Failed to save Fees Master");
     }
   };
 
@@ -90,126 +114,11 @@ const FeesMaster = () => {
       dropdownMenuRef.current.classList.remove("show");
     }
   };
-  const columns = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      render: (text: string) => (
-        <Link to="#" className="link-primary">
-          {text}
-        </Link>
-      ),
-      sorter: (a: TableData, b: TableData) => a.id.length - b.id.length,
-    },
-    {
-        title: "Fees Group",
-        dataIndex: "feesGroup",
-        sorter: (a: TableData, b: TableData) =>
-          a.feesGroup.length - b.feesGroup.length,
-      },
+  // Add a check to render the form only if feeGroupOptions and feesTypeOptions are loaded
+  const isReady =
+    feeGroupOptions.length > 0 && feesTypeOptions.length > 0 && !loading;
 
-    {
-      title: "Fees Type",
-      dataIndex: "feesType",
-      sorter: (a: TableData, b: TableData) =>
-        a.feesType.length - b.feesType.length,
-    },
-    {
-        title: "Due Date",
-        dataIndex: "dueDate",
-        sorter: (a: TableData, b: TableData) =>
-          a.dueDate.length - b.dueDate.length,
-      },
-    {
-      title: "Amount ($)",
-      dataIndex: "amount",
-      sorter: (a: TableData, b: TableData) =>
-        a.amount.length - b.amount.length,
-    },
-
-    {
-      title: "Fine Type",
-      dataIndex: "fineType",
-      render: (text: string,res:any) => (
-        <>
-          <span className={res.fineClass}>{text}</span>
-        </>
-      ),
-      sorter: (a: TableData, b: TableData) =>
-        a.fineType.length - b.fineType.length,
-    },
-    {
-        title: "Fine Amount ($)",
-        dataIndex: "fineAmount",
-        sorter: (a: TableData, b: TableData) =>
-          a.fineAmount.length - b.fineAmount.length,
-      },
-  
-    {
-      title: "Status",
-      dataIndex: "status",
-      render: (text: string) => (
-        <>
-          {text === "Active" ? (
-            <span className="badge badge-soft-success d-inline-flex align-items-center">
-              <i className="ti ti-circle-filled fs-5 me-1"></i>
-              {text}
-            </span>
-          ) : (
-            <span className="badge badge-soft-danger d-inline-flex align-items-center">
-              <i className="ti ti-circle-filled fs-5 me-1"></i>
-              {text}
-            </span>
-          )}
-        </>
-      ),
-      sorter: (a: TableData, b: TableData) => a.status.length - b.status.length,
-    },
-    {
-      title: "Action",
-      dataIndex: "action",
-      render: () => (
-        <>
-          <div className="d-flex align-items-center">
-            <div className="dropdown">
-              <Link
-                to="#"
-                className="btn btn-white btn-icon btn-sm d-flex align-items-center justify-content-center rounded-circle p-0"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <i className="ti ti-dots-vertical fs-14" />
-              </Link>
-              <ul className="dropdown-menu dropdown-menu-right p-3">
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#edit_fees_master"
-                  >
-                    <i className="ti ti-edit-circle me-2" />
-                    Edit
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className="dropdown-item rounded-1"
-                    to="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#delete-modal"
-                  >
-                    <i className="ti ti-trash-x me-2" />
-                    Delete
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </>
-      ),
-    },
-  ];
+  // Fix: Always render something, even if dropdowns are empty
   return (
     <>
       {/* Page Wrapper */}
@@ -249,153 +158,117 @@ const FeesMaster = () => {
             </div>
           </div>
           {/* /Page Header */}
-          {/* Students List */}
-          <div className="card">
-            <div className="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
-              <h4 className="mb-3">Fees Master List</h4>
-              <div className="d-flex align-items-center flex-wrap">
-                <div className="input-icon-start mb-3 me-2 position-relative">
-                  <PredefinedDateRanges />
-                </div>
-                <div className="dropdown mb-3 me-2">
-                  <Link
-                    to="#"
-                    className="btn btn-outline-light bg-white dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    data-bs-auto-close="outside"
-                  >
-                    <i className="ti ti-filter me-2" />
-                    Filter
-                  </Link>
-                  <div
-                    className="dropdown-menu drop-width"
-                    ref={dropdownMenuRef}
-                  >
-                    <form>
-                      <div className="d-flex align-items-center border-bottom p-3">
-                        <h4>Filter</h4>
-                      </div>
-                      <div className="p-3 border-bottom">
-                        <div className="row">
-                          <div className="col-md-6">
-                            <div className="mb-3">
-                              <label className="form-label">ID</label>
-                              <CommonSelect
-                                className="select"
-                                options={ids}
-                                defaultValue={ids[0]}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <div className="mb-3">
-                              <label className="form-label">Fees Group</label>
-                              <CommonSelect
-                                className="select"
-                                options={feeGroup}
-                                defaultValue={feeGroup[0]}
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="col-md-6">
-                            <div className="mb-3">
-                              <label className="form-label">Fees Type</label>
-                              <CommonSelect
-                                className="select"
-                                options={feesTypes}
-                                defaultValue={feesTypes[0]}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <div className="mb-3">
-                              <label className="form-label">Due Date</label>
-                              <CommonSelect
-                                className="select"
-                                options={DueDate}
-                                defaultValue={undefined}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <div className="mb-3">
-                              <label className="form-label">Fine Type</label>
-                              <CommonSelect
-                                className="select"
-                                options={fineType}
-                                defaultValue={undefined}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <div className="mb-0">
-                              <label className="form-label">Status</label>
-                              <CommonSelect
-                                className="select"
-                                options={status}
-                                defaultValue={status[0]}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-3 d-flex align-items-center justify-content-end">
-                        <Link to="#" className="btn btn-light me-3">
-                          Reset
-                        </Link>
-                        <Link
-                          to="#"
-                          className="btn btn-primary"
-                          onClick={handleApplyClick}
-                        >
-                          Apply
-                        </Link>
-                      </div>
-                    </form>
+          {/* Add Fees Master Form */}
+          {loading ? (
+            <div className="text-center py-5">
+              <span>Loading Fees Master Form...</span>
+            </div>
+          ) : (
+            <div className="mb-4">
+              <form onSubmit={handleSubmit}>
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Fees Title</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Fees Group</label>
+                    <CommonSelect
+                      className="select"
+                      options={feeGroupOptions}
+                      value={feeGroupOptions.find(opt => opt.value === formData.feesgroup_id) || undefined}
+                      onChange={option => handleSelectChange("feesgroup_id", option)}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Fees Type</label>
+                    <CommonSelect
+                      className="select"
+                      options={feesTypeOptions}
+                      value={feesTypeOptions.find(opt => opt.value === formData.feestype_id) || undefined}
+                      onChange={option => handleSelectChange("feestype_id", option)}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Due Date</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      name="due_date"
+                      value={formData.due_date}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Amount ($)</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Fine Type</label>
+                    <CommonSelect
+                      className="select"
+                      options={fineType}
+                      value={fineType.find(opt => opt.value === formData.fine_type) || undefined}
+                      onChange={option => handleSelectChange("fine_type", option)}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Fine Amount ($)</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      name="fine_amount"
+                      value={formData.fine_amount}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="col-md-12 mb-3">
+                    <label className="form-label">Description</label>
+                    <textarea
+                      className="form-control"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="col-md-12 mb-3 d-flex align-items-center justify-content-between">
+                    <div className="status-title">
+                      <h5>Status</h5>
+                      <p>Change the Status by toggle</p>
+                    </div>
+                    <div className="form-check form-switch">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        id="switch-sm"
+                        checked={formData.status}
+                        onChange={handleStatusChange}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="dropdown mb-3">
-                  <Link
-                    to="#"
-                    className="btn btn-outline-light bg-white dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                  >
-                    <i className="ti ti-sort-ascending-2 me-2" />
-                    Sort by A-Z{" "}
-                  </Link>
-                  <ul className="dropdown-menu p-3">
-                    <li>
-                      <Link to="#" className="dropdown-item rounded-1">
-                        Ascending
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="#" className="dropdown-item rounded-1">
-                        Descending
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="#" className="dropdown-item rounded-1">
-                        Recently Viewed
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="#" className="dropdown-item rounded-1">
-                        Recently Added
-                      </Link>
-                    </li>
-                  </ul>
+                <div className="mt-3">
+                  <button type="submit" className="btn btn-primary">
+                    {formData.id ? "Update Fees Master" : "Add Fees Master"}
+                  </button>
                 </div>
-              </div>
+              </form>
             </div>
-            <div className="card-body p-0 py-3">
-              {/* Student List */}
-              <Table dataSource={data} columns={columns} Selection={true} />
-              {/* /Student List */}
-            </div>
-          </div>
-          {/* /Students List */}
+          )}
         </div>
       </div>
       {/* /Page Wrapper */}
@@ -404,4 +277,5 @@ const FeesMaster = () => {
   );
 };
 
-export default FeesMaster;
+export default FeesMasterForm;
+                 

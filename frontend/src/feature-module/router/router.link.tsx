@@ -159,6 +159,7 @@ import ResetPasswordSuccess2 from "../auth/resetPasswordSuccess/resetPasswordSuc
 import ResetPasswordSuccess3 from "../auth/resetPasswordSuccess/resetPasswordSuccess-3";
 import FeesTypes from "../management/feescollection/feesTypes";
 import FeesMaster from "../management/feescollection/feesMaster";
+import FeesMasterForm from "../management/feescollection/feesMasterForm";
 import FeesOtherCharges from "../management/feescollection/feesOtherCharges";
 import FeesAssign from "../management/feescollection/feesAssign";
 import FeesCollectionReoprt from "../management/feescollection/feesCollectionReport";
@@ -264,6 +265,10 @@ import WithRefresh from "../../core/common/WithRefresh";
 
 import AdmissionInquiryGrid from "../peoples/students/add-student/admission_inquiry_grid";
 import InquiryDetail from "../peoples/students/add-student/InquiryDetail";
+
+import ClassFeesMasterForm from "../management/feescollection/classFeesMasterForm";
+import classFeesMaster from "../management/feescollection/classFeesMaster";
+import ClassFeesMaster from "../management/feescollection/classFeesMaster";
 
 const routes = all_routes;
  
@@ -1002,7 +1007,6 @@ export const authRoutes = [
     path: routes.staffLeave,
     element: <StaffLeave />,
   },
-
   {
     path: routes.layoutDefault,
     element: <AdminDashboard />,
@@ -1044,10 +1048,36 @@ export const authRoutes = [
     element: <FeesMaster />,
   },
   {
+    path:   routes.feesMasterAdd,
+    element: <FeesMasterForm />,
+  },
+  {
+    path:   routes.feesMasterEdit,
+    element: <FeesMasterForm />,
+  },
+  {
     path:   routes.otherCharges,
     element: <FeesOtherCharges />,
   },
-    {
+  {
+    path:   routes.classFeesMaster,
+    element: <ClassFeesMaster />,
+  },
+  {
+    path:   routes.classFeesMasterAdd,
+    element: <ClassFeesMasterForm />
+  },
+  {
+    path:   routes.classFeesMasterEdit,
+    element: <ClassFeesMasterForm />,
+  },
+  {
+    path:   routes.otherCharges,
+    element: <FeesOtherCharges />,
+  },
+  
+  
+  {
     path:   routes.acadmicFees,
     element: <AcadmicFees/>,
   },

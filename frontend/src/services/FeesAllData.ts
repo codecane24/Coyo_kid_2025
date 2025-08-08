@@ -116,3 +116,30 @@ export const getFeesAssignByClassId = async (classId: string) => {
   return response.data;
 };
 
+// Utility for select dropdown options (dynamic from getFeesTypeList)
+export const getFeesTypeDropdown = async (defaultValue?: string) => {
+  const res = await getFeesTypeList();
+  const data = Array.isArray(res.data) ? res.data : [];
+  interface FeesType {
+    id: string;
+    name: string;
+    // Add other fields if needed
+  }
+
+  interface DropdownOption {
+    value: string;
+    label: string;
+    name: string;
+  }
+
+  const options: DropdownOption[] = (data as FeesType[]).map((item: FeesType) => ({
+    value: item.id,
+    label: item.name,
+    name: item.name,
+  }));
+  const defaultOption = defaultValue
+    ? options.find((opt: DropdownOption) => String(opt.value) === String(defaultValue))
+    : undefined;
+  return { options, defaultOption };
+};
+
