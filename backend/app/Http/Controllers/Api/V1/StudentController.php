@@ -58,6 +58,7 @@ class StudentController extends Controller
             'documents',
             'medicalHistory',
             'previousEducation',
+            'class:id,name,section',
         ])->find($id);
 
         if (!$student) {
@@ -81,6 +82,7 @@ class StudentController extends Controller
                     'middle_name' => $student->middle_name,
                     'last_name' => $student->last_name,
                     'class_id' => $student->class_id,
+                    'class_name' => $student->class->name.' ('.$student->class->section.')' ?? '',
                     'gender' => $student->gender,
                     'dob' => $student->dob,
                     'blood_group' => $student->blood_group,
