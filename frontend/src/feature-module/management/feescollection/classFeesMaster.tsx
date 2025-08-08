@@ -12,7 +12,8 @@ import {
   getClassFeesMasterList,
   getClassFeesMasterById,
   deleteClassFeesMaster,
-  getClassFeesByClassId
+  getClassFeesByClassId,
+  getClassWiseFeesList
 } from "../../../services/FeesAllData";
 import {
     DueDate,
@@ -38,28 +39,32 @@ const ClassFeesMaster = () => {
   const [classFeesList, setClassFeesList] = useState<any[]>([]);
 
   useEffect(() => {
-    // Replace with your API call to fetch class fees master list
-    getClassFeesMasterList().then((res: any) => {
+    getClassWiseFeesList().then((res: any) => {
       if (res && res.status === "success" && Array.isArray(res.data)) {
         setClassFeesList(res.data);
       }
     });
   }, []);
 
-  // Group fees by class for display
-  const groupedData = classFeesList.reduce((acc: any[], fee: any) => {
-    const className = fee.class?.name || "";
-    let classRow = acc.find(row => row.className === className);
-    if (!classRow) {
-      classRow = {
-        className,
-        rows: [],
-      };
-      acc.push(classRow);
+  // Prepare table rows for the required structure
+  const tableRows: any[] = [];
+  classFeesList.forEach((cls, classIdx) => {
+    if (Array.isArray(cls.feestypes) && cls.feestypes.length > 0) {
+      cls.feestypes.forEach((ft: any, ftIdx: number) => {
+        tableRows.push({
+          key: `${cls.class_id}-${ft.feestype_id}`,
+          sNo: ftIdx === 0 ? classIdx + 1 : "",
+          showClass: ftIdx === 0,
+          rowSpan: ftIdx === 0 ? cls.feestypes.length : 0,
+          className: cls.class_name,
+          feesGroup: ft.feesgroup_name,
+          feesType: ft.fees_type_name,
+          amount: ft.amount,
+          status: "active", // or use ft.status if available
+        });
+      });
     }
-    classRow.rows.push(fee);
-    return acc;
-  }, []);
+  });
 
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
@@ -244,33 +249,28 @@ const ClassFeesMaster = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {groupedData.map((group, groupIdx) =>
-                    group.rows.map((fee: any, idx: number) => (
-                      <tr key={fee.id}>
-                        {idx === 0 && (
-                          <>
-                            <td rowSpan={group.rows.length}>
-                              <input type="checkbox" /> {groupIdx + 1}
-                            </td>
-                            <td rowSpan={group.rows.length}>{group.className}</td>
-                          </>
-                        )}
-                        {/* Only show empty cells for subsequent rows */}
-                        {idx !== 0 && null}
-                        <td>{fee.feesgroup?.name || ""}</td>
-                        <td>{fee.feestype?.name || ""}</td>
-                        <td>{fee.amount}</td>
-                        <td>{fee.status || "active"}</td>
-                        <td>
-                          {/* Replace with your actual action handlers */}
-                          <button className="btn btn-sm btn-light">View</button>
-                          <button className="btn btn-sm btn-primary ms-1">Edit</button>
-                          <button className="btn btn-sm btn-danger ms-1">Delete</button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                  {groupedData.length === 0 && (
+                  {tableRows.map((row, idx) => (
+                    <tr key={row.key}>
+                      {row.showClass ? (
+                        <>
+                          <td rowSpan={row.rowSpan}>
+                            <input type="checkbox" /> {row.sNo}
+                          </td>
+                          <td rowSpan={row.rowSpan}>{row.className}</td>
+                        </>
+                      ) : null}
+                      <td>{row.feesGroup}</td>
+                      <td>{row.feesType}</td>
+                      <td>{row.amount}</td>
+                      <td>{row.status}</td>
+                      <td>
+                        <button className="btn btn-sm btn-light">View</button>
+                        <button className="btn btn-sm btn-primary ms-1">Edit</button>
+                        <button className="btn btn-sm btn-danger ms-1">Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {tableRows.length === 0 && (
                     <tr>
                       <td colSpan={7} className="text-center">
                         No data found.
@@ -279,71 +279,6 @@ const ClassFeesMaster = () => {
                   )}
                 </tbody>
               </table>
-            </div>
-          </div>
-          {/* /Students List */}
-        </div>
-      </div>
-      {/* /Page Wrapper */}
-      <FeesMasterModal/>
-    </>
-  );
-};
-
-export default ClassFeesMaster;
-                      <div className="p-3 d-flex align-items-center justify-content-end">
-                        <Link to="#" className="btn btn-light me-3">
-                          Reset
-                        </Link>
-                        <Link
-                          to="#"
-                          className="btn btn-primary"
-                          onClick={handleApplyClick}
-                        >
-                          Apply
-                        </Link>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-                <div className="dropdown mb-3">
-                  <Link
-                    to="#"
-                    className="btn btn-outline-light bg-white dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                  >
-                    <i className="ti ti-sort-ascending-2 me-2" />
-                    Sort by A-Z{" "}
-                  </Link>
-                  <ul className="dropdown-menu p-3">
-                    <li>
-                      <Link to="#" className="dropdown-item rounded-1">
-                        Ascending
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="#" className="dropdown-item rounded-1">
-                        Descending
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="#" className="dropdown-item rounded-1">
-                        Recently Viewed
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="#" className="dropdown-item rounded-1">
-                        Recently Added
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div className="card-body p-0 py-3">
-              {/* Student List */}
-              <Table dataSource={data} columns={columns} Selection={true} />
-              {/* /Student List */}
             </div>
           </div>
           {/* /Students List */}
