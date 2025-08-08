@@ -68,7 +68,7 @@ class ClassFeesController extends Controller
             if (!isset($grouped[$class_id])) {
                 $grouped[$class_id] = [
                     "class_id" => $class_id,
-                    "class_name" => $fee->class->name ?? "" .' ('. $fee->class->section .')',
+                    "class_name" => $fee->class->name.' ('. $fee->class->section .')' ?? '',
                     "feestypes" => []
                 ];
             }
