@@ -80,11 +80,12 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     Route::apiResource('admission-inquiry', 'AdmissionInquiryController');
 
     //=== Class Fees API
+    Route::match(['get', 'post'], 'class-fees/classwise', [ClassFeesController::class, 'classwiseFees']);
     Route::apiResource('class-fees', ClassFeesController::class);
     Route::get('class-fees/class/{classid}', [ClassFeesController::class, 'showClassFees'])
         ->where('classid', '[0-9]+')
         ->name('class-fees.class');
-    Route::match(['get', 'post'], 'class-fees/classwise', [ClassFeesController::class, 'classwiseFees']);
+    
 });
 
 
