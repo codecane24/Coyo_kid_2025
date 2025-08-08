@@ -1,8 +1,74 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import ImageWithBasePath from "../../../../core/common/imageWithBasePath";
+import { getStudent, getStudentById } from "../../../../services/StudentData";
+import StudentSidebarSkeleton from "../../../../skeletons/StudentSidebarSkeleton";
+
+// Define the student type from API response
+type Student = {
+  id: number;
+  code: string;
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
+  dob?: string;
+  gender?: string;
+  blood_group?: string;
+  phone?: string;
+  email?: string;
+  house?: string;
+  religion?: string;
+  category?: string;
+  caste?: string;
+  mother_tongue?: string;
+  languages?: string; // JSON string
+  profile_image?: string;
+  roll_no?: string;
+  status?: string;
+};
 
 const StudentSidebar = () => {
+ const { id } = useParams<{ id: string }>();
+  const [student, setStudent] = useState<Student | null>(null);
+  const [loading, setLoading] = useState(true);
+console.log(id)
+useEffect(() => {
+  if (id) {
+    getStudentById(id)
+      .then((response) => {
+        if (response?.data?.step_1) {
+          setStudent(response.data.step_1); // ✅ Now student is the correct object
+        } else {
+          console.error("Unexpected API shape:", response.data);
+        }
+      })
+      .catch((error) => {
+        console.error("❌ Failed to fetch student data:", error);
+      })
+      .finally(() => setLoading(false));
+  }
+}, [id]);
+  if (loading) {
+    return <StudentSidebarSkeleton/>;
+  }
+
+  if (!student) {
+    return <p>No student found</p>;
+  }
+
+  // Convert dob to readable date
+  const formattedDOB = student.dob
+    ? new Date(student.dob).toLocaleDateString()
+    : "N/A";
+
+  // Parse languages JSON string if exists
+  let languageList: string[] = [];
+  try {
+    languageList = student.languages ? JSON.parse(student.languages) : [];
+  } catch {
+    languageList = [];
+  }
+
   return (
     <div className="col-xxl-3 col-xl-4 theiaStickySidebar">
       <div className="stickybar pb-4">
@@ -11,49 +77,59 @@ const StudentSidebar = () => {
             <div className="d-flex align-items-center flex-wrap row-gap-3">
               <div className="d-flex align-items-center justify-content-center avatar avatar-xxl border border-dashed me-2 flex-shrink-0 text-dark frames">
                 <ImageWithBasePath
-                  src="assets/img/students/student-01.jpg"
+                  src={student.profile_image || "assets/img/students/default.jpg"}
+                  isApiImage={true}
                   className="img-fluid"
-                  alt="img"
+                  alt="student"
                 />
               </div>
               <div className="overflow-hidden">
                 <span className="badge badge-soft-success d-inline-flex align-items-center mb-1">
                   <i className="ti ti-circle-filled fs-5 me-1" />
-                  Active
+                  {student.status === "2" ? "Active" : "Inactive"}
                 </span>
-                <h5 className="mb-1 text-truncate">Janet Daniel</h5>
-                <p className="text-primary">AD1256589</p>
+                <h5 className="mb-1 text-truncate">
+                  {student.first_name} {student.last_name}
+                </h5>
+                <p className="text-primary">{student.code}</p>
               </div>
             </div>
           </div>
+
           {/* Basic Information */}
           <div className="card-body">
             <h5 className="mb-3">Basic Information</h5>
             <dl className="row mb-0">
               <dt className="col-6 fw-medium text-dark mb-3">Roll No</dt>
-              <dd className="col-6 mb-3">35013</dd>
+              <dd className="col-6 mb-3">{student.roll_no || "N/A"}</dd>
               <dt className="col-6 fw-medium text-dark mb-3">Gender</dt>
-              <dd className="col-6 mb-3">Female</dd>
+              <dd className="col-6 mb-3">{student.gender || "N/A"}</dd>
               <dt className="col-6 fw-medium text-dark mb-3">Date Of Birth</dt>
-              <dd className="col-6 mb-3">25 Jan 2008</dd>
+              <dd className="col-6 mb-3">{formattedDOB}</dd>
               <dt className="col-6 fw-medium text-dark mb-3">Blood Group</dt>
-              <dd className="col-6 mb-3">O +ve</dd>
-              <dt className="col-6 fw-medium text-dark mb-3">Blood Group</dt>
-              <dd className="col-6 mb-3">Red</dd>
-              <dt className="col-6 fw-medium text-dark mb-3">Reigion</dt>
-              <dd className="col-6 mb-3">Christianity</dd>
+              <dd className="col-6 mb-3">{student.blood_group || "N/A"}</dd>
+              <dt className="col-6 fw-medium text-dark mb-3">House</dt>
+              <dd className="col-6 mb-3">{student.house || "N/A"}</dd>
+              <dt className="col-6 fw-medium text-dark mb-3">Religion</dt>
+              <dd className="col-6 mb-3">{student.religion || "N/A"}</dd>
               <dt className="col-6 fw-medium text-dark mb-3">Caste</dt>
-              <dd className="col-6 mb-3">Catholic</dd>
+              <dd className="col-6 mb-3">{student.caste || "N/A"}</dd>
               <dt className="col-6 fw-medium text-dark mb-3">Category</dt>
-              <dd className="col-6 mb-3">OBC</dd>
+              <dd className="col-6 mb-3">{student.category || "N/A"}</dd>
               <dt className="col-6 fw-medium text-dark mb-3">Mother tongue</dt>
-              <dd className="col-6 mb-3">English</dd>
-              <dt className="col-6 fw-medium text-dark mb-3">Language</dt>
+              <dd className="col-6 mb-3">{student.mother_tongue || "N/A"}</dd>
+              <dt className="col-6 fw-medium text-dark mb-3">Languages</dt>
               <dd className="col-6 mb-3">
-                <span className="badge badge-light text-dark me-2">
-                  English
-                </span>
-                <span className="badge badge-light text-dark">Spanish</span>
+                {languageList.length > 0
+                  ? languageList.map((lang, idx) => (
+                      <span
+                        key={idx}
+                        className="badge badge-light text-dark me-2"
+                      >
+                        {lang}
+                      </span>
+                    ))
+                  : "N/A"}
               </dd>
             </dl>
             <Link
@@ -65,8 +141,8 @@ const StudentSidebar = () => {
               Add Fees
             </Link>
           </div>
-          {/* /Basic Information */}
         </div>
+
         {/* Primary Contact Info */}
         <div className="card border-white">
           <div className="card-body">
@@ -77,7 +153,7 @@ const StudentSidebar = () => {
               </span>
               <div>
                 <span className="text-dark fw-medium mb-1">Phone Number</span>
-                <p>+1 46548 84498</p>
+                <p>{student.phone || "N/A"}</p>
               </div>
             </div>
             <div className="d-flex align-items-center">
@@ -86,45 +162,13 @@ const StudentSidebar = () => {
               </span>
               <div>
                 <span className="text-dark fw-medium mb-1">Email Address</span>
-                <p>jan@example.com</p>
+                <p>{student.email || "N/A"}</p>
               </div>
             </div>
           </div>
         </div>
         {/* /Primary Contact Info */}
-        {/* Sibiling Information */}
-        <div className="card border-white">
-          <div className="card-body">
-            <h5 className="mb-3">Sibiling Information</h5>
-            <div className="d-flex align-items-center bg-light-300 rounded p-3 mb-3">
-              <span className="avatar avatar-lg">
-                <ImageWithBasePath
-                  src="assets/img/students/student-06.jpg"
-                  className="img-fluid rounded"
-                  alt="img"
-                />
-              </span>
-              <div className="ms-2">
-                <h5 className="fs-14">Ralph Claudia</h5>
-                <p>III, B</p>
-              </div>
-            </div>
-            <div className="d-flex align-items-center bg-light-300 rounded p-3">
-              <span className="avatar avatar-lg">
-                <ImageWithBasePath
-                  src="assets/img/students/student-07.jpg"
-                  className="img-fluid rounded"
-                  alt="img"
-                />
-              </span>
-              <div className="ms-2">
-                <h5 className="fs-14">Julie Scott</h5>
-                <p>V, A</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* /Sibiling Information */}
+ {/* /Sibiling Information */}
         {/* Transport Information */}
         <div className="card border-white mb-0">
           <div className="card-body pb-1">
@@ -152,7 +196,7 @@ const StudentSidebar = () => {
                   </span>
                   <div>
                     <h6 className="fs-14 mb-1">HI-Hostel, Floor</h6>
-                    <p className="text-primary">Room No : 25</p>
+                    <p className="text-primary">No data</p>
                   </div>
                 </div>
               </div>
@@ -163,20 +207,20 @@ const StudentSidebar = () => {
                   </span>
                   <div>
                     <span className="fs-12 mb-1">Route</span>
-                    <p className="text-dark">Newyork</p>
+                    <p className="text-dark">No data</p>
                   </div>
                 </div>
                 <div className="row">
                   <div className="col-sm-6">
                     <div className="mb-3">
                       <span className="fs-12 mb-1">Bus Number</span>
-                      <p className="text-dark">AM 54548</p>
+                      <p className="text-dark">No data</p>
                     </div>
                   </div>
                   <div className="col-sm-6">
                     <div className="mb-3">
                       <span className="fs-12 mb-1">Pickup Point</span>
-                      <p className="text-dark">Cincinatti</p>
+                      <p className="text-dark">No data</p>
                     </div>
                   </div>
                 </div>

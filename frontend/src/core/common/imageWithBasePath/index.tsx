@@ -1,5 +1,5 @@
 import React from 'react';
-import { img_path} from '../../../environment';
+import { img_path } from '../../../environment';
 
 interface Image {
   className?: string;
@@ -7,22 +7,22 @@ interface Image {
   alt?: string;
   height?: number;
   width?: number;
-  id?:string;
+  id?: string;
+  isApiImage?: boolean; // ✅ New prop
 }
 
 const ImageWithBasePath = (props: Image) => {
-  // Combine the base path and the provided src to create the full image source URL
-  const fullSrc = `${img_path}${props.src}`;
-  return (
-    <img
-      className={props.className}
-      src={fullSrc}
-      height={props.height}
-      alt={props.alt}
-      width={props.width}
-      id={props.id}
-    />
-  );
+  const { src, isApiImage, ...rest } = props;
+
+  const isExternal = src.startsWith('http') || src.startsWith('data:');
+
+  const fullSrc = isExternal
+    ? src
+    : isApiImage
+      ? `${img_path}/${src}`
+      : src; // Just use as-is for local public assets
+
+  return <img src={fullSrc} {...rest} />;
 };
 
 export default ImageWithBasePath;

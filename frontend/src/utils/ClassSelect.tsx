@@ -53,6 +53,7 @@ const ClassSelect: React.FC<ClassSelectProps> = ({
         </label>
       )}
       <select
+      name="class"
         className={`form-select ${error ? "is-invalid" : ""} ${className}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}

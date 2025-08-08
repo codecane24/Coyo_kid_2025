@@ -12,6 +12,7 @@ import { formatDate } from "../../../../utils/dateUtils";
 import { getInquiryList } from "../../../../services/AdmissionInquiry";
 import TooltipOption from "../../../../core/common/tooltipOption";
 import { useRefresh } from "../../../../context/RefreshContext";
+import axiosInstance from "../../../../utils/axiosInstance";
 
 // Define the correct type for your admission inquiry data
 interface AdmissionInquiryTableData {
@@ -24,7 +25,7 @@ interface AdmissionInquiryTableData {
   gender: string;
   primary_contact: string;
   date_of_enquiry: string;
-  status: string | boolean;
+  status: string;
   // Add any other fields you use in your columns/actions
 }
 
@@ -44,6 +45,9 @@ const { refreshKey } = useRefresh();
     };
     fetchInquiryData();
   }, []);
+const [pickedInquiries, setPickedInquiries] = useState<Record<string, boolean>>({});
+
+const [loadingInquiries, setLoadingInquiries] = useState<{ [id: string]: boolean }>({});
 
   const columns = [
     {
@@ -92,27 +96,135 @@ const { refreshKey } = useRefresh();
       sorter: (a: AdmissionInquiryTableData, b: AdmissionInquiryTableData) =>
         (a.date_of_enquiry || "").localeCompare(b.date_of_enquiry || ""),
     },
-    {
-      title: "Status",
-      dataIndex: "status",
-      render: (text: string | boolean) => (
-        <>
-          {text === true || text === "Active" ? (
-            <span className="badge badge-soft-success d-inline-flex align-items-center">
-              <i className="ti ti-circle-filled fs-5 me-1"></i>
-              Active
-            </span>
-          ) : (
-            <span className="badge badge-soft-danger d-inline-flex align-items-center">
-              <i className="ti ti-circle-filled fs-5 me-1"></i>
-              Inactive
-            </span>
-          )}
-        </>
-      ),
-      sorter: (a: AdmissionInquiryTableData, b: AdmissionInquiryTableData) =>
-        (a.status || "").toString().localeCompare((b.status || "").toString()),
-    },
+{
+  title: "Status",
+  dataIndex: "status",
+  render: (status: string, record: any) => {
+    let label = "";
+    let badgeClass = "";
+    let iconColor = "";
+    let extraContent = null;
+
+    switch (status) {
+case "0":
+  label = "New";
+  badgeClass = "badge-soft-primary";
+  iconColor = "text-primary";
+
+const isPicked = pickedInquiries?.[record.id] === true;
+
+  const isLoading = loadingInquiries[record.id];
+
+  const handlePick = async () => {
+    if (isPicked || isLoading) return;
+
+    setLoadingInquiries((prev) => ({ ...prev, [record.id]: true }));
+    try {
+      await axiosInstance.post(`/your-api-path/${record.id}/pick`);
+      setPickedInquiries((prev) => ({ ...prev, [record.id]: true }));
+    } catch (err) {
+      console.error("Pick failed", err);
+    } finally {
+      setLoadingInquiries((prev) => ({ ...prev, [record.id]: false }));
+    }
+  };
+
+  extraContent = (
+<button
+  className={`btn btn-sm d-flex justify-content-center align-items-center rounded-circle ms-2 ${
+    isPicked ? "btn-dark" : "btn-outline-dark"
+  }`}
+  style={{
+    width: "20px",
+    height: "20px",
+    transition: "all 0.2s ease-in-out",
+  }}
+  onClick={handlePick}
+  title="Pick Inquiry"
+  disabled={isPicked || isLoading}
+>
+  {isLoading ? (
+    <span className="spinner-border spinner-border-sm text-white" />
+  ) : (
+    <i
+      className={`ti ${
+        isPicked ? "ti-check text-white" : "ti-user-plus text-dark"
+      } fs-11`}
+    />
+  )}
+</button>
+
+
+  );
+  break;
+
+
+
+      case "1":
+        label = "In Process";
+        badgeClass = "badge-soft-warning";
+        iconColor = "text-warning";
+        extraContent = (
+          <div className="small text-muted mt-1">
+            Picked by:{"Vikram Bhai "}
+           <span className="text-dark fw-semibold" title={record.pickedByName}>
+  {record.pickedByCode}
+</span>
+
+          </div>
+        );
+        break;
+
+case "2":
+  label = "Replied";
+  badgeClass = "badge-dark";     // solid dark background
+  iconColor = "text-white";      // white icon for contrast
+  break;
+
+
+      case "3":
+        label = "Admission Converted";
+        badgeClass = "badge-soft-success";
+        iconColor = "text-success";
+        extraContent = (
+          <div className="small text-muted mt-1">
+            Student ID: <span className="fw-semibold text-dark">{record.studentId}</span>
+          </div>
+        );
+        break;
+
+      case "4":
+        label = "Closed";
+        badgeClass = "badge-soft-danger";
+        iconColor = "text-danger";
+        break;
+
+      case "5":
+        label = "Waiting List";
+        badgeClass = "badge-soft-secondary";
+        iconColor = "text-muted";
+        break;
+
+      default:
+        label = "Unknown";
+        badgeClass = "badge-soft-secondary";
+        iconColor = "text-muted";
+    }
+
+    return (
+         <div>
+      <span className={`badge ${badgeClass} d-inline-flex align-items-center`}>
+        <i className={`ti ti-circle-filled fs-5 me-1 ${iconColor}`}></i>
+        {label}
+        {status === "0" && extraContent}
+      </span>
+      {status !== "0" && extraContent}
+    </div>
+    );
+  },
+  sorter: (a: AdmissionInquiryTableData, b: AdmissionInquiryTableData) =>
+    (a.status || "").localeCompare(b.status || ""),
+},
     {
       title: "Action",
       dataIndex: "action",
@@ -172,19 +284,7 @@ const { refreshKey } = useRefresh();
     }
   };
 
-// const handlePrint = () => {
-//     printElementById("print-area"); // ID of the element you want to print
-//   };
-// const handleExport = (type: "pdf" | "excel") => {
-//   const exportColumns = columns
-//     .filter(col => col.dataIndex) // skip buttons, render-only columns
-//     .map(col => ({
-//       title: col.title,
-//       field: col.dataIndex as string,
-//     }));
 
-//   exportData(type, data, exportColumns, "StudentList");
-// };
   return (
     <>
       {/* Page Wrapper */}

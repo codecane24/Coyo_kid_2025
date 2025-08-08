@@ -1,30 +1,43 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Breadcrumb } from "react-bootstrap";
 import { all_routes } from "../../../router/all_routes";
+import { getInquiryById } from "../../../../services/AdmissionInquiry";
 
 const InquiryDetail = () => {
   const { id } = useParams<{ id: string }>();
     const routes = all_routes;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+const navigate = useNavigate();
+useEffect(() => {
+  if (id) {
+    getInquiryById(id)
+      .then((data) => {
+        setData(data.data); // ✅ now `data` is from response.data
+      })
+      .catch((err) => {
+        console.error("API error:", err);
+        setData(null);
+      })
+      .finally(() => setLoading(false));
+  }
+}, [id]);
 
-  useEffect(() => {
-    if (id) {
-      axios
-        .get(`https://coyokid.abbangles.com/backend/api/v1/admission-inquiry/${id}`)
-        .then((res) => {
-          setData(res.data.data);
-        })
-        .catch(() => setData(null))
-        .finally(() => setLoading(false));
-    }
-  }, [id]);
 
   if (loading) return <div className="p-4">Loading...</div>;
   if (!data) return <div className="p-4 text-danger">No data found.</div>;
 
+
+const handleOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  if (e.target.value === "convert") {
+    navigate("/student/add-student", {
+      state: {
+        inquiryId: id, // 👈 Pass inquiryId to AddStudentForm
+      },
+    });
+  }}
   return (
     <div className="page-wrapper">
       <div className="content content-two">
@@ -73,13 +86,13 @@ const InquiryDetail = () => {
   
   <div className="d-flex align-items-center gap-2">
     {/* Dropdown */}
-    <select className="form-select" style={{ width: "150px" }}>
-      <option value="">Select Option</option>
-        <option value="3">Pick</option>
-      <option value="1">Follow Up</option>
-      <option value="2">Convert To Addmission</option>
-      <option value="3">Close</option>
-    </select>
+<select className="form-select" style={{ width: "150px" }} onChange={handleOptionChange}>
+  <option value="">Select Option</option>
+  <option value="pick">Pick</option>
+  <option value="followup">Follow Up</option>
+  <option value="convert">Convert To Admission</option>
+  <option value="close">Close</option>
+</select>
 
     {/* Edit Button */}
       {/* Icon-Only Edit Button */}

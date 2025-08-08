@@ -283,7 +283,7 @@ export const authRoutes = [
   // },
   {
     path: routes.adminDashboard,
-    element: <AdminDashboard />,
+    element: <WithRefresh><AdminDashboard /></WithRefresh>,
     route: Route,
   },
     {
@@ -299,17 +299,17 @@ export const authRoutes = [
   },
   {
     path: routes.teacherDashboard,
-    element: <TeacherDashboard />,
+    element: <WithRefresh><TeacherDashboard /></WithRefresh>,
     route: Route,
   },
   {
     path: routes.studentDashboard,
-    element: <StudentDasboard />,
+    element: <WithRefresh><StudentDasboard /></WithRefresh>,
     route: Route,
   },
   {
     path: routes.parentDashboard,
-    element: <ParentDashboard />,
+    element: <WithRefresh><ParentDashboard /></WithRefresh>,
     route: Route,
   },
   {
@@ -800,7 +800,7 @@ export const authRoutes = [
   // Peoples Module
   {
     path: routes.studentGrid,
-    element: <StudentGrid />,
+    element:<WithRefresh> <StudentGrid /></WithRefresh>,
   },
   {
     path: routes.studentList,
