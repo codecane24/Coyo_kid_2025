@@ -171,7 +171,7 @@ class StudentController extends Controller
             'first_name' => ['required', 'string', 'max:50'],
             'middle_name' => ['nullable', 'string', 'max:50'],
             'last_name' => ['nullable', 'string', 'max:50'],
-            'class_id' => ['required','numeric', 'max:50'], // Changed to string, adjust if it's an ID
+            'class' => ['required','numeric', 'max:50'], // Changed to string, adjust if it's an ID
            // 'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
             'dob' => ['required', 'date'],
@@ -217,7 +217,7 @@ class StudentController extends Controller
             $student->first_name = $request->first_name;
             $student->middle_name = $request->middle_name;
             $student->last_name = $request->last_name;
-            $student->class_id = $request->class_id;
+            $student->class_id = $request->class;
             $student->gender = $request->gender;
             $student->dob = $request->dob;
             $student->blood_group = $request->blood_group;
@@ -295,7 +295,7 @@ class StudentController extends Controller
                     'first_name' => ['required', 'string', 'max:50'],
                     'middle_name' => ['nullable', 'string', 'max:50'],
                     'last_name' => ['nullable', 'string', 'max:50'],
-                    'class_id' => ['nullable', 'max:50'], // Changed to string, adjust if it's an ID
+                    'class' => ['nullable', 'max:50'], // Changed to string, adjust if it's an ID
                     'gender' => ['required', Rule::in(['male', 'female', 'other'])],
                     'dob' => ['required', 'date'],
                     'blood_group' => ['nullable', 'string', 'max:10'],
@@ -332,7 +332,7 @@ class StudentController extends Controller
                 $student->first_name = $request->first_name;
                 $student->middle_name = $request->middle_name;
                 $student->last_name = $request->last_name;
-                $student->class_id = $request->class_id;
+                $student->class_id = $request->class;
                 $student->gender = $request->gender;
                 $student->dob = $request->dob;
                 $student->blood_group = $request->blood_group;
