@@ -36,7 +36,7 @@ class ClassFeesController extends Controller
     public function showClassFees($classid)
     {
         $fees = ClassFees::with([
-            'class:id,name',
+            'class:id,name,section',
             'feestype:id,name,code,feesgroup_id',
             'feestype.feesgroup:id,name'
         ])
