@@ -364,11 +364,6 @@ const formatDate = (dateStr: string | undefined) => {
   return d.toISOString().split("T")[0]; // YYYY-MM-DD
 };
 
-
-
-
-
-
 const handleBack = () => {
   if (currentStep > 1) {
     setCurrentStep(currentStep - 1);
@@ -886,8 +881,15 @@ else if (currentStep === 5) {
     toast.error(`❌ Step 5 Submit Error: ${message}`);
   }
 }
+ else if (currentStep < 6) {
+    setCurrentStep((prev) => prev + 1);
+  } else {
+    // Submit form here
+    console.log("Form submitted!");
+    // You can trigger a real API call or success state here
+  }
+};
 
-}
 
 useEffect(() => {
   if (inquiryConversionMode && inquiryData) {
@@ -1286,6 +1288,9 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
   studentCode="STD0001"
   course="BCA"
   admissionDate="2025-06-15"
+    currentStep={currentStep}
+  setCurrentStep={setCurrentStep}
+
 />
 )}
           
@@ -1322,7 +1327,7 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
     onClick={handleNextStep}
   >
     <span className="fw-medium">
-      {currentStep === 6 ? "Submit" : "Next Step"}
+      {currentStep === 6 ? "Accept & Submit" : "Next Step"}
     </span>
   </button>
 </div>

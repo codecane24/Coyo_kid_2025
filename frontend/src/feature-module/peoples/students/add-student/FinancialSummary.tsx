@@ -1,11 +1,16 @@
 import React from "react";
 import { Card, Table } from "react-bootstrap";
 
+
 type FinancialSummaryProps = {
   studentName: string;
   studentCode: string;
   course: string;
   admissionDate: string;
+    
+  currentStep: number;
+  setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
+  isEdit?: boolean;
 };
 
 const FinancialSummary: React.FC<FinancialSummaryProps> = ({
@@ -13,6 +18,9 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({
   studentCode,
   course,
   admissionDate,
+  currentStep,
+  setCurrentStep,
+  isEdit
 }) => {
   // Static data for now
   const fees = [
@@ -24,6 +32,7 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({
   ];
 
   const totalAmount = fees.reduce((sum, fee) => sum + fee.amount, 0);
+const step =setCurrentStep ;
 
   return (
 <Card className="shadow-sm border-0">
