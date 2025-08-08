@@ -242,7 +242,7 @@ const StudentGrid = () => {
         <div className="col-xxl-3 col-xl-4 col-md-6 d-flex" key={student.id || index}>
           <div className="card flex-fill">
             <div className="card-header d-flex align-items-center justify-content-between">
-              <Link to={routes.studentDetail} className="link-primary">
+              <Link to={routes.studentDetail.replace(":id", student.id)} className="link-primary">
                 {admissionCode}
               </Link>
               <div className="d-flex align-items-center">
@@ -261,10 +261,15 @@ const StudentGrid = () => {
                   </Link>
                   <ul className="dropdown-menu dropdown-menu-right p-3">
                     <li>
-                      <Link className="dropdown-item rounded-1" to={routes.studentDetail}>
-                        <i className="ti ti-menu me-2" />
-                        View Student
-                      </Link>
+                   <Link
+  className="dropdown-item rounded-1"
+to={routes.studentDetail.replace(":id", student.id)}
+
+>
+  <i className="ti ti-menu me-2" />
+  View Student
+</Link>
+
                     </li>
                     <li>
                       <Link className="dropdown-item rounded-1" to={routes.editStudent}>
@@ -292,7 +297,7 @@ const StudentGrid = () => {
             <div className="card-body">
               <div className="bg-light-300 rounded-2 p-3 mb-3">
                 <div className="d-flex align-items-center">
-                  <Link to={routes.studentDetail} className="avatar avatar-lg flex-shrink-0">
+                  <Link to={routes.studentDetail.replace(":id", student.id)} className="avatar avatar-lg flex-shrink-0">
 <ImageWithBasePath
   src={profileImage}
   isApiImage={true}

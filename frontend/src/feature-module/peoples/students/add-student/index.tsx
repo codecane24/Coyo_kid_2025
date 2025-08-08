@@ -156,9 +156,6 @@ function toSnakeCaseTwo(obj: any): any {
   return obj;
 }
 
-
-
-
       const [personalInfo, setPersonalInfo] = useState({
   academicYear: "",
   admissionNo: "",

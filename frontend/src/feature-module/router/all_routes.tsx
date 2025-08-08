@@ -201,7 +201,7 @@ export const all_routes = {
   // Peoples Module
   studentGrid: "/student/student-grid",
   studentPromotion: "/student/student-promotion",
-  studentDetail: "/student/student-details",
+  studentDetail: "/student/student-details/:id",
   studentTimeTable: "/student/student-time-table",
   studentLeaves: "/student/student-leaves",
   studentFees: "/student/student-fees",
