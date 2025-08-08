@@ -70,15 +70,15 @@ class ClassFeesController extends Controller
         ], 201);
     }
 
-    // Update class fee
+    // Update class fee(s)
     public function update(Request $request, $id)
     {
-        $fee = ClassFees::findOrFail($id);
-
         $validator = Validator::make($request->all(), [
-            'class_id' => 'required|integer|exists:classes,id',
-            'feestype_id' => 'required|integer|exists:fees_type_master,id',
-            'amount' => 'required|numeric'
+            'classid' => 'required|array|min:1',
+            'classid.*' => 'required|integer|exists:classes,id',
+            'feestypes' => 'required|array|min:1',
+            'feestypes.*.feestype_id' => 'required|integer|exists:fees_type_master,id',
+            'feestypes.*.amount' => 'required|numeric'
         ]);
 
         if ($validator->fails()) {
@@ -88,12 +88,28 @@ class ClassFeesController extends Controller
             ], 422);
         }
 
-        $fee->update($request->all());
+        // Remove all existing records for the given classid(s)
+        foreach ($request->classid as $class_id) {
+            ClassFees::where('class_id', $class_id)->delete();
+        }
+
+        $updated = [];
+        foreach ($request->classid as $class_id) {
+            foreach ($request->feestypes as $feestype) {
+                $data = [
+                    'class_id' => $class_id,
+                    'feestype_id' => $feestype['feestype_id'],
+                    'amount' => $feestype['amount'],
+                    // Add other fields if needed, e.g. due_date, created_by, etc.
+                ];
+                $updated[] = ClassFees::create($data);
+            }
+        }
 
         return response()->json([
             'status' => true,
-            'message' => 'Class Fee updated successfully',
-            'data' => $fee
+            'message' => 'Class Fees updated successfully',
+            'data' => $updated
         ]);
     }
 
