@@ -51,6 +51,9 @@ class ClassFeesController extends Controller
         // Get all class fees with class and feestype relationships
         $classFees = ClassFees::with(['class', 'feestype.feesgroup'])->get();
 
+        if ($classFees->isEmpty()) {
+            return response()->json(['status' => false, 'message' => 'No class fees found'], 404);
+        }
         // Group by class
         $result = [];
         foreach ($classFees as $fee) {
