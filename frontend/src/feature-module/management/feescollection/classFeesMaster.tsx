@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { all_routes } from "../../router/all_routes";
 import { Link } from "react-router-dom";
 import PredefinedDateRanges from "../../../core/common/datePicker";
@@ -35,6 +35,31 @@ const ClassFeesMaster = () => {
   const data = feesMasterData;
   const [editType, setEditType] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [classFeesList, setClassFeesList] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Replace with your API call to fetch class fees master list
+    getClassFeesMasterList().then((res: any) => {
+      if (res && res.status === "success" && Array.isArray(res.data)) {
+        setClassFeesList(res.data);
+      }
+    });
+  }, []);
+
+  // Group fees by class for display
+  const groupedData = classFeesList.reduce((acc: any[], fee: any) => {
+    const className = fee.class?.name || "";
+    let classRow = acc.find(row => row.className === className);
+    if (!classRow) {
+      classRow = {
+        className,
+        rows: [],
+      };
+      acc.push(classRow);
+    }
+    classRow.rows.push(fee);
+    return acc;
+  }, []);
 
   const handleApplyClick = () => {
     if (dropdownMenuRef.current) {
@@ -203,94 +228,69 @@ const ClassFeesMaster = () => {
           {/* Students List */}
           <div className="card">
             <div className="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
-              <h4 className="mb-3">Fees Master List</h4>
-              <div className="d-flex align-items-center flex-wrap">
-                <div className="input-icon-start mb-3 me-2 position-relative">
-                  <PredefinedDateRanges />
-                </div>
-                <div className="dropdown mb-3 me-2">
-                  <Link
-                    to="#"
-                    className="btn btn-outline-light bg-white dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    data-bs-auto-close="outside"
-                  >
-                    <i className="ti ti-filter me-2" />
-                    Filter
-                  </Link>
-                  <div
-                    className="dropdown-menu drop-width"
-                    ref={dropdownMenuRef}
-                  >
-                    <form>
-                      <div className="d-flex align-items-center border-bottom p-3">
-                        <h4>Filter</h4>
-                      </div>
-                      <div className="p-3 border-bottom">
-                        <div className="row">
-                          <div className="col-md-6">
-                            <div className="mb-3">
-                              <label className="form-label">ID</label>
-                              <CommonSelect
-                                className="select"
-                                options={ids}
-                                defaultValue={ids[0]}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <div className="mb-3">
-                              <label className="form-label">Fees Group</label>
-                              <CommonSelect
-                                className="select"
-                                options={feeGroup}
-                                defaultValue={feeGroup[0]}
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="col-md-6">
-                            <div className="mb-3">
-                              <label className="form-label">Fees Type</label>
-                              <CommonSelect
-                                className="select"
-                                options={feesTypes}
-                                defaultValue={feesTypes[0]}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <div className="mb-3">
-                              <label className="form-label">Due Date</label>
-                              <CommonSelect
-                                className="select"
-                                options={DueDate}
-                                defaultValue={undefined}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <div className="mb-3">
-                              <label className="form-label">Fine Type</label>
-                              <CommonSelect
-                                className="select"
-                                options={fineType}
-                                defaultValue={undefined}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <div className="mb-0">
-                              <label className="form-label">Status</label>
-                              <CommonSelect
-                                className="select"
-                                options={status}
-                                defaultValue={status[0]}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+              <h4 className="mb-3">Class Fees Master List</h4>
+            </div>
+            <div className="card-body p-0 py-3">
+              <table className="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>check box/S.no</th>
+                    <th>Class Name</th>
+                    <th>Fees Group</th>
+                    <th>Fees Type</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Action (view,Edit,delete)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupedData.map((group, groupIdx) =>
+                    group.rows.map((fee: any, idx: number) => (
+                      <tr key={fee.id}>
+                        {idx === 0 && (
+                          <>
+                            <td rowSpan={group.rows.length}>
+                              <input type="checkbox" /> {groupIdx + 1}
+                            </td>
+                            <td rowSpan={group.rows.length}>{group.className}</td>
+                          </>
+                        )}
+                        {/* Only show empty cells for subsequent rows */}
+                        {idx !== 0 && null}
+                        <td>{fee.feesgroup?.name || ""}</td>
+                        <td>{fee.feestype?.name || ""}</td>
+                        <td>{fee.amount}</td>
+                        <td>{fee.status || "active"}</td>
+                        <td>
+                          {/* Replace with your actual action handlers */}
+                          <button className="btn btn-sm btn-light">View</button>
+                          <button className="btn btn-sm btn-primary ms-1">Edit</button>
+                          <button className="btn btn-sm btn-danger ms-1">Delete</button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                  {groupedData.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="text-center">
+                        No data found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {/* /Students List */}
+        </div>
+      </div>
+      {/* /Page Wrapper */}
+      <FeesMasterModal/>
+    </>
+  );
+};
+
+export default ClassFeesMaster;
                       <div className="p-3 d-flex align-items-center justify-content-end">
                         <Link to="#" className="btn btn-light me-3">
                           Reset

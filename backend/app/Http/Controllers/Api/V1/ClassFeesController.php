@@ -45,46 +45,41 @@ class ClassFeesController extends Controller
         ]);
     }
 
-    // classwise fees
+    // Show all class fees grouped by class with feestypes array
     public function classwiseFees(Request $request)
     {
-        // Get all class fees with class and feestype relationships
         $classFees = ClassFees::with(['class', 'feestype.feesgroup'])->get();
 
         if ($classFees->isEmpty()) {
             return response()->json(['status' => false, 'message' => 'No class fees found'], 404);
         }
-        // Group by class
-        $result = [];
+        
+        $grouped = [];
         foreach ($classFees as $fee) {
-            $classId = $fee->class_id;
-            $className = $fee->class->name ?? '';
-            if (!isset($result[$classId])) {
-                $result[$classId] = [
-                    'class_id' => $classId,
-                    'class_name' => $className,
-                    'feestypes' => []
+            $class_id = (string) $fee->class_id;
+            if (!isset($grouped[$class_id])) {
+                $grouped[$class_id] = [
+                    "class_id" => $class_id,
+                    "class_name" => $fee->class->name ?? "",
+                    "feestypes" => []
                 ];
             }
-            $result[$classId]['feestypes'][] = [
-                'feestype_id' => $fee->feestype_id,
-                'fees_type_name' => $fee->feestype->name ?? '',
-                'feestype_code' => $fee->feestype->code ?? '',
-                'feesgroup_id' => $fee->feestype->feesgroup_id ?? null,
-                'feesgroup_name' => $fee->feestype->feesgroup->name ?? null,
-                'amount' => $fee->amount
+            $grouped[$class_id]["feestypes"][] = [
+                "feestype_id" => (string) $fee->feestype_id,
+                "fees_type_name" => $fee->feestype->name ?? "",
+                "feestype_code" => $fee->feestype->code ?? "",
+                "feesgroup_id" => isset($fee->feestype->feesgroup) ? (string) $fee->feestype->feesgroup->id : "",
+                "feesgroup_name" => $fee->feestype->feesgroup->name ?? "",
+                "amount" => number_format((float)$fee->amount, 2, '.', '')
             ];
         }
 
-        // Re-index result as array
-        $result = array_values($result);
-
         return response()->json([
-            'status' => 'success',
-            'data' => $result
+            "status" => "success",
+            "data" => array_values($grouped)
         ]);
     }
-
+    
     // Store new class fee(s)
     public function store(Request $request)
     {
