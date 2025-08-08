@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Api\V1\ClassFeesController;
 
 Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors'], function () {
     Route::post('login', 'UserController@login');
@@ -78,7 +78,9 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
 
     //=== Admission Inquiry API
     Route::apiResource('admission-inquiry', 'AdmissionInquiryController');
-    
+
+    //=== Class Fees API
+    Route::apiResource('class-fees', ClassFeesController::class);
 });
 
 

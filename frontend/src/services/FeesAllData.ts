@@ -116,6 +116,35 @@ export const getFeesAssignByClassId = async (classId: string) => {
   return response.data;
 };
 
+//== class fees master
+export const getClassFeesMasterList = async () => {
+  const response = await axiosInstance.get("/class-fees-master");
+  return response.data;
+}
+
+export const getClassFeesMasterById = async (id: string) => {
+  const response = await axiosInstance.get(`/class-fees-master/${id}`);
+  return response.data;
+};
+
+export const createClassFeesMaster = async (classFeesMasterData: any) => {
+  const response = await axiosInstance.post("/class-fees-master ", classFeesMasterData);
+  return response.data;
+};
+
+export const updateClassFeesMaster = async (id: string, classFeesMasterData: any) => {
+  const response = await axiosInstance.put(`/class-fees-master/${id}`, classFeesMasterData);
+  return response.data;
+};
+
+export const deleteClassFeesMaster = async (id: string) => {
+  const response = await axiosInstance.delete(`/class-fees-master/${id}`);
+  return response.data;
+};
+
+
+
+
 // Utility for select dropdown options (dynamic from getFeesTypeList)
 export const getFeesTypeDropdown = async (defaultValue?: string) => {
   const res = await getFeesTypeList();
@@ -123,19 +152,27 @@ export const getFeesTypeDropdown = async (defaultValue?: string) => {
   interface FeesType {
     id: string;
     name: string;
-    // Add other fields if needed
+    group_id: string;
+    feesgroup: {
+      id: string;
+      name: string;
+    };
   }
 
   interface DropdownOption {
     value: string;
     label: string;
     name: string;
+    group_id?: string; // Optional, if you want to include group ID;
+    group_name?: string; // Optional, if you want to include group name
   }
 
   const options: DropdownOption[] = (data as FeesType[]).map((item: FeesType) => ({
     value: item.id,
     label: item.name,
     name: item.name,
+    group_id: item.feesgroup.id, // Optional, if you want to include group ID
+    group_name: item.feesgroup.name, // Optional, if you want to include group name
   }));
   const defaultOption = defaultValue
     ? options.find((opt: DropdownOption) => String(opt.value) === String(defaultValue))

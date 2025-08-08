@@ -2,10 +2,11 @@ import React, { useRef, useState, useEffect } from "react";
 import { all_routes } from "../../router/all_routes";
 import { Link } from "react-router-dom";
 import TooltipOption from "../../../core/common/tooltipOption";
-import { getFeesTypeDropdown,getFeesGroupList } from "../../../services/FeesAllData";
+import { getFeesTypeDropdown,getFeesGroupList,createClassFeesMaster,updateClassFeesMaster } from "../../../services/FeesAllData";
 import { getClassesList } from "../../../services/ClassData";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import { amount } from "../../../core/common/selectoption/selectoption";
 
 const ClassFeesMasterForm = () => {
   const [classOptions, setClassOptions] = useState<any[]>([]);
@@ -57,32 +58,45 @@ const ClassFeesMasterForm = () => {
   // Show related feestype.feegsroup.name in groupInfo on fees type change
   useEffect(() => {
     if (selectedFeesType && feesTypeOptions.length > 0) {
-      const selectedType = feesTypeOptions.find(opt => opt.value === selectedFeesType);
-       setFeesTypeGroupName(selectedType?.groupName || "");
+      const selectedType = feesTypeOptions.find(opt => String(opt.value) === String(selectedFeesType));
+      let groupName = "";
+      if (selectedType?.group_id && feeGroupOptions.length > 0) {
+        const groupObj = feeGroupOptions.find(g => String(g.value) === String(selectedType.group_id));
+        groupName = groupObj?.label || "";
+      }
+      setFeesTypeGroupName(groupName);
     } else {
       setFeesTypeGroupName("");
     }
-  }, [selectedFeesType, feesTypeOptions]);
-
+  }, [selectedFeesType, feesTypeOptions, feeGroupOptions]);
   const handleAddFee = () => {
     if (!selectedFeesType || !feeAmount) {
       toast.error("Select fees type and enter amount");
       return;
     }
-    const selectedType = feesTypeOptions.find(opt => opt.value === selectedFeesType);
+    const selectedType = feesTypeOptions.find(opt => String(opt.value) === String(selectedFeesType));
+   
     let typeName = "";
     let groupName = "";
-
     if (selectedType) {
-      typeName = selectedType.label || "";
-      // Try to get group name from groupName property, or from group_id via feeGroupOptions
-      if (selectedType.groupName) {
-        groupName = selectedType.groupName;
-      } else if (selectedType.group_id) {
-        const groupObj = feeGroupOptions.find(g => g.value === selectedType.group_id);
-        groupName = groupObj?.label || "";
+      // Use label or name depending on your API response
+      typeName = selectedType.label || selectedType.name || "";
+      // Debug logs to help trace the issue
+      console.log("selectedType.group_id:", selectedType.group_id);
+      console.log("feeGroupOptions:", feeGroupOptions);
+      if (selectedType.group_id && feeGroupOptions.length > 0) {
+        const groupObj = feeGroupOptions.find(
+          g => String(g.value) === String(selectedType.group_id)
+        );
+        console.log("groupObj found:", groupObj);
+        groupName = groupObj?.label || groupObj?.name || "";
+        // If still blank, try to fallback to groupName property
+        if (!groupName && groupObj?.groupName) {
+          groupName = groupObj.groupName;
+        }
       }
     }
+
 
     setFeesList([
       ...feesList,
@@ -121,6 +135,40 @@ const ClassFeesMasterForm = () => {
   };
 
   const totalAmount = feesList.reduce((sum, fee) => sum + (fee.amount || 0), 0);
+
+  // Submit handler for create/update
+  const handleSubmit = async () => {
+    if (selectedClasses.length === 0) {
+      toast.error("Please select at least one class.");
+      return;
+    }
+    if (feesList.length === 0) {
+      toast.error("Please add at least one fee type.");
+      return;
+    }
+    const payload = {
+      classid: selectedClasses,
+      feestypes: feesList.map(fee => ({
+        feestype_id: feesTypeOptions.find(opt => opt.label === fee.type)?.value || "",
+        amount: fee.amount
+      }))
+    };
+    try {
+      // You can add logic to decide between create/update
+      // For now, always create
+      const res = await createClassFeesMaster(payload);
+      if (res && res.status === "success") {
+        toast.success("Class Fees Master created successfully!");
+        // Optionally reset form here
+        setSelectedClasses([]);
+        setFeesList([]);
+      } else {
+        toast.error(res?.message || "Failed to create Class Fees Master.");
+      }
+    } catch (err) {
+      toast.error("API error. Please try again.");
+    }
+  };
 
   return (
     <>
@@ -219,7 +267,7 @@ const ClassFeesMasterForm = () => {
                     className="btn btn-success"
                     onClick={handleAddFee}
                   >
-                    Add Fee
+                    Add
                   </button>
                 </div>
               </div>  
@@ -281,7 +329,11 @@ const ClassFeesMasterForm = () => {
               </tfoot>
             </table>
             <div className="mt-3 text-end">
-              <button type="button" className="btn btn-primary">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleSubmit}
+              >
                 Add fee / Update fee
               </button>
             </div>
@@ -294,3 +346,5 @@ const ClassFeesMasterForm = () => {
 };
 
 export default ClassFeesMasterForm;
+
+
