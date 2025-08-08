@@ -891,13 +891,17 @@ else if (currentStep === 6) {
 
 useEffect(() => {
   if (inquiryConversionMode && inquiryData) {
+  
+
+
 setPersonalInfo((prev) => ({
   ...prev, // ✅ keeps the rest of the required fields intact
   academicYear: inquiryData.academic_year || "",
   firstName: inquiryData.first_name || "",
   middleName: inquiryData.middle_name || "",
   lastName: inquiryData.last_name || "",
-  class: inquiryData.class_id || "",
+class: inquiryData.class_id ? String(inquiryData.class_id) : "",
+
   gender: inquiryData.gender || "",
   dob: inquiryData.date_of_birth || "",
   primaryContact: inquiryData.primary_contact || "",
@@ -923,6 +927,7 @@ useEffect(() => {
     const s = studentData.data.step_1;
 
     const updatedInfo = {
+      
       academicYear: s.academic_year || "",
       admissionNo: s.admission_no || "",
       admissionDate: s.admission_date || "",
@@ -1134,7 +1139,10 @@ useEffect(() => {
   loadId();
 }, [studentData]);
 
-
+  let  gotclassId = personalInfo.class
+// if (gotclassId){toast.success(gotclassId)}else{
+//   toast.error("opps")
+// }
   return (
     <>
       {/* Page Wrapper */}
@@ -1269,7 +1277,7 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
 
 )}
 
-{currentStep === 7 && (
+{currentStep === 6 && (
 <FinancialDetailsForm
   financialData={financialData}
   setFinancialData={setFinancialData}
@@ -1282,8 +1290,9 @@ setFiles={(val) => setFiles(val ? Array.from(val) : [])}
 )}
 
 {currentStep === 6 && (<FinancialSummary
+gotClassId={gotclassId}
   studentName="Kapil Raj Desai"
-  studentCode="STD0001"
+  studentCode={serialId}
   course="BCA"
   admissionDate="2025-06-15"
     currentStep={currentStep}

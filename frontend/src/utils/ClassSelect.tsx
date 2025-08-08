@@ -1,20 +1,21 @@
-// src/components/Common/ClassSelect.tsx
 import React, { useEffect, useState } from "react";
 import { getClassesList } from "../services/ClassData";
 import { toast } from "react-toastify";
 
 type OptionType = {
   label: string;
-  value: string | number;
+  value: string;
 };
 
 interface ClassSelectProps {
   value: string | number;
-  onChange: (value: string | number) => void;
+  onChange: (value: string) => void;
   label?: string;
   error?: boolean;
   required?: boolean;
   className?: string;
+  options?: OptionType[];  // optional external options
+  fieldKey?: string;       // to identify 'class'
 }
 
 const ClassSelect: React.FC<ClassSelectProps> = ({
@@ -23,39 +24,66 @@ const ClassSelect: React.FC<ClassSelectProps> = ({
   label = "Select Class",
   error = false,
   required = false,
-  className = ""
+  className = "",
+  options,
+  fieldKey,
 }) => {
   const [classOptions, setClassOptions] = useState<OptionType[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function fetchClasses() {
-      try {
-        const classes = await getClassesList();
-        const formatted = Array.isArray(classes)
-          ? classes.map((cls: any) => ({
-              label: `${cls.name} (${cls.section})`,
-              value: cls.id
-            }))
-          : [];
-        setClassOptions(formatted);
-      } catch (error) {
-        toast.error("Failed to load classes");
+      if (fieldKey === "class" || !options) {
+        setLoading(true);
+        try {
+          const classes = await getClassesList();
+          const formatted = Array.isArray(classes)
+            ? classes.map((cls: any) => ({
+                label: `${cls.name} (${cls.section})`,
+                value: String(cls.id),
+              }))
+            : [];
+          setClassOptions(formatted);
+        } catch (error) {
+          toast.error("Failed to load classes");
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setClassOptions(
+          options.map((opt) => ({
+            label: opt.label,
+            value: String(opt.value),
+          }))
+        );
       }
     }
+
     fetchClasses();
-  }, []);
+  }, [fieldKey, options]);
+
+  if (loading) {
+    return (
+      <div className="mb-3">
+        {label && (
+          <label className="form-label">
+            {label} {required && <span className="text-danger ms-1">*</span>}
+          </label>
+        )}
+        <div>Loading classes...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-3">
       {label && (
-        <label className="form-label">
-          {label} {required && <span className="text-danger ms-1">*</span>}
-        </label>
+   <></>
       )}
       <select
-      name="class"
+        name={fieldKey || "select"}
         className={`form-select ${error ? "is-invalid" : ""} ${className}`}
-        value={value}
+        value={String(value) || ""}
         onChange={(e) => onChange(e.target.value)}
       >
         <option value="">-- Select --</option>
