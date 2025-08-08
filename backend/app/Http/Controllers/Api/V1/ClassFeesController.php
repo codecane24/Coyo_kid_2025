@@ -37,7 +37,7 @@ class ClassFeesController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'classid' => 'required|array|min:1',
-            'classid.*' => 'required|integer|exists:class_master,id',
+            'classid.*' => 'required|integer|exists:classes,id',
             'feestypes' => 'required|array|min:1',
             'feestypes.*.feestype_id' => 'required|integer|exists:fees_type_master,id',
             'feestypes.*.amount' => 'required|numeric'
@@ -76,7 +76,7 @@ class ClassFeesController extends Controller
         $fee = ClassFees::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'class_id' => 'required|integer|exists:class_master,id',
+            'class_id' => 'required|integer|exists:classes,id',
             'feestype_id' => 'required|integer|exists:fees_type_master,id',
             'amount' => 'required|numeric'
         ]);
