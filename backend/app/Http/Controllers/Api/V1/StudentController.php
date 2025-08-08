@@ -356,6 +356,10 @@ class StudentController extends Controller
 
             // Create a new Student instance and fill its attributes
                 $student->save();
+                $student = $student->load([
+                            'class:id,name,section',
+                        ]);
+
                  
               
                 return response()->json([
