@@ -118,27 +118,27 @@ export const getFeesAssignByClassId = async (classId: string) => {
 
 //== class fees master
 export const getClassFeesMasterList = async () => {
-  const response = await axiosInstance.get("/class-fees-master");
+  const response = await axiosInstance.get("/class-fees");
   return response.data;
 }
 
 export const getClassFeesMasterById = async (id: string) => {
-  const response = await axiosInstance.get(`/class-fees-master/${id}`);
+  const response = await axiosInstance.get(`/class-fees/${id}`);
   return response.data;
 };
 
 export const createClassFeesMaster = async (classFeesMasterData: any) => {
-  const response = await axiosInstance.post("/class-fees-master ", classFeesMasterData);
+  const response = await axiosInstance.post("/class-fees", classFeesMasterData);
   return response.data;
 };
 
 export const updateClassFeesMaster = async (id: string, classFeesMasterData: any) => {
-  const response = await axiosInstance.put(`/class-fees-master/${id}`, classFeesMasterData);
+  const response = await axiosInstance.put(`/class-fees/${id}`, classFeesMasterData);
   return response.data;
 };
 
 export const deleteClassFeesMaster = async (id: string) => {
-  const response = await axiosInstance.delete(`/class-fees-master/${id}`);
+  const response = await axiosInstance.delete(`/class-fees/${id}`);
   return response.data;
 };
 
