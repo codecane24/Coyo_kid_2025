@@ -48,28 +48,38 @@ class ClassFeesController extends Controller
     // classwise fees
     public function classwiseFees(Request $request)
     {
-       // fees group by class and feestype
-        $classFees = ClassFees::groupBy('class_id')->get()
-        ->map(function ($fee) {
-            return [
-                'class_id' => $fee->class_id,
-                'feestypes' => $fee->feestype->map(function ($feestype) {
-                    return [
-                        'feestype_id' => $feestype->id,
-                        'fees_type_name' => $feestype->name,
-                        'feestype_code' => $feestype->code,
-                        'feesgroup_id' => $feestype->feesgroup_id,
-                        'feesgroup_name' => $feestype->feesgroup->name ?? null,
-                        'amount' => $feestype->pivot->amount
-                    ];
-                })
+        // Get all class fees with class and feestype relationships
+        $classFees = ClassFees::with(['class', 'feestype.feesgroup'])->get();
+
+        // Group by class
+        $result = [];
+        foreach ($classFees as $fee) {
+            $classId = $fee->class_id;
+            $className = $fee->class->name ?? '';
+            if (!isset($result[$classId])) {
+                $result[$classId] = [
+                    'class_id' => $classId,
+                    'class_name' => $className,
+                    'feestypes' => []
+                ];
+            }
+            $result[$classId]['feestypes'][] = [
+                'feestype_id' => $fee->feestype_id,
+                'fees_type_name' => $fee->feestype->name ?? '',
+                'feestype_code' => $fee->feestype->code ?? '',
+                'feesgroup_id' => $fee->feestype->feesgroup_id ?? null,
+                'feesgroup_name' => $fee->feestype->feesgroup->name ?? null,
+                'amount' => $fee->amount
             ];
-        });
+        }
+
+        // Re-index result as array
+        $result = array_values($result);
+
         return response()->json([
             'status' => 'success',
-            'data' => $classFees
+            'data' => $result
         ]);
-
     }
 
     // Store new class fee(s)
