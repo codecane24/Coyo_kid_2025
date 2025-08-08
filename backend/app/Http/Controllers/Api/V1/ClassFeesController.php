@@ -45,7 +45,32 @@ class ClassFeesController extends Controller
         ]);
     }
 
-    // Show
+    // classwise fees
+    public function classwiseFees(Request $request)
+    {
+       // fees group by class and feestype
+        $classFees = ClassFees::groupBy('class_id')->get()
+        ->map(function ($fee) {
+            return [
+                'class_id' => $fee->class_id,
+                'feestypes' => $fee->feestype->map(function ($feestype) {
+                    return [
+                        'feestype_id' => $feestype->id,
+                        'fees_type_name' => $feestype->name,
+                        'feestype_code' => $feestype->code,
+                        'feesgroup_id' => $feestype->feesgroup_id,
+                        'feesgroup_name' => $feestype->feesgroup->name ?? null,
+                        'amount' => $feestype->pivot->amount
+                    ];
+                })
+            ];
+        });
+        return response()->json([
+            'status' => 'success',
+            'data' => $classFees
+        ]);
+
+    }
 
     // Store new class fee(s)
     public function store(Request $request)
