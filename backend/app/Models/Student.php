@@ -142,4 +142,9 @@ class Student extends Model
     {
         return $this->dob ? $this->dob->age : null;
     }
+
+    public function class(): BelongsTo
+    {
+        return $this->belongsTo(Classes::class, 'class_id');
+    }
 }

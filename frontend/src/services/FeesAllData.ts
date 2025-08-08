@@ -149,7 +149,7 @@ export const getClassFeesByClassId = async (classId: string) => {
 }
 
 export const getClassWiseFeesList = async () => {
-  const response = await axiosInstance.get(`/class-fees/class-wise`);
+  const response = await axiosInstance.get(`/class-fees/classwise`);
   return response.data;
 };
 

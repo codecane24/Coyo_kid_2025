@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\ClassFeesController;
+use App\Http\Controllers\Api\V1\PdcController;
 
 Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors'], function () {
     Route::post('login', 'UserController@login');
@@ -85,6 +86,9 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
     Route::get('class-fees/class/{classid}', [ClassFeesController::class, 'showClassFees'])
         ->where('classid', '[0-9]+')
         ->name('class-fees.class'); 
+
+    //=== PDC API
+    Route::apiResource('pdc', PdcController::class);
 });
 
 
