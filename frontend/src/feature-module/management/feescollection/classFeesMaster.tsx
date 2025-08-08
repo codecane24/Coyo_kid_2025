@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { all_routes } from "../../router/all_routes";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getClassWiseFeesList } from "../../../services/FeesAllData";
 import TooltipOption from "../../../core/common/tooltipOption";
 import FeesMasterModal from "./feesMasterModal";
@@ -8,6 +8,7 @@ import FeesMasterModal from "./feesMasterModal";
 const ClassFeesMaster = () => {
   const routes = all_routes;
   const [classFeesList, setClassFeesList] = useState<any[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getClassWiseFeesList().then((res: any) => {
@@ -133,14 +134,13 @@ const ClassFeesMaster = () => {
                                 </Link>
                               </li>
                               <li>
-                                <Link
+                                <button
                                   className="dropdown-item"
-                                  to="#"
-                                  // onClick={() => handleEdit(row)}
+                                  onClick={() => navigate(`/management/edit-class-fees-master/${classFeesList.find(cls => cls.class_name === row.className)?.class_id}`)}
                                 >
                                   <i className="ti ti-edit me-2"></i>
                                   Edit
-                                </Link>
+                                </button>
                               </li>
                               <li>
                                 <Link

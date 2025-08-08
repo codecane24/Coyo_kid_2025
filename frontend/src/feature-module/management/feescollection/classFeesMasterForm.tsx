@@ -1,8 +1,14 @@
 import React, { useRef, useState, useEffect } from "react";
 import { all_routes } from "../../router/all_routes";
-import { Link } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import TooltipOption from "../../../core/common/tooltipOption";
-import { getFeesTypeDropdown,getFeesGroupList,createClassFeesMaster,updateClassFeesMaster } from "../../../services/FeesAllData";
+import {
+  getFeesTypeDropdown,
+  getFeesGroupList,
+  createClassFeesMaster,
+  updateClassFeesMaster,
+  getClassWiseFeesList,
+} from "../../../services/FeesAllData";
 import { getClassesList } from "../../../services/ClassData";
 import { toast } from "react-toastify";
 import Select from "react-select";
@@ -18,17 +24,21 @@ const ClassFeesMasterForm = () => {
   const [feesList, setFeesList] = useState<any[]>([]);
   const [feesTypeGroupName, setFeesTypeGroupName] = useState<string>("");
   const [feeGroupOptions, setFeeGroupOptions] = useState<any[]>([]);
+  const [isEdit, setIsEdit] = useState(false);
+
   const feeTypeRef = useRef<HTMLSelectElement>(null);
   const feeAmountRef = useRef<HTMLInputElement>(null);
   const classSelectRef = useRef<any>(null);
+  const { id } = useParams(); // id is class_id for edit
+  const navigate = useNavigate();
 
-  // Dynamic class options from API
+  // Fetch class options
   useEffect(() => {
     getClassesList().then((res: any) => {
       if (res && Array.isArray(res)) {
         setClassOptions(
           res.map((item: any) => ({
-            value: item.id,
+            value: String(item.id),
             label: item.name + (item.section ? ` (${item.section})` : ""),
           }))
         );
@@ -36,14 +46,14 @@ const ClassFeesMasterForm = () => {
     });
   }, []);
 
-  // Dynamic fees type options from API
+  // Fetch fees type options
   useEffect(() => {
     getFeesTypeDropdown().then(({ options }) => {
       setFeesTypeOptions(options);
     });
   }, []);
 
-  // Dynamic fees group options from API
+  // Fetch fees group options
   useEffect(() => {
     getFeesGroupList().then((res) => {
       if (res && res.status === "success" && Array.isArray(res.data)) {
@@ -51,20 +61,53 @@ const ClassFeesMasterForm = () => {
           res.data.map((item: any) => ({
             value: item.id,
             label: item.name,
-            groupName: item.feesgroup?.name || "", // Use optional chaining to avoid error
+            groupName: item.feesgroup?.name || "",
           }))
         );
       }
     });
   }, []);
 
+  // Fetch data for edit mode using the `class_id` from the route and prefill the form.
+  useEffect(() => {
+    if (id) {
+      setIsEdit(true);
+      getClassWiseFeesList().then((res: any) => {
+        if (res && res.status === "success" && Array.isArray(res.data)) {
+          const classData = res.data.find(
+            (cls: any) => String(cls.class_id) === String(id)
+          );
+          if (classData) {
+            setSelectedClasses([String(classData.class_id)]);
+            setFeesList(
+              (classData.feestypes || []).map((ft: any, idx: number) => ({
+                id: idx + 1,
+                type: ft.fees_type_name,
+                group: ft.feesgroup_name,
+                amount: Number(ft.amount),
+              }))
+            );
+          }
+        }
+      });
+    } else {
+      setIsEdit(false);
+      setSelectedClasses([]);
+      setFeesList([]);
+    }
+  }, [id]);
+
   // Show related feestype.feegsroup.name in groupInfo on fees type change
   useEffect(() => {
     if (selectedFeesType && feesTypeOptions.length > 0) {
-      const selectedType = feesTypeOptions.find(opt => String(opt.value) === String(selectedFeesType));
+      const selectedType = feesTypeOptions.find(
+        (opt) => String(opt.value) === String(selectedFeesType)
+      );
       let groupName = "";
       if (selectedType?.group_id && feeGroupOptions.length > 0) {
-        const groupObj = feeGroupOptions.find(g => String(g.value) === String(selectedType.group_id));
+        const groupObj = feeGroupOptions.find(
+          (g) => String(g.value) === String(selectedType.group_id)
+        );
         groupName = groupObj?.label || "";
       }
       setFeesTypeGroupName(groupName);
@@ -72,6 +115,7 @@ const ClassFeesMasterForm = () => {
       setFeesTypeGroupName("");
     }
   }, [selectedFeesType, feesTypeOptions, feeGroupOptions]);
+
   const handleAddFee = () => {
     let hasError = false;
 
@@ -79,7 +123,6 @@ const ClassFeesMasterForm = () => {
       toast.error("Please select at least one class before adding a fee type.");
       hasError = true;
       if (classSelectRef.current) {
-        //classSelectRef.current.style.borderColor = "red";
         classSelectRef.current.focus();
       }
     }
@@ -102,13 +145,14 @@ const ClassFeesMasterForm = () => {
     if (hasError) return;
 
     // Prevent duplicate fee type in the list
-    const selectedType = feesTypeOptions.find(opt => String(opt.value) === String(selectedFeesType));
+    const selectedType = feesTypeOptions.find(
+      (opt) => String(opt.value) === String(selectedFeesType)
+    );
     let typeName = "";
     let groupName = "";
     if (selectedType) {
       typeName = selectedType.label || selectedType.name || "";
-      // Check if already added
-      if (feesList.some(fee => fee.type === typeName)) {
+      if (feesList.some((fee) => fee.type === typeName)) {
         toast.error("This fee type is already added.");
         if (feeTypeRef.current) {
           feeTypeRef.current.style.borderColor = "red";
@@ -116,14 +160,10 @@ const ClassFeesMasterForm = () => {
         }
         return;
       }
-      // Debug logs to help trace the issue
-      console.log("selectedType.group_id:", selectedType.group_id);
-      console.log("feeGroupOptions:", feeGroupOptions);
       if (selectedType.group_id && feeGroupOptions.length > 0) {
         const groupObj = feeGroupOptions.find(
-          g => String(g.value) === String(selectedType.group_id)
+          (g) => String(g.value) === String(selectedType.group_id)
         );
-        console.log("groupObj found:", groupObj);
         groupName = groupObj?.label || groupObj?.name || "";
         if (!groupName && groupObj?.groupName) {
           groupName = groupObj.groupName;
@@ -131,7 +171,6 @@ const ClassFeesMasterForm = () => {
       }
     }
 
-    // Reset input borders on success
     if (feeTypeRef.current) feeTypeRef.current.style.borderColor = "";
     if (feeAmountRef.current) feeAmountRef.current.style.borderColor = "";
 
@@ -151,11 +190,10 @@ const ClassFeesMasterForm = () => {
   const handleEditFee = (idx: number) => {
     const fee = feesList[idx];
     setSelectedFeesType(
-      feesTypeOptions.find(opt => opt.label === fee.type)?.value || ""
+      feesTypeOptions.find((opt) => opt.label === fee.type)?.value || ""
     );
     setFeeGroupName(fee.group);
     setFeeAmount(String(fee.amount));
-    // Remove from list for editing
     setFeesList(feesList.filter((_, i) => i !== idx));
   };
 
@@ -171,7 +209,10 @@ const ClassFeesMasterForm = () => {
     );
   };
 
-  const totalAmount = feesList.reduce((sum, fee) => sum + (fee.amount || 0), 0);
+  const totalAmount = feesList.reduce(
+    (sum, fee) => sum + (fee.amount || 0),
+    0
+  );
 
   // Submit handler for create/update
   const handleSubmit = async () => {
@@ -185,28 +226,44 @@ const ClassFeesMasterForm = () => {
     }
     const payload = {
       classid: selectedClasses,
-      feestypes: feesList.map(fee => ({
-        feestype_id: feesTypeOptions.find(opt => opt.label === fee.type)?.value || "",
-        amount: fee.amount
-      }))
+      feestypes: feesList.map((fee) => ({
+        feestype_id:
+          feesTypeOptions.find((opt) => opt.label === fee.type)?.value || "",
+        amount: fee.amount,
+      })),
     };
     try {
-      // You can add logic to decide between create/update
-      // For now, always create
-      const res = await createClassFeesMaster(payload);
+      let res;
+      if (isEdit && id) {
+        // Fix: updateClassFeesMaster expects (payload, id)
+        res = await updateClassFeesMaster(id, payload);
+      } else {
+        res = await createClassFeesMaster(payload);
+      }
       if (res && res.status === "success") {
-        toast.success("Class Fees Master created successfully!");
-        // Optionally reset form here
+        toast.success(
+          isEdit
+            ? "Class Fees Master updated successfully!"
+            : "Class Fees Master created successfully!"
+        );
         setSelectedClasses([]);
         setFeesList([]);
+        navigate(all_routes.classFeesMaster);
       } else if (res?.message) {
         toast.error(res.message);
       } else {
-        toast.error("Failed to create Class Fees Master.");
+        toast.error(
+          isEdit
+            ? "Failed to update Class Fees Master."
+            : "Failed to create Class Fees Master."
+        );
       }
     } catch (err: any) {
-      // Handle API error
-      toast.error(err?.response?.data?.message || err?.message || "API error. Please try again.");
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "API error. Please try again."
+      );
     }
   };
 
@@ -214,38 +271,40 @@ const ClassFeesMasterForm = () => {
     <>
       <div className="page-wrapper">
         <div className="content">
-          <div className="d-md-flex d-block align-items-center justify-content-between mb-3">
-            <div className="my-auto mb-2">
-              <h3 className="page-title mb-1">Fees Collection</h3>
-              <nav>
-                <ol className="breadcrumb mb-0">
+          <div className="page-header">
+            <div className="row align-items-center">
+              <div className="col">
+                <h3 className="page-title">
+                  {isEdit ? "Edit Class Fees Master" : "Add Class Fees Master"}
+                </h3>
+                <ul className="breadcrumb">
                   <li className="breadcrumb-item">
                     <Link to={all_routes.adminDashboard}>Dashboard</Link>
                   </li>
                   <li className="breadcrumb-item">
-                    <Link to="#">Fees Collection</Link>
+                    <Link to={all_routes.classFeesMaster}>Class Fees Master</Link>
                   </li>
-                  <li className="breadcrumb-item active" aria-current="page">
-                    Fees Group
+                  <li className="breadcrumb-item active">
+                    {isEdit ? "Edit" : "Add"}
                   </li>
-                </ol>
-              </nav>
-            </div>
-            <div className="d-flex my-xl-auto right-content align-items-center flex-wrap">
-              <TooltipOption />
-              <div className="mb-2">
-                <button
-                  className="btn btn-primary"
+                </ul>
+              </div>
+              <div className="col-auto float-end ms-auto d-flex gap-2 align-items-center">
+                <TooltipOption />
+                <Link
+                  to={all_routes.classFeesMaster}
+                  className="btn btn-secondary"
                 >
-                  <i className="ti ti-square-rounded-plus me-2" />
-                  Add Class Fees
-                </button>
+                  <i className="ti ti-arrow-left me-2" />
+                  Back to List
+                </Link>
               </div>
             </div>
           </div>
           <div className="card p-4">
-            <h4 className="mb-3">Class Fees Master</h4>
-
+            <h4 className="mb-3">
+              {isEdit ? "Edit Class Fees Master" : "Add Class Fees Master"}
+            </h4>
             <div className="row mb-3">
               <div className="col-md-3">
                 <label>Select Class (multiple)</label>
@@ -254,14 +313,21 @@ const ClassFeesMasterForm = () => {
                 <Select
                   isMulti
                   options={classOptions}
-                  value={classOptions.filter(opt => selectedClasses.includes(opt.value))}
-                  onChange={selected => {
-                    setSelectedClasses(Array.isArray(selected) ? selected.map(opt => opt.value) : []);
+                  value={classOptions.filter((opt) =>
+                    selectedClasses.includes(opt.value)
+                  )}
+                  onChange={(selected) => {
+                    setSelectedClasses(
+                      Array.isArray(selected)
+                        ? selected.map((opt) => opt.value)
+                        : []
+                    );
                   }}
                   placeholder="Select Class"
                   classNamePrefix="react-select"
                   isSearchable={true}
                   ref={classSelectRef}
+                  isDisabled={isEdit} // Prevent changing class in edit mode
                 />
               </div>
             </div>
@@ -273,25 +339,21 @@ const ClassFeesMasterForm = () => {
                 <select
                   className="form-select"
                   value={selectedFeesType}
-                  onChange={e => {
+                  onChange={(e) => {
                     setSelectedFeesType(e.target.value);
-                    if (feeTypeRef.current) feeTypeRef.current.style.borderColor = "";
+                    if (feeTypeRef.current)
+                      feeTypeRef.current.style.borderColor = "";
                   }}
                   ref={feeTypeRef}
                 >
                   <option value="">Select Fees Type</option>
-                  {feesTypeOptions.map(opt => (
-                    <option 
-                      key={opt.value} 
-                      value={opt.value}
-                    >
+                  {feesTypeOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
                 </select>
-                <div className="groupInfo">
-                  {feesTypeGroupName}
-                </div>
+                <div className="groupInfo">{feesTypeGroupName}</div>
               </div>
               <div className="row mb-3">
                 <div className="col-md-3">
@@ -302,9 +364,10 @@ const ClassFeesMasterForm = () => {
                     type="number"
                     className="form-control"
                     value={feeAmount}
-                    onChange={e => {
+                    onChange={(e) => {
                       setFeeAmount(e.target.value);
-                      if (feeAmountRef.current) feeAmountRef.current.style.borderColor = "";
+                      if (feeAmountRef.current)
+                        feeAmountRef.current.style.borderColor = "";
                     }}
                     placeholder="Enter Amount"
                     ref={feeAmountRef}
@@ -319,7 +382,7 @@ const ClassFeesMasterForm = () => {
                     Add
                   </button>
                 </div>
-              </div>  
+              </div>
             </div>
             <h5 className="mt-4">Fees Description</h5>
             <table className="table table-bordered">
@@ -383,14 +446,13 @@ const ClassFeesMasterForm = () => {
                 className="btn btn-primary"
                 onClick={handleSubmit}
               >
-                Add fee / Update fee
+                {isEdit ? "Update" : "Add"} fee
               </button>
             </div>
           </div>
         </div>
       </div>
     </>
-
   );
 };
 
