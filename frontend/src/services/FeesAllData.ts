@@ -154,6 +154,39 @@ export const getClassWiseFeesList = async () => {
 };
 
 
+// student pdc
+export const getPdcList = async () => {
+  const response = await axiosInstance.get("/pdc");
+  return response.data;
+};
+
+export const getPdcById = async (id: string) => {
+  const response = await axiosInstance.get(`/pdc/${id}`);
+  return response.data;
+};
+
+export const createPdc = async (pdcData: any) => {
+  const response = await axiosInstance.post("/pdc", pdcData);
+  return response.data;
+};
+
+export const updatePdc = async (id: string, pdcData: any) => {
+  const response = await axiosInstance.put(`/pdc/${id}`, pdcData);
+  return response.data;
+};
+
+export const deletePdc = async (id: string) => {
+  const response = await axiosInstance.delete(`/pdc/${id}`);
+  return response.data;
+};
+
+export const getPdcByStudentId = async (studentId: string) => {
+  const response = await axiosInstance.get(`/pdc/student/${studentId}`);
+  return response.data;
+};
+
+
+
 
 // Utility for select dropdown options (dynamic from getFeesTypeList)
 export const getFeesTypeDropdown = async (defaultValue?: string) => {

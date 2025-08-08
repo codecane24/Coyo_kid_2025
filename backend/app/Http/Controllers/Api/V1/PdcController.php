@@ -32,22 +32,20 @@ class PdcController extends Controller
         ]);
     }
 
-    // Store a new PDC
+    // Store multiple PDCs for a student
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'student_id' => 'required|integer',
-            'payment_id' => 'nullable|integer',
-            'bank_name' => 'required|string|max:255',
-            'account_holder_name' => 'required|string|max:255',
-            'cheque_number' => 'required|string|max:100',
-            'amount' => 'required|numeric',
-            'cheque_date' => 'required|date',
-            'branch_name' => 'nullable|string|max:255',
-            'account_number' => 'nullable|string|max:100',
-            'status' => 'nullable|string|max:50',
-            'cleared_date' => 'nullable|date',
-            'remarks' => 'nullable|string|max:255',
+            'pdc' => 'required|array|min:1',
+            'pdc.*.bank_name' => 'required|string|max:255',
+            'pdc.*.account_holder_name' => 'required|string|max:255',
+            'pdc.*.cheque_number' => 'required|string|max:100',
+            'pdc.*.amount' => 'required|numeric',
+            'pdc.*.cheque_date' => 'required|date',
+            'pdc.*.branch_name' => 'nullable|string|max:255',
+            'pdc.*.account_number' => 'nullable|string|max:100',
+            'pdc.*.remarks' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -57,33 +55,36 @@ class PdcController extends Controller
             ], 422);
         }
 
-        $pdc = PdcModel::create($request->all());
+        $created = [];
+        foreach ($request->pdc as $item) {
+            $data = array_merge(
+                $item,
+                ['student_id' => $request->student_id]
+            );
+            $created[] = PdcModel::create($data);
+        }
 
         return response()->json([
             'status' => true,
-            'message' => 'PDC created successfully',
-            'data' => $pdc
+            'message' => 'PDC(s) created successfully',
+            'data' => $created
         ], 201);
     }
 
-    // Update a PDC
+    // Update multiple PDCs for a student (delete old and insert new)
     public function update(Request $request, $id)
     {
-        $pdc = PdcModel::findOrFail($id);
-
         $validator = Validator::make($request->all(), [
             'student_id' => 'required|integer',
-            'payment_id' => 'nullable|integer',
-            'bank_name' => 'required|string|max:255',
-            'account_holder_name' => 'required|string|max:255',
-            'cheque_number' => 'required|string|max:100',
-            'amount' => 'required|numeric',
-            'cheque_date' => 'required|date',
-            'branch_name' => 'nullable|string|max:255',
-            'account_number' => 'nullable|string|max:100',
-            'status' => 'nullable|string|max:50',
-            'cleared_date' => 'nullable|date',
-            'remarks' => 'nullable|string|max:255',
+            'pdc' => 'required|array|min:1',
+            'pdc.*.bank_name' => 'required|string|max:255',
+            'pdc.*.account_holder_name' => 'required|string|max:255',
+            'pdc.*.cheque_number' => 'required|string|max:100',
+            'pdc.*.amount' => 'required|numeric',
+            'pdc.*.cheque_date' => 'required|date',
+            'pdc.*.branch_name' => 'nullable|string|max:255',
+            'pdc.*.account_number' => 'nullable|string|max:100',
+            'pdc.*.remarks' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -93,12 +94,22 @@ class PdcController extends Controller
             ], 422);
         }
 
-        $pdc->update($request->all());
+        // Remove all existing PDCs for this student
+        PdcModel::where('student_id', $request->student_id)->delete();
+
+        $updated = [];
+        foreach ($request->pdc as $item) {
+            $data = array_merge(
+                $item,
+                ['student_id' => $request->student_id]
+            );
+            $updated[] = PdcModel::create($data);
+        }
 
         return response()->json([
             'status' => true,
-            'message' => 'PDC updated successfully',
-            'data' => $pdc
+            'message' => 'PDC(s) updated successfully',
+            'data' => $updated
         ]);
     }
 
