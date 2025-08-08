@@ -18,6 +18,9 @@ const ClassFeesMasterForm = () => {
   const [feesList, setFeesList] = useState<any[]>([]);
   const [feesTypeGroupName, setFeesTypeGroupName] = useState<string>("");
   const [feeGroupOptions, setFeeGroupOptions] = useState<any[]>([]);
+  const feeTypeRef = useRef<HTMLSelectElement>(null);
+  const feeAmountRef = useRef<HTMLInputElement>(null);
+  const classSelectRef = useRef<any>(null);
 
   // Dynamic class options from API
   useEffect(() => {
@@ -70,17 +73,49 @@ const ClassFeesMasterForm = () => {
     }
   }, [selectedFeesType, feesTypeOptions, feeGroupOptions]);
   const handleAddFee = () => {
-    if (!selectedFeesType || !feeAmount) {
-      toast.error("Select fees type and enter amount");
-      return;
+    let hasError = false;
+
+    if (selectedClasses.length === 0) {
+      toast.error("Please select at least one class before adding a fee type.");
+      hasError = true;
+      if (classSelectRef.current) {
+        //classSelectRef.current.style.borderColor = "red";
+        classSelectRef.current.focus();
+      }
     }
+    if (!selectedFeesType) {
+      toast.error("Select fees type");
+      hasError = true;
+      if (feeTypeRef.current) {
+        feeTypeRef.current.style.borderColor = "red";
+        feeTypeRef.current.focus();
+      }
+    }
+    if (!feeAmount) {
+      toast.error("Enter amount");
+      hasError = true;
+      if (feeAmountRef.current) {
+        feeAmountRef.current.style.borderColor = "red";
+        feeAmountRef.current.focus();
+      }
+    }
+    if (hasError) return;
+
+    // Prevent duplicate fee type in the list
     const selectedType = feesTypeOptions.find(opt => String(opt.value) === String(selectedFeesType));
-   
     let typeName = "";
     let groupName = "";
     if (selectedType) {
-      // Use label or name depending on your API response
       typeName = selectedType.label || selectedType.name || "";
+      // Check if already added
+      if (feesList.some(fee => fee.type === typeName)) {
+        toast.error("This fee type is already added.");
+        if (feeTypeRef.current) {
+          feeTypeRef.current.style.borderColor = "red";
+          feeTypeRef.current.focus();
+        }
+        return;
+      }
       // Debug logs to help trace the issue
       console.log("selectedType.group_id:", selectedType.group_id);
       console.log("feeGroupOptions:", feeGroupOptions);
@@ -90,13 +125,15 @@ const ClassFeesMasterForm = () => {
         );
         console.log("groupObj found:", groupObj);
         groupName = groupObj?.label || groupObj?.name || "";
-        // If still blank, try to fallback to groupName property
         if (!groupName && groupObj?.groupName) {
           groupName = groupObj.groupName;
         }
       }
     }
 
+    // Reset input borders on success
+    if (feeTypeRef.current) feeTypeRef.current.style.borderColor = "";
+    if (feeAmountRef.current) feeAmountRef.current.style.borderColor = "";
 
     setFeesList([
       ...feesList,
@@ -224,6 +261,7 @@ const ClassFeesMasterForm = () => {
                   placeholder="Select Class"
                   classNamePrefix="react-select"
                   isSearchable={true}
+                  ref={classSelectRef}
                 />
               </div>
             </div>
@@ -235,7 +273,11 @@ const ClassFeesMasterForm = () => {
                 <select
                   className="form-select"
                   value={selectedFeesType}
-                  onChange={e => setSelectedFeesType(e.target.value)}
+                  onChange={e => {
+                    setSelectedFeesType(e.target.value);
+                    if (feeTypeRef.current) feeTypeRef.current.style.borderColor = "";
+                  }}
+                  ref={feeTypeRef}
                 >
                   <option value="">Select Fees Type</option>
                   {feesTypeOptions.map(opt => (
@@ -260,8 +302,12 @@ const ClassFeesMasterForm = () => {
                     type="number"
                     className="form-control"
                     value={feeAmount}
-                    onChange={e => setFeeAmount(e.target.value)}
+                    onChange={e => {
+                      setFeeAmount(e.target.value);
+                      if (feeAmountRef.current) feeAmountRef.current.style.borderColor = "";
+                    }}
                     placeholder="Enter Amount"
+                    ref={feeAmountRef}
                   />
                 </div>
                 <div className="col-md-2 mt-4">

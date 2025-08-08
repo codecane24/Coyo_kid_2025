@@ -171,7 +171,7 @@ class StudentController extends Controller
             'first_name' => ['required', 'string', 'max:50'],
             'middle_name' => ['nullable', 'string', 'max:50'],
             'last_name' => ['nullable', 'string', 'max:50'],
-            'class_id' => ['nullable', 'max:50'], // Changed to string, adjust if it's an ID
+            'class_id' => ['required','numeric', 'max:50'], // Changed to string, adjust if it's an ID
            // 'section' => ['required', 'string', 'max:50'], // Added, as it's a required field in your model for 'show'
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
             'dob' => ['required', 'date'],
