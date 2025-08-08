@@ -272,7 +272,7 @@ to={routes.studentDetail.replace(":id", student.id)}
 
                     </li>
                     <li>
-                      <Link className="dropdown-item rounded-1" to={routes.editStudent}>
+                      <Link className="dropdown-item rounded-1" to={routes.editStudent.replace(":id", student.id)}>
                         <i className="ti ti-edit-circle me-2" />
                         Edit
                       </Link>

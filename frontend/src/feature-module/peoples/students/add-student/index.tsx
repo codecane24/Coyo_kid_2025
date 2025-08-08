@@ -878,9 +878,10 @@ else if (currentStep === 5) {
     toast.error(`❌ Step 5 Submit Error: ${message}`);
   }
 }
- else if (currentStep < 6) {
-    setCurrentStep((prev) => prev + 1);
-  } else {
+else if (currentStep === 6) {
+  
+}
+ else {
     // Submit form here
     console.log("Form submitted!");
     // You can trigger a real API call or success state here

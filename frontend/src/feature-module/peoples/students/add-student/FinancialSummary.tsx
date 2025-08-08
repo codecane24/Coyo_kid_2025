@@ -94,6 +94,15 @@ const step =setCurrentStep ;
       </div>
     </div>
   </Card.Body>
+  <button
+    type="submit"
+    className="btn"
+    style={{ backgroundColor: "#003366", color: "#fff" }} // dark blue
+   
+  >
+    <i className="bi bi-check-circle me-2" />
+    Accept & Submit Form
+  </button>
 </Card>
 
   );
