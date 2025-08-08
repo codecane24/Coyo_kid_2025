@@ -35,7 +35,7 @@ class ClassFeesController extends Controller
     // Show a single class fee
     public function showClassFees($classid)
     {
-        $fees = ClassFees::with(['class:id,name', 'feestype:id,name,code,feesgroup_id','feestype.feesgroup:id,name'])->where('class_id', $classid)->get();
+        $fees = ClassFees::with(['class:id,name', 'feestype:id,name,code,feesgroup_id','feestype.feesgroup'])->where('class_id', $classid)->get();
         if ($fees->isEmpty()) {
             return response()->json(['status' => false, 'message' => 'Class Fees not found'], 404);
         }
