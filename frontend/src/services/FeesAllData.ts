@@ -127,6 +127,7 @@ export const getClassFeesMasterById = async (id: string) => {
   return response.data;
 };
 
+
 export const createClassFeesMaster = async (classFeesMasterData: any) => {
   const response = await axiosInstance.post("/class-fees", classFeesMasterData);
   return response.data;
@@ -141,6 +142,11 @@ export const deleteClassFeesMaster = async (id: string) => {
   const response = await axiosInstance.delete(`/class-fees/${id}`);
   return response.data;
 };
+
+export const getClassFeesByClassId = async (classId: string) => {
+  const response = await axiosInstance.get(`/class-fees/class/${classId}`);
+  return response.data;
+}
 
 
 

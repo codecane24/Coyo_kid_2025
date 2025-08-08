@@ -32,6 +32,21 @@ class ClassFeesController extends Controller
         ]);
     }
 
+    // Show a single class fee
+    public function showClassFees($classid)
+    {
+        $fees = ClassFees::with(['class', 'feestype'])->where('class_id', $classid)->get();
+        if ($fees->isEmpty()) {
+            return response()->json(['status' => false, 'message' => 'Class Fees not found'], 404);
+        }
+        return response()->json([
+            'status' => 'success',
+            'data' => $fee
+        ]);
+    }
+
+    // Show
+
     // Store new class fee(s)
     public function store(Request $request)
     {
@@ -51,6 +66,21 @@ class ClassFeesController extends Controller
         }
 
         $created = [];
+
+        // check already exists
+        foreach ($request->classid as $class_id) {
+            $existingFees = ClassFees::where('class_id', $class_id)
+                ->whereIn('feestype_id', array_column($request->feestypes, 'feestype_id'))
+                ->get();
+            if ($existingFees->isNotEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Class Fees already exist for the selected class and fee type(s)',
+                ], 409);
+            }
+        }
+
+        // Create class fees for each class and fee type
         foreach ($request->classid as $class_id) {
             foreach ($request->feestypes as $feestype) {
                 $data = [

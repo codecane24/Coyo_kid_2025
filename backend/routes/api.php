@@ -81,6 +81,9 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'v1', 'middleware' => 'cors']
 
     //=== Class Fees API
     Route::apiResource('class-fees', ClassFeesController::class);
+    Route::get('class-fees/class/{classid}', [ClassFeesController::class, 'showClassFees'])
+        ->where('classid', '[0-9]+')
+        ->name('class-fees.class'); 
 });
 
 
