@@ -35,6 +35,7 @@ gotClassId,
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [className, setClassName] = useState<any>(null);
+  const [sectionName, setSectionName] = useState<any>(null);
   useEffect(() => {
   if (!gotClassId) return;
 
@@ -47,6 +48,7 @@ gotClassId,
 
       const apiDataArray = response.data;  // Correct here!
 setClassName(response.data[0].class.name);
+setSectionName(response.data[0].class.section);
 
       if (Array.isArray(apiDataArray) && apiDataArray.length > 0) {
         const formattedFees = apiDataArray.map(item => ({
@@ -100,7 +102,7 @@ if (fees.length === 0) return <p>No fees available.</p>;
         </div>
         <div className="mb-2">
           <strong>Class:</strong>
-          <div className="text-muted">{className}</div>
+          <div className="text-muted">{className}({sectionName})</div>
         </div>
         <div className="mb-2">
           <strong>Admission Date:</strong>

@@ -121,6 +121,8 @@ const PdcPaymentSection = () => {
   };
 
   return (
+        <div className="page-wrapper">
+             <div className="content content-two">
     <div className="container">
       <h5 className="mt-4">Fill Payment Details</h5>
       <div className="row bg-light p-3 rounded">
@@ -318,7 +320,7 @@ const PdcPaymentSection = () => {
   </div>
 )}
 
-    </div>
+    </div></div></div>
   );
 };
 

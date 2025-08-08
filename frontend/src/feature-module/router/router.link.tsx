@@ -269,6 +269,7 @@ import InquiryDetail from "../peoples/students/add-student/InquiryDetail";
 import ClassFeesMasterForm from "../management/feescollection/classFeesMasterForm";
 import classFeesMaster from "../management/feescollection/classFeesMaster";
 import ClassFeesMaster from "../management/feescollection/classFeesMaster";
+import PdcPaymentSection from "../management/feescollection/PdcPaymentSection";
 
 const routes = all_routes;
  
@@ -312,6 +313,12 @@ export const authRoutes = [
     element: <WithRefresh><ParentDashboard /></WithRefresh>,
     route: Route,
   },
+    {
+    path: routes.pdcPayment,
+    element:<PdcPaymentSection/> ,
+    route: Route,
+  },
+
   {
     path: routes.audioCall,
     element: <AudioCall />,

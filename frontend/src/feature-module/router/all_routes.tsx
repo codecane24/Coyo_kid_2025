@@ -241,7 +241,7 @@ export const all_routes = {
   feesMasterEdit:"/management/edit-fees-master/:id",
   acadmicFees:"/management/acadmic-fees",
   otherCharges:"/management/other-charges",
-
+pdcPayment:"managment/pdc-payment",
     //=== Class Fees Master
   classFeesMaster:"/management/class-fees-master",
   classFeesMasterAdd:"/management/add-class-fees-master",
