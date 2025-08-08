@@ -41,7 +41,7 @@ class ClassFeesController extends Controller
         }
         return response()->json([
             'status' => 'success',
-            'data' => $fee
+            'data' => $fees
         ]);
     }
 

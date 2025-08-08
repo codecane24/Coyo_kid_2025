@@ -162,11 +162,14 @@ const ClassFeesMasterForm = () => {
         // Optionally reset form here
         setSelectedClasses([]);
         setFeesList([]);
+      } else if (res?.message) {
+        toast.error(res.message);
       } else {
-        toast.error(res?.message || "Failed to create Class Fees Master.");
+        toast.error("Failed to create Class Fees Master.");
       }
-    } catch (err) {
-      toast.error("API error. Please try again.");
+    } catch (err: any) {
+      // Handle API error
+      toast.error(err?.response?.data?.message || err?.message || "API error. Please try again.");
     }
   };
 
