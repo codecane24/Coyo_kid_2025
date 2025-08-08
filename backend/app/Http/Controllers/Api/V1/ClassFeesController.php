@@ -41,6 +41,7 @@ class ClassFeesController extends Controller
             'feestype.feesgroup:id,name'
         ])
         ->where('class_id', $classid)
+        ->select('id', 'class_id', 'feestype_id', 'amount', 'due_date')
         ->get();
 
         if ($fees->isEmpty()) {
